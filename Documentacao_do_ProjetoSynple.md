@@ -28,30 +28,29 @@ O Synple é um aplicativo mobile nativo (Android e iOS) para gerenciamento e age
 
 ## 3. Arquitetura e Tecnologias Utilizadas
 
-A arquitetura foi desenhada para garantir o cumprimento do requisito "custo zero", utilizando tecnologias de ponta, 100% gratuitas e open-source, rodando em um servidor local exposto à internet de forma segura.
+A arquitetura foi desenhada para garantir o cumprimento do requisito "custo zero", utilizando tecnologias de ponta, 100% gratuitas e open-source. O aplicativo é desenvolvido com Expo para uso durante o desenvolvimento no Expo Go.
 
 ### Frontend - Mobile (React Native)
 | Categoria | Tecnologia | Justificativa |
 | :--- | :--- | :--- |
-| **Framework** | React Native 0.76+ | App nativo cross-platform (iOS/Android). |
-| **Linguagem** | TypeScript 5.x | Tipagem segura. |
+| **Framework** | Expo (React Native) | Simplifica a configuração e o build cross-platform (iOS/Android). |
+| **Linguagem** | JavaScript | Linguagem padrão, flexível e de rápida prototipação. |
 | **Navegação** | React Navigation 7.x | Padrão da comunidade. |
-| **Estado Global / Cache** | Zustand & React Query | Gerenciamento leve de estado e sincronização de dados. |
 | **UI Components** | React Native Paper | Aceleração de desenvolvimento (Material Design 3). |
 | **Calendário** | react-native-calendars | Visualização nativa de agendas. |
-| **Armazenamento Local** | react-native-mmkv | Banco chave-valor ultrarrápido (substitui o WatermelonDB para o MVP). |
+| **Armazenamento Local** | react-native-mmkv | Banco chave-valor ultrarrápido para armazenamento local. |
 
 ### Backend - API (Node.js)
 | Categoria | Tecnologia | Justificativa |
 | :--- | :--- | :--- |
 | **Runtime & Framework** | Node.js 22 LTS + Express.js 5 | API REST robusta e minimalista. |
-| **Banco de Dados & ORM** | PostgreSQL 16 + Drizzle ORM | Relacional, excelente com fusos horários e tipado. |
+| **Banco de Dados & ORM** | PostgreSQL + Sequelize | Relacional, excelente com fusos horários e fácil integração via JavaScript. |
 | **Autenticação** | Lucia Auth | Gestão de sessões moderna baseada em tokens. |
 | **Validação** | Zod | Schema validation compartilhado com o frontend. |
 
 ### Infraestrutura e Servidor (Custo Zero)
-* **Ambiente:** Ubuntu, com banco de dados rodando via Docker Compose.
-* **Exposição para Internet:** Cloudflare Tunnel para gerar um link HTTPS apontando para o localhost, zerando os custos de hospedagem em nuvem durante o desenvolvimento e avaliação.
+* **Ambiente:** Docker com Docker Compose, orquestrando a aplicação backend e o banco de dados de forma isolada e padronizada.
+* **Exposição para Internet:** Cloudflare Tunnel para gerar um link HTTPS apontando para o ambiente Docker local, zerando os custos de hospedagem em nuvem durante o desenvolvimento e avaliação.
 
 ## 4. Padrões de Interface (UI/UX)
 O aplicativo aplica a filosofia de Clean Design, reduzindo a carga cognitiva:
@@ -66,9 +65,9 @@ O aplicativo aplica a filosofia de Clean Design, reduzindo a carga cognitiva:
 As “regras" para o desenvolvimento e versionamento são:
 
 * **Variáveis e Funções:** `camelCase` (ex: `formatDate`, `getMeetings`).
-* **Componentes React / Telas:** `PascalCase`. Telas devem conter o sufixo apropriado (ex: `MeetingCard.tsx`, `LoginScreen.tsx`).
+* **Componentes React / Telas:** `PascalCase`. Telas devem conter o sufixo apropriado (ex: `MeetingCard.jsx`, `LoginScreen.jsx`).
 * **Constantes Globais:** `UPPER_SNAKE_CASE` (ex: `API_BASE_URL`).
-* **Arquivos Utilitários:** `kebab-case` (ex: `date-utils.ts`).
+* **Arquivos Utilitários:** `kebab-case` (ex: `date-utils.js`).
 * **Versionamento (Git):** Uso obrigatório do padrão Conventional Commits (ex: `feat: adiciona componente de calendário`, `fix: corrige fuso horário`).
 
 ## 6. Proposta de Testes e Documentação
@@ -82,6 +81,6 @@ A estabilidade do sistema será comprovada através de automação e relatórios
 ## 7. Requisitos Não Funcionais
 * **Usabilidade:** O aplicativo adota a "Regra dos 3 Cliques": o fluxo principal de iniciar o agendamento de uma reunião não deve exigir mais que três interações a partir do Dashboard.
 * **Segurança:** Utilização do Lucia Auth para gestão de tokens criptografados. Senhas devem ser "hasheadas" no PostgreSQL (ex: Argon2/Bcrypt) e tokens de sessão no celular protegidos via biblioteca MMKV, impedindo vazamentos locais.
-* **Disponibilidade:** Adoção de uma estratégia Offline-First parcial (leitura). Graças ao cache do React Query em conjunto com o MMKV, o usuário poderá visualizar sua agenda atualizada mesmo quando estiver momentaneamente sem internet.
-* **Desempenho:** Garantia de renderização de tela a 60FPS (utilizando Reanimated) e tempo de abertura inicial (cold start) do aplicativo inferior a 2 segundos na maioria dos dispositivos intermediários.
+* **Disponibilidade:** Adoção de uma estratégia Offline-First parcial (leitura). Utilizando o armazenamento local, o usuário poderá visualizar sua agenda atualizada mesmo quando estiver momentaneamente sem internet.
+* **Desempenho:** Tempo de abertura inicial (cold start) do aplicativo inferior a 2 segundos na maioria dos dispositivos intermediários.
 * **Gratuidade e Licenciamento:** Todo o ecossistema foi pensado para exigir recursos de máquina local e ferramentas abertas (Open Source / MIT), isentando tanto os desenvolvedores quanto os clientes de mensalidades de servidor, serviços de terceiros ou custos de publicação nas lojas de aplicativos, conforme os requisitos acadêmicos.
