@@ -1,4 +1,3 @@
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect, useMemo, useState } from 'react';
 import {
@@ -7,77 +6,21 @@ import {
   Pressable,
   SafeAreaView,
   ScrollView,
-  StyleSheet,
   Text,
-  TextInput,
   View,
 } from 'react-native';
 
-const STORAGE_KEY = '@synple:incremento-1';
-
-const INITIAL_DATA = {
-  organizations: [
-    { id: 'org-aurora', name: 'Estúdio Aurora', document: '12.345.678/0001-90', status: 'APPROVED', ownerId: 'user-admin' },
-    { id: 'org-pendente', name: 'Coletivo Horizonte', document: '98.765.432/0001-10', status: 'PENDING', ownerId: 'user-admin' },
-  ],
-  users: [
-    { id: 'user-admin', name: 'Marina Costa', email: 'marina@synple.app', phone: '(11) 99999-0000', theme: 'LIGHT', passwordHash: 'demo-admin' },
-    { id: 'user-visitante', name: 'João Silva', email: 'joao@email.com', phone: '', theme: 'LIGHT', passwordHash: 'demo-visitante' },
-  ],
-  accessRequests: [
-    { id: 'request-1', organizationId: 'org-aurora', userId: 'user-visitante', status: 'PENDING' },
-  ],
-  commissions: [
-    { id: 'commission-1', organizationId: 'org-aurora', name: 'Comunicação', description: 'Divulgação e relacionamento com a comunidade.', status: 'ACTIVE' },
-  ],
-  commissionMembers: [{ commissionId: 'commission-1', userId: 'user-admin' }],
-  system: {
-    initialized: true,
-    initializedAt: '2026-09-01T00:00:00.000Z',
-    subsystems: [
-      { id: 'api', name: 'API e autenticação', status: 'ONLINE' },
-      { id: 'database', name: 'Banco de dados', status: 'ONLINE' },
-      { id: 'notifications', name: 'Notificações', status: 'ONLINE' },
-    ],
-  },
-};
-
-const STATUS_LABELS = { PENDING: 'Pendente', APPROVED: 'Aprovado', REJECTED: 'Rejeitado', REVOKED: 'Revogado' };
-const SUBSYSTEM_LABELS = { ONLINE: 'Operacional', RESTARTING: 'Reiniciando' };
+import { Choice, Field, StatusBadge } from './src/components/FormControls';
+import { INITIAL_DATA } from './src/constants/data';
+import { SUBSYSTEM_LABELS } from './src/constants/status';
+import { useSynpleData } from './src/hooks/useSynpleData';
+import { normalizeEmail, validateOrganization, validatePassword, validateUser } from './src/services/validation';
+import { styles } from './src/styles/theme';
 
 const createId = (prefix) => `${prefix}-${Date.now()}`;
 
-function StatusBadge({ status }) {
-  return <Text style={[styles.badge, styles[`badge${status}`]]}>{STATUS_LABELS[status]}</Text>;
-}
-
-function Field({ label, value, onChangeText, placeholder, keyboardType = 'default' }) {
-  return (
-    <View style={styles.field}>
-      <Text style={styles.label}>{label}</Text>
-      <TextInput
-        value={value}
-        onChangeText={onChangeText}
-        placeholder={placeholder}
-        placeholderTextColor="#94A3B8"
-        keyboardType={keyboardType}
-        style={styles.input}
-      />
-    </View>
-  );
-}
-
-function Choice({ active, label, onPress }) {
-  return (
-    <Pressable onPress={onPress} style={[styles.choice, active && styles.choiceActive]}>
-      <Text style={[styles.choiceText, active && styles.choiceTextActive]}>{label}</Text>
-    </Pressable>
-  );
-}
-
 export default function App() {
-  const [data, setData] = useState(INITIAL_DATA);
-  const [isReady, setIsReady] = useState(false);
+  const { data, isReady, setData, storageError } = useSynpleData();
   const [showSplash, setShowSplash] = useState(true);
   const [screen, setScreen] = useState('organizations');
   const [role, setRole] = useState('SYSTEM_ADMIN');
@@ -91,25 +34,8 @@ export default function App() {
   const [passwordForm, setPasswordForm] = useState({ current: '', next: '', confirm: '' });
 
   useEffect(() => {
-    async function loadData() {
-      try {
-        const savedData = await AsyncStorage.getItem(STORAGE_KEY);
-        if (savedData) {
-          const parsedData = JSON.parse(savedData);
-          setData({ ...INITIAL_DATA, ...parsedData, system: { ...INITIAL_DATA.system, ...parsedData.system } });
-        }
-      } catch (error) {
-        Alert.alert('Aviso', 'Não foi possível recuperar os dados locais.');
-      } finally {
-        setIsReady(true);
-      }
-    }
-    loadData();
-  }, []);
-
-  useEffect(() => {
-    if (isReady) AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(data));
-  }, [data, isReady]);
+    if (storageError) Alert.alert('Aviso', storageError);
+  }, [storageError]);
 
   useEffect(() => {
     if (!isReady) return undefined;
@@ -130,12 +56,13 @@ export default function App() {
   ));
 
   function createOrganization() {
-    const name = organizationForm.name.trim();
-    const document = organizationForm.document.trim();
-    if (!name || !document) {
-      Alert.alert('Campos obrigatórios', 'Informe o nome e o CNPJ da organização.');
+    const validationError = validateOrganization(organizationForm);
+    if (validationError) {
+      Alert.alert('Campos obrigatórios', validationError);
       return;
     }
+    const name = organizationForm.name.trim();
+    const document = organizationForm.document.trim();
     if (data.organizations.some((organization) => organization.document === document)) {
       Alert.alert('CNPJ já cadastrado', 'Já existe uma organização com este CNPJ.');
       return;
@@ -158,17 +85,18 @@ export default function App() {
   }
 
   function createUser() {
-    const name = userForm.name.trim();
-    const email = userForm.email.trim().toLowerCase();
-    if (!name || !email || !email.includes('@')) {
-      Alert.alert('Dados inválidos', 'Informe nome e um e-mail válido.');
+    const validationError = validateUser(userForm);
+    if (validationError) {
+      Alert.alert('Dados inválidos', validationError);
       return;
     }
+    const name = userForm.name.trim();
+    const email = normalizeEmail(userForm.email);
     if (data.users.some((user) => user.email === email)) {
       Alert.alert('E-mail já cadastrado', 'Use outro e-mail ou selecione o usuário existente.');
       return;
     }
-    const user = { id: createId('user'), name, email, phone: '', theme: 'LIGHT', passwordHash: `demo-${Date.now()}` };
+    const user = { id: createId('user'), name, email, phone: '', theme: 'LIGHT' };
     setData((current) => ({ ...current, users: [...current.users, user] }));
     setActiveUserId(user.id);
     setUserForm({ name: '', email: '' });
@@ -235,17 +163,19 @@ export default function App() {
   }
 
   function updateProfile() {
+    const validationError = validateUser(profileForm);
+    if (validationError) return Alert.alert('Dados inválidos', validationError);
     const name = profileForm.name.trim();
-    const email = profileForm.email.trim().toLowerCase();
-    if (!name || !email.includes('@')) return Alert.alert('Dados inválidos', 'Informe nome e e-mail válido.');
+    const email = normalizeEmail(profileForm.email);
     if (data.users.some((user) => user.id !== activeUserId && user.email === email)) return Alert.alert('E-mail já utilizado', 'Escolha outro e-mail.');
     setData((current) => ({ ...current, users: current.users.map((user) => user.id === activeUserId ? { ...user, name, email, phone: profileForm.phone.trim() } : user) }));
     Alert.alert('Dados atualizados', 'Suas informações pessoais foram alteradas.');
   }
 
   function updatePassword() {
-    if (!passwordForm.current || passwordForm.next.length < 6 || passwordForm.next !== passwordForm.confirm) return Alert.alert('Senha inválida', 'Informe a senha atual; a nova senha deve ter ao menos 6 caracteres e coincidir com a confirmação.');
-    setData((current) => ({ ...current, users: current.users.map((user) => user.id === activeUserId ? { ...user, passwordHash: `demo-${Date.now()}`, passwordUpdatedAt: new Date().toISOString() } : user) }));
+    const validationError = validatePassword(passwordForm);
+    if (validationError) return Alert.alert('Senha inválida', validationError);
+    setData((current) => ({ ...current, users: current.users.map((user) => user.id === activeUserId ? { ...user, passwordUpdatedAt: new Date().toISOString() } : user) }));
     setPasswordForm({ current: '', next: '', confirm: '' });
     Alert.alert('Senha alterada', 'A alteração foi registrada nesta demonstração local.');
   }
@@ -391,7 +321,7 @@ export default function App() {
         {screen === 'profile' && (
           <>
             <View style={styles.card}><Text style={styles.cardTitle}>Dados pessoais</Text><Field label="Nome" value={profileForm.name} onChangeText={(name) => setProfileForm({ ...profileForm, name })} placeholder="Seu nome" /><Field label="E-mail" value={profileForm.email} onChangeText={(email) => setProfileForm({ ...profileForm, email })} placeholder="voce@email.com" keyboardType="email-address" /><Field label="Telefone" value={profileForm.phone} onChangeText={(phone) => setProfileForm({ ...profileForm, phone })} placeholder="(00) 00000-0000" keyboardType="phone-pad" /><Pressable style={styles.primaryButton} onPress={updateProfile}><Text style={styles.primaryButtonText}>Salvar dados</Text></Pressable></View>
-            <View style={styles.card}><Text style={styles.cardTitle}>Trocar senha</Text><Field label="Senha atual" value={passwordForm.current} onChangeText={(current) => setPasswordForm({ ...passwordForm, current })} placeholder="Senha atual" /><Field label="Nova senha" value={passwordForm.next} onChangeText={(next) => setPasswordForm({ ...passwordForm, next })} placeholder="Mínimo de 6 caracteres" /><Field label="Confirmar nova senha" value={passwordForm.confirm} onChangeText={(confirm) => setPasswordForm({ ...passwordForm, confirm })} placeholder="Repita a nova senha" /><Pressable style={styles.primaryButton} onPress={updatePassword}><Text style={styles.primaryButtonText}>Atualizar senha</Text></Pressable><Pressable style={styles.resetButton} onPress={recoverAccount}><Text style={styles.resetText}>Recuperar conta por e-mail</Text></Pressable></View>
+            <View style={styles.card}><Text style={styles.cardTitle}>Trocar senha</Text><Field label="Senha atual" value={passwordForm.current} onChangeText={(current) => setPasswordForm({ ...passwordForm, current })} placeholder="Senha atual" secureTextEntry /><Field label="Nova senha" value={passwordForm.next} onChangeText={(next) => setPasswordForm({ ...passwordForm, next })} placeholder="Mínimo de 6 caracteres" secureTextEntry /><Field label="Confirmar nova senha" value={passwordForm.confirm} onChangeText={(confirm) => setPasswordForm({ ...passwordForm, confirm })} placeholder="Repita a nova senha" secureTextEntry /><Pressable style={styles.primaryButton} onPress={updatePassword}><Text style={styles.primaryButtonText}>Atualizar senha</Text></Pressable><Pressable style={styles.resetButton} onPress={recoverAccount}><Text style={styles.resetText}>Recuperar conta por e-mail</Text></Pressable></View>
             <View style={styles.card}><Text style={styles.cardTitle}>Tema preferido</Text><View style={styles.userChoices}><Choice label="Claro" active={(activeUser?.theme || 'LIGHT') === 'LIGHT'} onPress={() => setTheme('LIGHT')} /><Choice label="Escuro" active={activeUser?.theme === 'DARK'} onPress={() => setTheme('DARK')} /></View></View>
           </>
         )}
@@ -409,15 +339,3 @@ export default function App() {
     </SafeAreaView>
   );
 }
-
-const styles = StyleSheet.create({
-  safeArea: { flex: 1, backgroundColor: '#F7F8FC' }, darkSurface: { backgroundColor: '#252447' }, loading: { flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: '#F7F8FC', padding: 32 }, splashLogo: { width: 230, height: 210 }, loadingText: { color: '#4B43CF', fontSize: 28, fontWeight: '800', marginTop: 2 }, loadingCaption: { color: '#64748B', fontSize: 14, marginTop: 8 },
-  header: { padding: 18, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', backgroundColor: '#FFFFFF', borderBottomWidth: 1, borderColor: '#E6E8F3' }, headerIdentity: { flexDirection: 'row', alignItems: 'center', gap: 8 }, headerLogo: { width: 48, height: 44 }, brand: { fontSize: 28, color: '#4B43CF', fontWeight: '800' }, subtitle: { color: '#64748B', marginTop: 2 }, avatar: { width: 42, height: 42, borderRadius: 21, backgroundColor: '#E7E6FF', alignItems: 'center', justifyContent: 'center' }, avatarText: { color: '#4B43CF', fontSize: 18, fontWeight: '800' },
-  content: { padding: 18, paddingBottom: 40 }, sectionTitle: { fontSize: 15, fontWeight: '800', color: '#1E293B', marginTop: 12, marginBottom: 9 }, roleRow: { flexDirection: 'row', gap: 7, marginBottom: 14 }, navigation: { flexDirection: 'row', gap: 7, marginBottom: 8, flexWrap: 'wrap' },
-  choice: { paddingVertical: 9, paddingHorizontal: 11, borderWidth: 1, borderColor: '#CBD5E1', borderRadius: 10, backgroundColor: '#FFFFFF' }, choiceActive: { borderColor: '#4F46E5', backgroundColor: '#EEF2FF' }, choiceText: { color: '#475569', fontWeight: '700', fontSize: 12 }, choiceTextActive: { color: '#4338CA' },
-  card: { backgroundColor: '#FFFFFF', borderRadius: 16, padding: 16, marginBottom: 12, borderWidth: 1, borderColor: '#E2E8F0' }, cardHeader: { flexDirection: 'row', alignItems: 'flex-start', justifyContent: 'space-between', gap: 8 }, cardTitle: { color: '#1E293B', fontSize: 17, fontWeight: '800' }, hint: { color: '#64748B', fontSize: 13, lineHeight: 19, marginTop: 5, marginBottom: 10 }, muted: { color: '#64748B', fontSize: 13, marginTop: 3 },
-  field: { marginTop: 10 }, label: { color: '#334155', fontSize: 13, fontWeight: '700', marginBottom: 6 }, input: { backgroundColor: '#F8FAFC', color: '#1E293B', borderWidth: 1, borderColor: '#CBD5E1', paddingHorizontal: 12, paddingVertical: 11, borderRadius: 10, fontSize: 15 },
-  primaryButton: { backgroundColor: '#4F46E5', borderRadius: 10, alignItems: 'center', paddingVertical: 13, marginTop: 16 }, primaryButtonText: { color: '#FFFFFF', fontWeight: '800' }, actionRow: { flexDirection: 'row', gap: 8, marginTop: 14 }, approveButton: { flex: 1, backgroundColor: '#10B981', alignItems: 'center', paddingVertical: 10, borderRadius: 9 }, actionText: { color: '#FFFFFF', fontWeight: '800', fontSize: 13 }, rejectButton: { flex: 1, backgroundColor: '#FFF1F2', alignItems: 'center', paddingVertical: 10, borderRadius: 9 }, rejectText: { color: '#BE123C', fontWeight: '800', fontSize: 13 }, outlineButton: { marginTop: 14, borderWidth: 1, borderColor: '#FDA4AF', alignItems: 'center', paddingVertical: 10, borderRadius: 9 }, outlineText: { color: '#BE123C', fontWeight: '800', fontSize: 13 },
-  badge: { borderRadius: 999, paddingHorizontal: 9, paddingVertical: 4, overflow: 'hidden', fontSize: 11, fontWeight: '800' }, badgePENDING: { color: '#92400E', backgroundColor: '#FEF3C7' }, badgeAPPROVED: { color: '#047857', backgroundColor: '#D1FAE5' }, badgeREJECTED: { color: '#BE123C', backgroundColor: '#FFE4E6' }, badgeREVOKED: { color: '#475569', backgroundColor: '#E2E8F0' },
-  userChoices: { flexDirection: 'row', gap: 7, flexWrap: 'wrap', marginTop: 4 }, member: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', backgroundColor: '#FFFFFF', padding: 14, borderRadius: 12, borderWidth: 1, borderColor: '#E2E8F0', marginBottom: 8 }, memberName: { color: '#1E293B', fontWeight: '800' }, selectedCard: { borderColor: '#4F46E5', borderWidth: 2 }, activeTag: { color: '#047857', fontWeight: '800', fontSize: 12 }, removeText: { color: '#BE123C', fontWeight: '800', fontSize: 12 }, smallButton: { backgroundColor: '#EEF2FF', paddingVertical: 8, paddingHorizontal: 10, borderRadius: 8 }, smallButtonText: { color: '#4338CA', fontWeight: '800', fontSize: 12 }, reportRow: { flexDirection: 'row', alignItems: 'baseline', gap: 8, borderBottomWidth: 1, borderColor: '#F1F5F9', paddingVertical: 8 }, reportNumber: { color: '#4F46E5', fontSize: 24, fontWeight: '800' }, empty: { color: '#64748B', marginBottom: 14 }, resetButton: { alignSelf: 'center', padding: 12, marginTop: 8 }, resetText: { color: '#64748B', fontWeight: '700', fontSize: 12, textDecorationLine: 'underline' },
-});
