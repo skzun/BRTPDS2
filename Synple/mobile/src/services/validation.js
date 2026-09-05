@@ -21,4 +21,16 @@ function validatePassword({ current = '', next = '', confirm = '' }) {
   return null;
 }
 
-module.exports = { normalizeEmail, validateOrganization, validatePassword, validateUser };
+function validateLogin({ email = '', password = '' }) {
+  if (!EMAIL_PATTERN.test(normalizeEmail(email)) || !password) return 'Informe um e-mail válido e uma senha.';
+  return null;
+}
+
+function validateRegistration({ name = '', email = '', password = '', confirmPassword = '' }) {
+  const userError = validateUser({ name, email });
+  if (userError) return userError;
+  if (password.length < 6 || password !== confirmPassword) return 'A senha deve ter ao menos 6 caracteres e coincidir com a confirmação.';
+  return null;
+}
+
+module.exports = { normalizeEmail, validateLogin, validateOrganization, validatePassword, validateRegistration, validateUser };

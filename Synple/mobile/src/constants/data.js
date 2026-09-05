@@ -1,7 +1,7 @@
 const INITIAL_DATA = {
   organizations: [
     { id: 'org-aurora', name: 'Estúdio Aurora', document: '12.345.678/0001-90', status: 'APPROVED', ownerId: 'user-admin' },
-    { id: 'org-pendente', name: 'Coletivo Horizonte', document: '98.765.432/0001-10', status: 'PENDING', ownerId: 'user-admin' },
+    { id: 'org-horizonte', name: 'Coletivo Horizonte', document: '98.765.432/0001-10', status: 'APPROVED', ownerId: 'user-admin' },
   ],
   users: [
     { id: 'user-admin', name: 'Marina Costa', email: 'marina@synple.app', phone: '(11) 99999-0000', theme: 'LIGHT' },
