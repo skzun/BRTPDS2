@@ -28,7 +28,7 @@ export default function App() {
   const [role, setRole] = useState('USER');
   const [activeUserId, setActiveUserId] = useState('user-visitante');
   const [organizationForm, setOrganizationForm] = useState({ name: '', document: '' });
-  const [userForm, setUserForm] = useState({ name: '', email: '' });
+  const [organizationSearch, setOrganizationSearch] = useState('');
   const [selectedOrganizationId, setSelectedOrganizationId] = useState('org-aurora');
   const [commissionForm, setCommissionForm] = useState({ name: '', description: '' });
   const [selectedCommissionId, setSelectedCommissionId] = useState('commission-1');
@@ -46,8 +46,10 @@ export default function App() {
   }, [isReady]);
 
   const activeUser = data.users.find((user) => user.id === activeUserId);
-  const isAdmin = role === 'ORG_ADMIN';
+  const isSystemAdmin = role === 'SYSTEM_ADMIN';
   const ownedOrganizations = data.organizations.filter((organization) => organization.ownerId === activeUserId);
+  const approvedOwnedOrganizations = ownedOrganizations.filter((organization) => organization.status === 'APPROVED');
+  const isCeo = !isSystemAdmin && approvedOwnedOrganizations.length > 0;
   const selectedOrganization = data.organizations.find((organization) => organization.id === selectedOrganizationId);
   const approvedOrganizations = useMemo(
     () => data.organizations.filter((organization) => organization.status === 'APPROVED'),
@@ -71,16 +73,16 @@ export default function App() {
       Alert.alert('CNPJ já cadastrado', 'Já existe uma organização com este CNPJ.');
       return;
     }
-    const organization = { id: createId('org'), name, document, ownerId: activeUserId, status: 'APPROVED' };
+    const organization = { id: createId('org'), name, document, ownerId: activeUserId, status: 'PENDING' };
     setData((current) => ({
       ...current,
       organizations: [...current.organizations, organization],
     }));
     setSelectedOrganizationId(organization.id);
-    setRole('ORG_ADMIN');
-    setScreen('access');
+    setRole('USER');
+    setScreen('management');
     setOrganizationForm({ name: '', document: '' });
-    Alert.alert('Organização criada', 'Você agora é o administrador desta organização e pode gerenciar solicitações de entrada.');
+    Alert.alert('Cadastro enviado', 'Sua organização aguarda aprovação do administrador do sistema. Após a aprovação, você será o CEO e poderá gerenciar acessos e comissões.');
   }
 
   function login({ email, password, mode }) {
@@ -90,16 +92,15 @@ export default function App() {
     const user = data.users.find((item) => item.email === normalizeEmail(email));
     if (!user) return Alert.alert('Conta não encontrada', 'Cadastre um usuário antes de entrar.');
 
-    const isAdministrator = data.organizations.some((organization) => organization.ownerId === user.id);
-    if (mode === 'ADMIN' && !isAdministrator) return Alert.alert('Acesso negado', 'Esta conta não possui perfil de administrador.');
+    if (mode === 'SYSTEM_ADMIN' && user.systemRole !== 'SYSTEM_ADMIN') return Alert.alert('Acesso negado', 'Esta conta não possui perfil de administrador do sistema.');
 
     setActiveUserId(user.id);
-    const firstOwnedOrganization = data.organizations.find((organization) => organization.ownerId === user.id);
+    const firstOwnedOrganization = data.organizations.find((organization) => organization.ownerId === user.id && organization.status === 'APPROVED');
     const firstRequestableOrganization = data.organizations.find((organization) => organization.status === 'APPROVED' && organization.ownerId !== user.id);
-    if (mode === 'ADMIN' && firstOwnedOrganization) setSelectedOrganizationId(firstOwnedOrganization.id);
-    if (mode === 'USER' && firstRequestableOrganization) setSelectedOrganizationId(firstRequestableOrganization.id);
-    setRole(mode === 'ADMIN' ? 'ORG_ADMIN' : 'USER');
-    setScreen('access');
+    if (mode === 'USER' && firstOwnedOrganization) setSelectedOrganizationId(firstOwnedOrganization.id);
+    else if (mode === 'USER' && firstRequestableOrganization) setSelectedOrganizationId(firstRequestableOrganization.id);
+    setRole(mode === 'SYSTEM_ADMIN' ? 'SYSTEM_ADMIN' : 'USER');
+    setScreen(mode === 'SYSTEM_ADMIN' ? 'admin-management' : 'organizations');
     setIsAuthenticated(true);
   }
 
@@ -123,6 +124,7 @@ export default function App() {
   }
 
   function changeOrganizationStatus(organizationId, status) {
+    if (!isSystemAdmin) return;
     setData((current) => ({
       ...current,
       organizations: current.organizations.map((organization) => (
@@ -131,32 +133,52 @@ export default function App() {
     }));
   }
 
-  function createUser() {
-    const validationError = validateUser(userForm);
-    if (validationError) {
-      Alert.alert('Dados inválidos', validationError);
-      return;
-    }
-    const name = userForm.name.trim();
-    const email = normalizeEmail(userForm.email);
-    if (data.users.some((user) => user.email === email)) {
-      Alert.alert('E-mail já cadastrado', 'Use outro e-mail ou selecione o usuário existente.');
-      return;
-    }
-    const user = { id: createId('user'), name, email, phone: '', theme: 'LIGHT' };
-    setData((current) => ({ ...current, users: [...current.users, user] }));
-    setUserForm({ name: '', email: '' });
-    Alert.alert('Cadastro concluído', 'O usuário já pode entrar e solicitar acesso a uma organização aprovada.');
+  function removeOrganization(organizationId) {
+    if (!isSystemAdmin) return;
+    Alert.alert('Remover organização', 'A organização, suas comissões e seus acessos serão removidos.', [
+      { text: 'Cancelar', style: 'cancel' },
+      { text: 'Remover', style: 'destructive', onPress: () => setData((current) => {
+        const commissionIds = current.commissions.filter((commission) => commission.organizationId === organizationId).map((commission) => commission.id);
+        return {
+          ...current,
+          organizations: current.organizations.filter((organization) => organization.id !== organizationId),
+          accessRequests: current.accessRequests.filter((request) => request.organizationId !== organizationId),
+          commissions: current.commissions.filter((commission) => commission.organizationId !== organizationId),
+          commissionMembers: current.commissionMembers.filter((member) => !commissionIds.includes(member.commissionId)),
+        };
+      }) },
+    ]);
   }
 
-  function requestAccess() {
-    if (!selectedOrganization || selectedOrganization.status !== 'APPROVED') return;
-    if (selectedOrganization.ownerId === activeUserId) {
-      Alert.alert('Você já é administrador', 'O administrador da organização não precisa solicitar acesso a ela.');
+  function removeUser(userId) {
+    const user = data.users.find((item) => item.id === userId);
+    if (!isSystemAdmin || !user || user.id === activeUserId || user.systemRole === 'SYSTEM_ADMIN') return;
+    Alert.alert('Remover usuário', 'As organizações e acessos vinculados a esta conta também serão removidos.', [
+      { text: 'Cancelar', style: 'cancel' },
+      { text: 'Remover', style: 'destructive', onPress: () => setData((current) => {
+        const organizationIds = current.organizations.filter((organization) => organization.ownerId === userId).map((organization) => organization.id);
+        const commissionIds = current.commissions.filter((commission) => organizationIds.includes(commission.organizationId)).map((commission) => commission.id);
+        return {
+          ...current,
+          users: current.users.filter((item) => item.id !== userId),
+          organizations: current.organizations.filter((organization) => organization.ownerId !== userId),
+          accessRequests: current.accessRequests.filter((request) => request.userId !== userId && !organizationIds.includes(request.organizationId)),
+          commissions: current.commissions.filter((commission) => !organizationIds.includes(commission.organizationId)),
+          commissionMembers: current.commissionMembers.filter((member) => member.userId !== userId && !commissionIds.includes(member.commissionId)),
+        };
+      }) },
+    ]);
+  }
+
+  function requestAccess(organizationId = selectedOrganizationId) {
+    const organization = data.organizations.find((item) => item.id === organizationId);
+    if (!organization || organization.status !== 'APPROVED') return;
+    if (organization.ownerId === activeUserId) {
+      Alert.alert('Você já é o CEO', 'O CEO da organização não precisa solicitar acesso a ela.');
       return;
     }
     const existingRequest = data.accessRequests.find((request) => (
-      request.organizationId === selectedOrganization.id && request.userId === activeUserId && ['PENDING', 'APPROVED'].includes(request.status)
+      request.organizationId === organization.id && request.userId === activeUserId && ['PENDING', 'APPROVED'].includes(request.status)
     ));
     if (existingRequest) {
       Alert.alert('Solicitação existente', 'Este usuário já possui uma solicitação ou acesso nesta organização.');
@@ -165,16 +187,16 @@ export default function App() {
     setData((current) => ({
       ...current,
       accessRequests: [...current.accessRequests, {
-        id: createId('access'), organizationId: selectedOrganization.id, userId: activeUserId, status: 'PENDING',
+        id: createId('access'), organizationId: organization.id, userId: activeUserId, status: 'PENDING',
       }],
     }));
-    Alert.alert('Solicitação enviada', 'O administrador da organização deverá aprovar ou rejeitar o acesso.');
+    Alert.alert('Solicitação enviada', 'O CEO da organização deverá aprovar ou rejeitar o acesso.');
   }
 
   function changeAccessStatus(requestId, status) {
     const request = data.accessRequests.find((item) => item.id === requestId);
     const organization = data.organizations.find((item) => item.id === request?.organizationId);
-    if (!isAdmin || organization?.ownerId !== activeUserId) return;
+    if (!isCeo || organization?.ownerId !== activeUserId || organization.status !== 'APPROVED') return;
     setData((current) => ({
       ...current,
       accessRequests: current.accessRequests.map((request) => (
@@ -186,7 +208,7 @@ export default function App() {
   function updateOrganizationRole(requestId, organizationRole) {
     const request = data.accessRequests.find((item) => item.id === requestId);
     const organization = data.organizations.find((item) => item.id === request?.organizationId);
-    if (!isAdmin || organization?.ownerId !== activeUserId || request.status !== 'APPROVED') return;
+    if (!isCeo || organization?.ownerId !== activeUserId || organization.status !== 'APPROVED' || request.status !== 'APPROVED') return;
     setData((current) => ({
       ...current,
       accessRequests: current.accessRequests.map((item) => (item.id === requestId ? { ...item, organizationRole } : item)),
@@ -196,7 +218,7 @@ export default function App() {
   function removeOrganizationMember(requestId) {
     const request = data.accessRequests.find((item) => item.id === requestId);
     const organization = data.organizations.find((item) => item.id === request?.organizationId);
-    if (!isAdmin || organization?.ownerId !== activeUserId || request.status !== 'APPROVED') return;
+    if (!isCeo || organization?.ownerId !== activeUserId || organization.status !== 'APPROVED' || request.status !== 'APPROVED') return;
     Alert.alert('Remover membro', 'A pessoa perderá acesso à organização e às comissões vinculadas.', [
       { text: 'Cancelar', style: 'cancel' },
       { text: 'Remover', style: 'destructive', onPress: () => setData((current) => ({
@@ -208,7 +230,7 @@ export default function App() {
   }
 
   function createCommission() {
-    if (!isAdmin || selectedOrganization?.ownerId !== activeUserId) return;
+    if (!isCeo || selectedOrganization?.ownerId !== activeUserId || selectedOrganization.status !== 'APPROVED') return;
     const name = commissionForm.name.trim();
     if (!name) return Alert.alert('Dados obrigatórios', 'Informe o nome da comissão.');
     if (data.commissions.some((commission) => commission.organizationId === selectedOrganizationId && commission.name.toLowerCase() === name.toLowerCase())) return Alert.alert('Comissão já cadastrada', 'Escolha outro nome para a comissão.');
@@ -216,12 +238,12 @@ export default function App() {
     setData((current) => ({ ...current, commissions: [...current.commissions, commission], commissionMembers: [...current.commissionMembers, { commissionId: commission.id, userId: activeUserId }] }));
     setSelectedCommissionId(commission.id);
     setCommissionForm({ name: '', description: '' });
-    Alert.alert('Comissão criada', 'O administrador foi incluído na equipe.');
+    Alert.alert('Comissão criada', 'O CEO foi incluído na equipe.');
   }
 
   function deleteCommission(commissionId) {
     const commission = data.commissions.find((item) => item.id === commissionId);
-    if (!commission || selectedOrganization?.ownerId !== activeUserId) return;
+    if (!commission || selectedOrganization?.ownerId !== activeUserId || selectedOrganization.status !== 'APPROVED') return;
     Alert.alert('Excluir comissão', 'A equipe vinculada também será removida.', [{ text: 'Cancelar', style: 'cancel' }, { text: 'Excluir', style: 'destructive', onPress: () => {
       setData((current) => ({ ...current, commissions: current.commissions.filter((commission) => commission.id !== commissionId), commissionMembers: current.commissionMembers.filter((member) => member.commissionId !== commissionId) }));
       setSelectedCommissionId('');
@@ -229,12 +251,12 @@ export default function App() {
   }
 
   function addCommissionMember(userId) {
-    if (!selectedCommission || selectedOrganization?.ownerId !== activeUserId || data.commissionMembers.some((member) => member.commissionId === selectedCommission.id && member.userId === userId)) return;
+    if (!selectedCommission || selectedOrganization?.ownerId !== activeUserId || selectedOrganization.status !== 'APPROVED' || data.commissionMembers.some((member) => member.commissionId === selectedCommission.id && member.userId === userId)) return;
     setData((current) => ({ ...current, commissionMembers: [...current.commissionMembers, { commissionId: selectedCommission.id, userId }] }));
   }
 
   function removeCommissionMember(userId) {
-    if (selectedOrganization?.ownerId !== activeUserId) return;
+    if (selectedOrganization?.ownerId !== activeUserId || selectedOrganization.status !== 'APPROVED') return;
     setData((current) => ({ ...current, commissionMembers: current.commissionMembers.filter((member) => !(member.commissionId === selectedCommissionId && member.userId === userId)) }));
   }
 
@@ -271,16 +293,19 @@ export default function App() {
   }
 
   function restartSubsystem(subsystemId) {
+    if (!isSystemAdmin) return;
     setData((current) => ({ ...current, system: { ...current.system, subsystems: current.system.subsystems.map((subsystem) => subsystem.id === subsystemId ? { ...subsystem, status: 'RESTARTING' } : subsystem) } }));
     setTimeout(() => setData((current) => ({ ...current, system: { ...current.system, subsystems: current.system.subsystems.map((subsystem) => subsystem.id === subsystemId ? { ...subsystem, status: 'ONLINE' } : subsystem) } })), 900);
   }
 
   function initializeSystem() {
+    if (!isSystemAdmin) return;
     setData((current) => ({ ...current, system: { ...current.system, initialized: true, initializedAt: new Date().toISOString() } }));
     Alert.alert('Sistema inicializado', 'Os subsistemas estão prontos para operação.');
   }
 
   function resetDemo() {
+    if (!isSystemAdmin) return;
     Alert.alert('Restaurar demonstração', 'Os dados cadastrados neste dispositivo serão removidos.', [
       { text: 'Cancelar', style: 'cancel' },
       { text: 'Restaurar', style: 'destructive', onPress: () => setData(INITIAL_DATA) },
@@ -291,6 +316,7 @@ export default function App() {
   const requestableOrganizations = approvedOrganizations.filter((organization) => organization.ownerId !== activeUserId);
   const organizationPendingRequests = data.accessRequests.filter((request) => request.organizationId === selectedOrganizationId && request.status === 'PENDING');
   const organizationApprovedRequests = data.accessRequests.filter((request) => request.organizationId === selectedOrganizationId && request.status === 'APPROVED');
+  const searchableOrganizations = approvedOrganizations.filter((organization) => organization.name.toLowerCase().includes(organizationSearch.trim().toLowerCase()) || organization.document.includes(organizationSearch.trim()));
   const commissionTeam = data.commissionMembers.filter((member) => member.commissionId === selectedCommissionId).map((member) => data.users.find((user) => user.id === member.userId)).filter(Boolean);
 
   if (!isReady || showSplash) {
@@ -308,51 +334,59 @@ export default function App() {
       </View>
 
       <ScrollView contentContainerStyle={styles.content}>
-        <View style={styles.sessionRow}><Text style={styles.sectionTitle}>Acesso: {isAdmin ? 'Administrador da organização' : 'Usuário'}</Text><Pressable onPress={logout}><Text style={styles.logoutText}>Sair</Text></Pressable></View>
+        <View style={styles.sessionRow}><Text style={styles.sectionTitle}>Acesso: {isSystemAdmin ? 'Administrador do sistema' : isCeo ? 'CEO' : 'Usuário'}</Text><Pressable onPress={logout}><Text style={styles.logoutText}>Sair</Text></Pressable></View>
 
         <View style={styles.navigation}>
-          <Choice label="Organizações" active={screen === 'organizations'} onPress={() => setScreen('organizations')} />
-          <Choice label="Acessos" active={screen === 'access'} onPress={() => setScreen('access')} />
-          {isAdmin && <Choice label="Comissões" active={screen === 'commissions'} onPress={() => setScreen('commissions')} />}
+          {!isSystemAdmin && <Choice label="Organizações" active={screen === 'organizations'} onPress={() => setScreen('organizations')} />}
+          {!isSystemAdmin && <Choice label="Minha organização" active={screen === 'management'} onPress={() => setScreen('management')} />}
+          {isSystemAdmin && <Choice label="Gestão" active={screen === 'admin-management'} onPress={() => setScreen('admin-management')} />}
+          {isSystemAdmin && <Choice label="Sistema" active={screen === 'system'} onPress={() => setScreen('system')} />}
           <Choice label="Perfil" active={screen === 'profile'} onPress={openProfile} />
         </View>
 
         {screen === 'organizations' && (
           <>
-            {!isAdmin && <View style={styles.card}>
-              <Text style={styles.cardTitle}>Cadastrar organização</Text>
-              <Text style={styles.hint}>O cadastro fica pendente até a análise do administrador do sistema.</Text>
-              <Field label="Nome da organização" value={organizationForm.name} onChangeText={(name) => setOrganizationForm({ ...organizationForm, name })} placeholder="Ex.: Empresa Synple" />
-              <Field label="CNPJ" value={organizationForm.document} onChangeText={(document) => setOrganizationForm({ ...organizationForm, document })} placeholder="00.000.000/0000-00" keyboardType="numeric" />
-              <Pressable style={styles.primaryButton} onPress={createOrganization}><Text style={styles.primaryButtonText}>Enviar cadastro</Text></Pressable>
-            </View>}
-
-            <Text style={styles.sectionTitle}>{isAdmin ? 'Minhas organizações' : 'Organizações aprovadas'}</Text>
-            {data.organizations.filter((organization) => (isAdmin ? organization.ownerId === activeUserId : organization.status === 'APPROVED')).map((organization) => (
+            <Text style={styles.sectionTitle}>Organizações</Text>
+            <View style={styles.card}><Text style={styles.hint}>Encontre organizações disponíveis para participar.</Text><Field label="Pesquisar" value={organizationSearch} onChangeText={setOrganizationSearch} placeholder="Nome ou CNPJ" /></View>
+            {searchableOrganizations.length === 0 && <Text style={styles.empty}>Nenhuma organização encontrada.</Text>}
+            {searchableOrganizations.map((organization) => (
               <View key={organization.id} style={styles.card}>
                 <View style={styles.cardHeader}><View><Text style={styles.cardTitle}>{organization.name}</Text><Text style={styles.muted}>{organization.document}</Text></View><StatusBadge status={organization.status} /></View>
+                {organization.ownerId !== activeUserId && <Pressable style={styles.smallButton} onPress={() => requestAccess(organization.id)}><Text style={styles.smallButtonText}>Solicitar entrada</Text></Pressable>}
+                {organization.ownerId === activeUserId && <Text style={styles.ownerTag}>Você é CEO</Text>}
               </View>
             ))}
           </>
         )}
 
-        {isAdmin && screen === 'users' && (
+        {isSystemAdmin && screen === 'admin-management' && (
           <>
             <View style={styles.card}>
-              <Text style={styles.cardTitle}>Cadastro de usuário</Text>
-              <Text style={styles.hint}>Após o cadastro, o perfil ativo é selecionado para solicitar acesso.</Text>
-              <Field label="Nome completo" value={userForm.name} onChangeText={(name) => setUserForm({ ...userForm, name })} placeholder="Seu nome" />
-              <Field label="E-mail" value={userForm.email} onChangeText={(email) => setUserForm({ ...userForm, email })} placeholder="voce@email.com" keyboardType="email-address" />
-              <Pressable style={styles.primaryButton} onPress={createUser}><Text style={styles.primaryButtonText}>Criar conta</Text></Pressable>
+              <Text style={styles.cardTitle}>Organizações</Text>
+              <Text style={styles.hint}>Aprovar, recusar ou remover organizações do aplicativo.</Text>
+              {data.organizations.map((organization) => {
+                const ceo = data.users.find((user) => user.id === organization.ownerId);
+                return <View key={organization.id} style={styles.member}><View><Text style={styles.memberName}>{organization.name}</Text><Text style={styles.muted}>{organization.document}</Text><Text style={styles.muted}>CEO: {ceo?.name || 'Não identificado'}</Text><StatusBadge status={organization.status} /></View><View><View style={styles.actionRow}>{organization.status === 'PENDING' && <><Pressable style={styles.approveButton} onPress={() => changeOrganizationStatus(organization.id, 'APPROVED')}><Text style={styles.actionText}>Aprovar</Text></Pressable><Pressable style={styles.rejectButton} onPress={() => changeOrganizationStatus(organization.id, 'REJECTED')}><Text style={styles.rejectText}>Recusar</Text></Pressable></>} </View><Pressable style={styles.outlineButton} onPress={() => removeOrganization(organization.id)}><Text style={styles.outlineText}>Remover</Text></Pressable></View></View>;
+              })}
             </View>
-            <Text style={styles.sectionTitle}>Usuário ativo para a demonstração</Text>
-            <View style={styles.userChoices}>{data.users.map((user) => <Choice key={user.id} label={user.name} active={activeUserId === user.id} onPress={() => setActiveUserId(user.id)} />)}</View>
+            <View style={styles.card}>
+              <Text style={styles.cardTitle}>Usuários</Text>
+              <Text style={styles.hint}>Gerencie as contas cadastradas. A conta administrativa ativa é protegida contra remoção.</Text>
+              {data.users.map((user) => <View key={user.id} style={styles.member}><View><Text style={styles.memberName}>{user.name}</Text><Text style={styles.muted}>{user.email}</Text><Text style={styles.muted}>{user.systemRole === 'SYSTEM_ADMIN' ? 'Administrador do sistema' : data.organizations.some((organization) => organization.ownerId === user.id && organization.status === 'APPROVED') ? 'CEO' : 'Usuário'}</Text></View>{user.id !== activeUserId && user.systemRole !== 'SYSTEM_ADMIN' && <Pressable style={styles.outlineButton} onPress={() => removeUser(user.id)}><Text style={styles.outlineText}>Remover</Text></Pressable>}</View>)}
+            </View>
           </>
         )}
 
-        {screen === 'access' && (
+        {!isSystemAdmin && screen === 'management' && (
           <>
-            {!isAdmin && <View style={styles.card}>
+            <View style={styles.card}>
+              <Text style={styles.cardTitle}>Criar organização</Text>
+              <Text style={styles.hint}>Após a aprovação do administrador do sistema, você receberá a tag e o cargo de CEO desta organização.</Text>
+              <Field label="Nome da organização" value={organizationForm.name} onChangeText={(name) => setOrganizationForm({ ...organizationForm, name })} placeholder="Ex.: Empresa Synple" />
+              <Field label="CNPJ" value={organizationForm.document} onChangeText={(document) => setOrganizationForm({ ...organizationForm, document })} placeholder="00.000.000/0000-00" keyboardType="numeric" />
+              <Pressable style={styles.primaryButton} onPress={createOrganization}><Text style={styles.primaryButtonText}>Enviar cadastro</Text></Pressable>
+            </View>
+            {!isSystemAdmin && !isCeo && <View style={styles.card}>
               <Text style={styles.cardTitle}>Solicitar acesso</Text>
               <Text style={styles.hint}>Usuário selecionado: {activeUser?.name}</Text>
               <Text style={styles.label}>Organização aprovada</Text>
@@ -360,11 +394,11 @@ export default function App() {
               {requestableOrganizations.length === 0 ? <Text style={styles.empty}>Não há outras organizações aprovadas para solicitar acesso.</Text> : <Pressable style={styles.primaryButton} onPress={requestAccess}><Text style={styles.primaryButtonText}>Solicitar acesso</Text></Pressable>}
             </View>}
 
-            {isAdmin && <>
+            {isCeo && <>
               <View style={styles.card}>
                 <Text style={styles.cardTitle}>Organização administrada</Text>
                 <Text style={styles.hint}>Selecione a organização para ver pedidos e membros.</Text>
-                <View style={styles.userChoices}>{ownedOrganizations.map((organization) => <Choice key={organization.id} label={organization.name} active={selectedOrganizationId === organization.id} onPress={() => setSelectedOrganizationId(organization.id)} />)}</View>
+                <View style={styles.userChoices}>{approvedOwnedOrganizations.map((organization) => <Choice key={organization.id} label={organization.name} active={selectedOrganizationId === organization.id} onPress={() => setSelectedOrganizationId(organization.id)} />)}</View>
               </View>
               <Text style={styles.sectionTitle}>Solicitações pendentes</Text>
               {organizationPendingRequests.length === 0 && <Text style={styles.empty}>Não há solicitações pendentes para esta organização.</Text>}
@@ -374,31 +408,31 @@ export default function App() {
                 return <View key={request.id} style={styles.card}><Text style={styles.cardTitle}>{user?.name}</Text><Text style={styles.muted}>{organization?.name}</Text><Text style={styles.memberDetail}>E-mail: {user?.email || 'Não informado'}</Text><Text style={styles.memberDetail}>Telefone: {user?.phone || 'Não informado'}</Text><View style={styles.actionRow}><Pressable style={styles.approveButton} onPress={() => changeAccessStatus(request.id, 'APPROVED')}><Text style={styles.actionText}>Aprovar</Text></Pressable><Pressable style={styles.rejectButton} onPress={() => changeAccessStatus(request.id, 'REJECTED')}><Text style={styles.rejectText}>Recusar</Text></Pressable></View></View>;
               })}
               <Text style={styles.sectionTitle}>Membros da organização</Text>
-              {selectedOrganization && <View style={styles.member}><View><Text style={styles.memberName}>{data.users.find((user) => user.id === selectedOrganization.ownerId)?.name}</Text><Text style={styles.muted}>Administrador da organização</Text></View><Text style={styles.ownerTag}>Administrador</Text></View>}
+              {selectedOrganization && <View style={styles.member}><View><Text style={styles.memberName}>{data.users.find((user) => user.id === selectedOrganization.ownerId)?.name}</Text><Text style={styles.muted}>CEO da organização</Text></View><Text style={styles.ownerTag}>CEO</Text></View>}
               {organizationApprovedRequests.length === 0 && <Text style={styles.empty}>Ainda não há membros aprovados.</Text>}
               {organizationApprovedRequests.map((request) => {
                 const user = data.users.find((item) => item.id === request.userId);
                 const organizationCommissionsForUser = data.commissionMembers.filter((member) => member.userId === request.userId).map((member) => data.commissions.find((commission) => commission.id === member.commissionId && commission.organizationId === selectedOrganizationId)).filter(Boolean);
-                return <View key={request.id} style={styles.card}><Text style={styles.cardTitle}>{user?.name}</Text><Text style={styles.memberDetail}>E-mail: {user?.email || 'Não informado'}</Text><Text style={styles.memberDetail}>Telefone: {user?.phone || 'Não informado'}</Text><Text style={styles.label}>Cargo na organização</Text><View style={styles.userChoices}><Choice label="Membro" active={(request.organizationRole || 'MEMBER') === 'MEMBER'} onPress={() => updateOrganizationRole(request.id, 'MEMBER')} /><Choice label="Coordenador" active={request.organizationRole === 'COORDINATOR'} onPress={() => updateOrganizationRole(request.id, 'COORDINATOR')} /></View><Text style={styles.memberDetail}>Comissões: {organizationCommissionsForUser.map((commission) => commission.name).join(', ') || 'Nenhuma'}</Text><Pressable style={styles.smallButton} onPress={() => setScreen('commissions')}><Text style={styles.smallButtonText}>Atribuir a comissões</Text></Pressable><Pressable style={styles.outlineButton} onPress={() => removeOrganizationMember(request.id)}><Text style={styles.outlineText}>Remover da organização</Text></Pressable></View>;
+                return <View key={request.id} style={styles.card}><Text style={styles.cardTitle}>{user?.name}</Text><Text style={styles.memberDetail}>E-mail: {user?.email || 'Não informado'}</Text><Text style={styles.memberDetail}>Telefone: {user?.phone || 'Não informado'}</Text><Text style={styles.label}>Cargo na organização</Text><View style={styles.userChoices}><Choice label="Membro" active={(request.organizationRole || 'MEMBER') === 'MEMBER'} onPress={() => updateOrganizationRole(request.id, 'MEMBER')} /><Choice label="Coordenador" active={request.organizationRole === 'COORDINATOR'} onPress={() => updateOrganizationRole(request.id, 'COORDINATOR')} /></View><Text style={styles.memberDetail}>Comissões: {organizationCommissionsForUser.map((commission) => commission.name).join(', ') || 'Nenhuma'}</Text><Pressable style={styles.outlineButton} onPress={() => removeOrganizationMember(request.id)}><Text style={styles.outlineText}>Remover da organização</Text></Pressable></View>;
               })}
             </>}
 
-            {!isAdmin && <><Text style={styles.sectionTitle}>Minhas solicitações</Text>{userRequests.length === 0 && <Text style={styles.empty}>Você ainda não possui solicitações.</Text>}{userRequests.map((request) => {
+            {!isSystemAdmin && !isCeo && <><Text style={styles.sectionTitle}>Minhas solicitações</Text>{userRequests.length === 0 && <Text style={styles.empty}>Você ainda não possui solicitações.</Text>}{userRequests.map((request) => {
               const user = data.users.find((item) => item.id === request.userId);
               const organization = data.organizations.find((item) => item.id === request.organizationId);
               const administrator = data.users.find((item) => item.id === organization?.ownerId);
-              return <View key={request.id} style={styles.member}><View><Text style={styles.memberName}>{organization?.name}</Text><Text style={styles.muted}>Administrador: {administrator?.name || 'Não identificado'}</Text><Text style={styles.muted}>{user?.email}</Text></View><StatusBadge status={request.status} /></View>;
+              return <View key={request.id} style={styles.member}><View><Text style={styles.memberName}>{organization?.name}</Text><Text style={styles.muted}>CEO: {administrator?.name || 'Não identificado'}</Text><Text style={styles.muted}>{user?.email}</Text></View><StatusBadge status={request.status} /></View>;
             })}</>}
           </>
         )}
 
-        {isAdmin && screen === 'commissions' && (
+        {isCeo && screen === 'commissions' && (
           <>
             <View style={styles.card}>
               <Text style={styles.cardTitle}>Nova comissão</Text>
               <Text style={styles.hint}>Comissões são grupos de trabalho vinculados a uma organização.</Text>
               <Text style={styles.label}>Organização</Text>
-              <View style={styles.userChoices}>{ownedOrganizations.map((organization) => <Choice key={organization.id} label={organization.name} active={selectedOrganizationId === organization.id} onPress={() => setSelectedOrganizationId(organization.id)} />)}</View>
+              <View style={styles.userChoices}>{approvedOwnedOrganizations.map((organization) => <Choice key={organization.id} label={organization.name} active={selectedOrganizationId === organization.id} onPress={() => setSelectedOrganizationId(organization.id)} />)}</View>
               <Field label="Nome da comissão" value={commissionForm.name} onChangeText={(name) => setCommissionForm({ ...commissionForm, name })} placeholder="Ex.: Comissão de Eventos" />
               <Field label="Descrição" value={commissionForm.description} onChangeText={(description) => setCommissionForm({ ...commissionForm, description })} placeholder="Objetivo do grupo de trabalho" />
               <Pressable style={styles.primaryButton} onPress={createCommission}><Text style={styles.primaryButtonText}>Cadastrar comissão</Text></Pressable>
@@ -418,7 +452,7 @@ export default function App() {
           </>
         )}
 
-        {isAdmin && screen === 'system' && (
+        {isSystemAdmin && screen === 'system' && (
           <>
             <View style={styles.card}><Text style={styles.cardTitle}>Status do sistema</Text><Text style={styles.hint}>{data.system.initialized ? `Inicializado em ${new Date(data.system.initializedAt).toLocaleString('pt-BR')}` : 'Aguardando setup inicial.'}</Text>{data.system.subsystems.map((subsystem) => <View key={subsystem.id} style={styles.member}><View><Text style={styles.memberName}>{subsystem.name}</Text><Text style={styles.muted}>{SUBSYSTEM_LABELS[subsystem.status]}</Text></View><Pressable style={styles.smallButton} onPress={() => restartSubsystem(subsystem.id)}><Text style={styles.smallButtonText}>Reiniciar</Text></Pressable></View>)}</View>
             <View style={styles.card}><Text style={styles.cardTitle}>Relatório resumido</Text><View style={styles.reportRow}><Text style={styles.reportNumber}>{data.users.length}</Text><Text style={styles.muted}>usuários</Text></View><View style={styles.reportRow}><Text style={styles.reportNumber}>{data.organizations.length}</Text><Text style={styles.muted}>organizações</Text></View><View style={styles.reportRow}><Text style={styles.reportNumber}>{data.commissions.length}</Text><Text style={styles.muted}>comissões</Text></View><View style={styles.reportRow}><Text style={styles.reportNumber}>{data.accessRequests.filter((request) => request.status === 'PENDING').length}</Text><Text style={styles.muted}>acessos pendentes</Text></View></View>
@@ -426,7 +460,7 @@ export default function App() {
           </>
         )}
 
-        {isAdmin && <Pressable style={styles.resetButton} onPress={resetDemo}><Text style={styles.resetText}>Restaurar dados de demonstração</Text></Pressable>}
+        {isSystemAdmin && <Pressable style={styles.resetButton} onPress={resetDemo}><Text style={styles.resetText}>Restaurar dados de demonstração</Text></Pressable>}
       </ScrollView>
     </SafeAreaView>
   );

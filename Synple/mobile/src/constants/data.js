@@ -4,6 +4,7 @@ const INITIAL_DATA = {
     { id: 'org-horizonte', name: 'Coletivo Horizonte', document: '98.765.432/0001-10', status: 'APPROVED', ownerId: 'user-admin' },
   ],
   users: [
+    { id: 'user-system-admin', name: 'Administração Synple', email: 'admin@synple.app', phone: '(11) 99999-1111', theme: 'LIGHT', systemRole: 'SYSTEM_ADMIN' },
     { id: 'user-admin', name: 'Marina Costa', email: 'marina@synple.app', phone: '(11) 99999-0000', theme: 'LIGHT' },
     { id: 'user-visitante', name: 'João Silva', email: 'joao@email.com', phone: '', theme: 'LIGHT' },
   ],

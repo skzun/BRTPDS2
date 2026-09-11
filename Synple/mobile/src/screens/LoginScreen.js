@@ -26,13 +26,13 @@ export function LoginScreen({ onLogin, onRegister }) {
             <Text style={styles.cardTitle}>Entrar</Text>
             <Text style={styles.hint}>Selecione o tipo de acesso.</Text>
             <View style={styles.loginModeRow}>
-              <Choice label="Admin. da organização" active={mode === 'ADMIN'} onPress={() => setMode('ADMIN')} />
+              <Choice label="Admin. do sistema" active={mode === 'SYSTEM_ADMIN'} onPress={() => setMode('SYSTEM_ADMIN')} />
               <Choice label="Usuário" active={mode === 'USER'} onPress={() => setMode('USER')} />
             </View>
             <Field label="E-mail" value={email} onChangeText={setEmail} placeholder="voce@email.com" keyboardType="email-address" />
             <Field label="Senha" value={password} onChangeText={setPassword} placeholder="Sua senha" secureTextEntry />
             <Pressable style={styles.primaryButton} onPress={() => onLogin({ email, password, mode })}>
-              <Text style={styles.primaryButtonText}>Entrar como {mode === 'ADMIN' ? 'administrador' : 'usuário'}</Text>
+              <Text style={styles.primaryButtonText}>Entrar como {mode === 'SYSTEM_ADMIN' ? 'administrador do sistema' : 'usuário'}</Text>
             </Pressable>
           </> : <>
             <Text style={styles.cardTitle}>Criar conta</Text>
