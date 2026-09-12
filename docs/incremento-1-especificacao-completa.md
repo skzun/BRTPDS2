@@ -1,31 +1,31 @@
 # Especificação de Engenharia de Software — Incremento 1 (Synple)
 
-Documento elaborado estritamente conforme as diretrizes acadêmicas da disciplina **Projeto e Desenvolvimento de Sistemas II (IFSP Câmpus Barretos)** para a avaliação do **Incremento 1** (Slides 5 a 12).
+Documento formal da disciplina **Projeto e Desenvolvimento de Sistemas II (IFSP Câmpus Barretos)** contendo a especificação completa e detalhada do **Incremento 1**.
 
 ---
 
-## Sumário de Mapeamento dos Requisitos (Slides 5 a 9)
+## Sumário de Mapeamento dos Requisitos
 
-| Slide | Módulo | ID Requisito | Descrição do Requisito | Ator Principal |
-| :--- | :--- | :--- | :--- | :--- |
-| **Slide 5** | Cadastro de organização | **RF01** | Cadastrar nova organização com CNPJ | Usuário Comum |
-| **Slide 5** | Cadastro de organização | **RF02** | Autorizar/revogar cadastro da organização | Administrador do Sistema |
-| **Slide 5** | Cadastro de organização | **RF03** | Gerenciar organizações (listagem e remoção) | Administrador do Sistema |
-| **Slide 6** | Cadastro de comissão | **RF04** | Cadastrar comissão/grupo de trabalho na organização | Administrador da Organização |
-| **Slide 6** | Cadastro de comissão | **RF05** | Gerenciar comissões (editar, ativar/inativar, excluir) | Administrador da Organização |
-| **Slide 6** | Cadastro de comissão | **RF06** | Gerenciar equipe da comissão (adicionar, alternar papel, remover) | Administrador da Organização |
-| **Slide 7** | Cadastro de usuário | **RF07** | Cadastrar usuário na plataforma (autocadastro) | Usuário Comum |
-| **Slide 7** | Cadastro de usuário | **RF08** | Solicitar e decidir acesso à organização (aprovar/rejeitar) | Usuário Comum / Admin Org |
-| **Slide 7** | Cadastro de usuário | **RF09** | Gerenciar usuários dentro da organização (papel e revogação) | Administrador da Organização |
-| **Slide 8** | Configurações de usuário | **RF10** | Trocar senha de usuário | Usuário Autenticado |
-| **Slide 8** | Configurações de usuário | **RF11** | Recuperar conta de usuário | Usuário Autenticado / Visitante |
-| **Slide 8** | Configurações de usuário | **RF12** | Alterar dados pessoais (nome, e-mail, telefone formatado) | Usuário Autenticado |
-| **Slide 8** | Configurações de usuário | **RF13** | Definir tema preferido do aplicativo (Claro / Escuro) | Usuário Autenticado |
-| **Slide 9** | Informações do sistema | **RF14** | Consultar status do sistema e de seus subsistemas | Administrador do Sistema |
-| **Slide 9** | Informações do sistema | **RF15** | Consultar relatórios resumidos (contadores em tempo real) | Administrador do Sistema |
-| **Slide 9** | Informações do sistema | **RF16** | Reinicializar subsistemas operacionais | Administrador do Sistema |
-| **Slide 9** | Informações do sistema | **RF17** | Executar setup inicial e inicialização do sistema | Administrador do Sistema |
-| **Slide 9** | Informações do sistema | **RF18** | Executar reset do sistema e restauração de dados de demonstração | Administrador do Sistema |
+| Módulo | ID Requisito | Descrição do Requisito | Ator Principal |
+| :--- | :--- | :--- | :--- |
+| Cadastro de organização | **RF01** | Cadastrar nova organização com CNPJ | Usuário Comum |
+| Cadastro de organização | **RF02** | Autorizar/revogar cadastro da organização | Administrador do Sistema |
+| Cadastro de organização | **RF03** | Gerenciar organizações (listagem e remoção) | Administrador do Sistema |
+| Cadastro de comissão | **RF04** | Cadastrar comissão/grupo de trabalho na organização | Administrador da Organização |
+| Cadastro de comissão | **RF05** | Gerenciar comissões (editar, ativar/inativar, excluir) | Administrador da Organização |
+| Cadastro de comissão | **RF06** | Gerenciar equipe da comissão (adicionar, alternar papel, remover) | Administrador da Organização |
+| Cadastro de usuário | **RF07** | Cadastrar usuário na plataforma (autocadastro) | Usuário Comum |
+| Cadastro de usuário | **RF08** | Solicitar e decidir acesso à organização (aprovar/rejeitar) | Usuário Comum / Admin Org |
+| Cadastro de usuário | **RF09** | Gerenciar usuários dentro da organização (papel e revogação) | Administrador da Organização |
+| Configurações de usuário | **RF10** | Trocar senha de usuário | Usuário Autenticado |
+| Configurações de usuário | **RF11** | Recuperar conta de usuário | Usuário Autenticado / Visitante |
+| Configurações de usuário | **RF12** | Alterar dados pessoais (nome, e-mail, telefone formatado) | Usuário Autenticado |
+| Configurações de usuário | **RF13** | Definir tema preferido do aplicativo (Claro / Escuro) | Usuário Autenticado |
+| Informações do sistema | **RF14** | Consultar status do sistema e de seus subsistemas | Administrador do Sistema |
+| Informações do sistema | **RF15** | Consultar relatórios resumidos (contadores em tempo real) | Administrador do Sistema |
+| Informações do sistema | **RF16** | Reinicializar subsistemas operacionais | Administrador do Sistema |
+| Informações do sistema | **RF17** | Executar setup inicial e inicialização do sistema | Administrador do Sistema |
+| Informações do sistema | **RF18** | Executar reset do sistema e restauração de dados de demonstração | Administrador do Sistema |
 
 ---
 

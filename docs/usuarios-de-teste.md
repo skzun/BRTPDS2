@@ -18,7 +18,7 @@ Para facilitar a avaliação prática pelo professor e equipe, o aplicativo **Sy
 
 ## 🚀 Roteiro de Testes Recomendado
 
-Para conferir todos os requisitos exigidos nos slides:
+Para conferir todos os requisitos do sistema:
 
 ### 1. Teste de Login e Validações
 1. Abra o app móvel.

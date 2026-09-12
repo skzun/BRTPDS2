@@ -23,6 +23,6 @@ As regras de validação do Incremento 1 ficam em `src/services/validation.js` e
 
 ## 📖 Documentação
 
-* 📄 [Especificação Completa do Incremento 1 (Slide 12)](./docs/incremento-1-especificacao-completa.md)
+* 📄 [Especificação Completa do Incremento 1](./docs/incremento-1-especificacao-completa.md)
 * 👥 [Guia de Usuários de Teste e Avaliação](./docs/usuarios-de-teste.md)
 * 🌐 [Wiki Oficial do Projeto no GitHub](https://github.com/skzun/BRTPDS2/wiki)
