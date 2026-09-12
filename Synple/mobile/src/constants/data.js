@@ -4,9 +4,9 @@ const INITIAL_DATA = {
     { id: 'org-horizonte', name: 'Coletivo Horizonte', document: '98.765.432/0001-10', status: 'APPROVED', ownerId: 'user-admin' },
   ],
   users: [
-    { id: 'user-system-admin', name: 'Administração Synple', email: 'admin@synple.app', phone: '(11) 99999-1111', theme: 'LIGHT', systemRole: 'SYSTEM_ADMIN' },
-    { id: 'user-admin', name: 'Marina Costa', email: 'marina@synple.app', phone: '(11) 99999-0000', theme: 'LIGHT' },
-    { id: 'user-visitante', name: 'João Silva', email: 'joao@email.com', phone: '', theme: 'LIGHT' },
+    { id: 'user-system-admin', name: 'Administrador do Sistema', email: 'admin@synple.app', phone: '(11) 99999-1111', password: 'admin123', theme: 'LIGHT', systemRole: 'SYSTEM_ADMIN' },
+    { id: 'user-admin', name: 'Marina Costa', email: 'marina@synple.app', phone: '(11) 99999-0000', password: 'marina123', theme: 'LIGHT' },
+    { id: 'user-visitante', name: 'João Silva', email: 'joao@email.com', phone: '(11) 98888-2222', password: 'joao123', theme: 'LIGHT' },
   ],
   accessRequests: [{ id: 'request-1', organizationId: 'org-aurora', userId: 'user-visitante', status: 'PENDING' }],
   commissions: [{ id: 'commission-1', organizationId: 'org-aurora', name: 'Comunicação', description: 'Divulgação e relacionamento com a comunidade.', status: 'ACTIVE' }],

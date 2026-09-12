@@ -3,10 +3,20 @@ import { useEffect, useState } from 'react';
 import { INITIAL_DATA } from '../constants/data';
 import { loadStoredData, saveData } from '../services/storage';
 
+const DEMO_PASSWORDS = {
+  'admin@synple.app': 'admin123',
+  'marina@synple.app': 'marina123',
+  'joao@email.com': 'joao123',
+};
+
 function mergeData(savedData) {
   return {
     ...INITIAL_DATA,
     ...savedData,
+    users: (savedData.users || INITIAL_DATA.users).map((user) => ({
+      ...user,
+      password: user.password && user.password !== 'admin' ? user.password : (DEMO_PASSWORDS[user.email] || user.password || 'admin123'),
+    })),
     system: { ...INITIAL_DATA.system, ...(savedData.system || {}) },
   };
 }

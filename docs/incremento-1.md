@@ -1,5 +1,7 @@
 # Incremento 1 — Organizações e usuários
 
+> 📄 **Documentação Oficial de Entrega (Slide 12):** Veja a especificação formal completa com Diagrama de Casos de Uso, Formulários Padrão (RF01 a RF18), Diagrama de Classes, DER PostgreSQL, RNFs e Diagramas de Sequência em: [**`incremento-1-especificacao-completa.md`**](./incremento-1-especificacao-completa.md).
+
 ## Objetivo
 
 Entregar, no aplicativo mobile Synple, o ciclo inicial de cadastro e controle de acesso: organizações entram em análise pelo administrador do sistema; usuários criam conta e solicitam entrada em uma organização; o administrador organizacional decide a solicitação.

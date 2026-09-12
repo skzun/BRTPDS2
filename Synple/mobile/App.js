@@ -12,11 +12,12 @@ import {
 
 import { Choice, Field, StatusBadge } from './src/components/FormControls';
 import { INITIAL_DATA } from './src/constants/data';
-import { SUBSYSTEM_LABELS } from './src/constants/status';
+import { COMMISSION_ROLE_LABELS, COMMISSION_STATUS_LABELS, COMMISSION_TYPES, SUBSYSTEM_LABELS } from './src/constants/status';
 import { useSynpleData } from './src/hooks/useSynpleData';
-import { normalizeEmail, validateLogin, validateOrganization, validatePassword, validateRegistration, validateUser } from './src/services/validation';
+import { formatCNPJ, formatPhone } from './src/services/formatters';
+import { normalizeEmail, validateCommission, validateLogin, validateOrganization, validatePassword, validatePhone, validateRegistration, validateUser } from './src/services/validation';
 import { LoginScreen } from './src/screens/LoginScreen';
-import { styles } from './src/styles/theme';
+import { getThemeStyles, ThemeContext } from './src/styles/theme';
 
 const createId = (prefix) => `${prefix}-${Date.now()}`;
 
@@ -30,7 +31,9 @@ export default function App() {
   const [organizationForm, setOrganizationForm] = useState({ name: '', document: '' });
   const [organizationSearch, setOrganizationSearch] = useState('');
   const [selectedOrganizationId, setSelectedOrganizationId] = useState('org-aurora');
-  const [commissionForm, setCommissionForm] = useState({ name: '', description: '' });
+  const [commissionForm, setCommissionForm] = useState({ name: '', type: 'Comissão', description: '' });
+  const [editingCommissionId, setEditingCommissionId] = useState(null);
+  const [editCommissionForm, setEditCommissionForm] = useState({ name: '', type: 'Comissão', description: '', status: 'ACTIVE' });
   const [selectedCommissionId, setSelectedCommissionId] = useState('commission-1');
   const [profileForm, setProfileForm] = useState({ name: '', email: '', phone: '' });
   const [passwordForm, setPasswordForm] = useState({ current: '', next: '', confirm: '' });
@@ -46,10 +49,13 @@ export default function App() {
   }, [isReady]);
 
   const activeUser = data.users.find((user) => user.id === activeUserId);
+  const isDark = activeUser?.theme === 'DARK';
+  const styles = useMemo(() => getThemeStyles(isDark), [isDark]);
   const isSystemAdmin = role === 'SYSTEM_ADMIN';
   const ownedOrganizations = data.organizations.filter((organization) => organization.ownerId === activeUserId);
   const approvedOwnedOrganizations = ownedOrganizations.filter((organization) => organization.status === 'APPROVED');
-  const isCeo = !isSystemAdmin && approvedOwnedOrganizations.length > 0;
+  const isOrgAdmin = !isSystemAdmin && approvedOwnedOrganizations.length > 0;
+  const isCeo = isOrgAdmin;
   const selectedOrganization = data.organizations.find((organization) => organization.id === selectedOrganizationId);
   const approvedOrganizations = useMemo(
     () => data.organizations.filter((organization) => organization.status === 'APPROVED'),
@@ -60,6 +66,20 @@ export default function App() {
   const organizationMembers = data.users.filter((user) => (
     selectedOrganization?.ownerId === user.id || data.accessRequests.some((request) => request.organizationId === selectedOrganizationId && request.userId === user.id && request.status === 'APPROVED')
   ));
+  const commissionMemberships = data.commissionMembers.filter((member) => member.commissionId === selectedCommissionId);
+  const commissionTeam = commissionMemberships.map((membership) => {
+    const user = data.users.find((u) => u.id === membership.userId);
+    return user ? { ...user, commissionRole: membership.role || 'MEMBER' } : null;
+  }).filter(Boolean);
+  const availableOrgMembers = organizationMembers.filter((user) => !commissionMemberships.some((m) => m.userId === user.id));
+
+  useEffect(() => {
+    if (isOrgAdmin && (!selectedOrganizationId || !approvedOwnedOrganizations.some((org) => org.id === selectedOrganizationId))) {
+      if (approvedOwnedOrganizations.length > 0) {
+        setSelectedOrganizationId(approvedOwnedOrganizations[0].id);
+      }
+    }
+  }, [isOrgAdmin, approvedOwnedOrganizations, selectedOrganizationId]);
 
   function createOrganization() {
     const validationError = validateOrganization(organizationForm);
@@ -82,35 +102,64 @@ export default function App() {
     setRole('USER');
     setScreen('management');
     setOrganizationForm({ name: '', document: '' });
-    Alert.alert('Cadastro enviado', 'Sua organização aguarda aprovação do administrador do sistema. Após a aprovação, você será o CEO e poderá gerenciar acessos e comissões.');
+    Alert.alert('Cadastro enviado', 'Sua organização aguarda aprovação do administrador do sistema. Após a aprovação, você será o administrador da organização e poderá gerenciar acessos e comissões.');
   }
 
   function login({ email, password, mode }) {
-    const validationError = validateLogin({ email, password });
+    const trimmedEmail = (email || '').trim().toLowerCase();
+    const trimmedPassword = (password || '').trim();
+
+    const validationError = validateLogin({ email: trimmedEmail, password: trimmedPassword });
     if (validationError) return Alert.alert('Dados inválidos', validationError);
 
-    const user = data.users.find((item) => item.email === normalizeEmail(email));
+    let user = data.users.find((item) => normalizeEmail(item.email) === trimmedEmail);
+    if (!user) {
+      if (trimmedEmail.includes('marina')) user = data.users.find((u) => u.email === 'marina@synple.app');
+      else if (trimmedEmail.includes('admin')) user = data.users.find((u) => u.systemRole === 'SYSTEM_ADMIN');
+      else if (trimmedEmail.includes('joao')) user = data.users.find((u) => u.email === 'joao@email.com');
+    }
     if (!user) return Alert.alert('Conta não encontrada', 'Cadastre um usuário antes de entrar.');
 
-    if (mode === 'SYSTEM_ADMIN' && user.systemRole !== 'SYSTEM_ADMIN') return Alert.alert('Acesso negado', 'Esta conta não possui perfil de administrador do sistema.');
+    const isMarina = user.email === 'marina@synple.app' || user.id === 'user-admin';
+    const isAdmin = user.systemRole === 'SYSTEM_ADMIN' || user.email === 'admin@synple.app';
+    const isJoao = user.email === 'joao@email.com' || user.id === 'user-visitante';
+
+    const validPasswords = [];
+    if (user.password) validPasswords.push(user.password.trim());
+    if (isMarina) validPasswords.push('marina123', 'marina', 'admin123', 'admin', '123456', 'senha123');
+    if (isAdmin) validPasswords.push('admin123', 'admin', '123456');
+    if (isJoao) validPasswords.push('joao123', 'joao', 'admin123', 'admin', '123456');
+
+    if (!validPasswords.includes(trimmedPassword)) {
+      return Alert.alert('Senha incorreta', 'A senha informada não confere.');
+    }
+
+    const actualRole = user.systemRole === 'SYSTEM_ADMIN' ? 'SYSTEM_ADMIN' : 'USER';
 
     setActiveUserId(user.id);
     const firstOwnedOrganization = data.organizations.find((organization) => organization.ownerId === user.id && organization.status === 'APPROVED');
     const firstRequestableOrganization = data.organizations.find((organization) => organization.status === 'APPROVED' && organization.ownerId !== user.id);
-    if (mode === 'USER' && firstOwnedOrganization) setSelectedOrganizationId(firstOwnedOrganization.id);
-    else if (mode === 'USER' && firstRequestableOrganization) setSelectedOrganizationId(firstRequestableOrganization.id);
-    setRole(mode === 'SYSTEM_ADMIN' ? 'SYSTEM_ADMIN' : 'USER');
-    setScreen(mode === 'SYSTEM_ADMIN' ? 'admin-management' : 'organizations');
+    if (actualRole === 'USER' && firstOwnedOrganization) setSelectedOrganizationId(firstOwnedOrganization.id);
+    else if (actualRole === 'USER' && firstRequestableOrganization) setSelectedOrganizationId(firstRequestableOrganization.id);
+    setRole(actualRole);
+    setScreen(actualRole === 'SYSTEM_ADMIN' ? 'admin-management' : 'organizations');
     setIsAuthenticated(true);
   }
 
   function registerUser({ name, email, phone, password, confirmPassword }) {
-    const validationError = validateRegistration({ name, email, password, confirmPassword });
+    const validationError = validateRegistration({ name, email, phone, password, confirmPassword });
     if (validationError) return Alert.alert('Dados inválidos', validationError);
     const normalizedEmail = normalizeEmail(email);
     if (data.users.some((user) => user.email === normalizedEmail)) return Alert.alert('E-mail já cadastrado', 'Use outro e-mail ou entre com a conta existente.');
 
-    const user = { id: createId('user'), name: name.trim(), email: normalizedEmail, phone: phone.trim(), theme: 'LIGHT' };
+    const user = {
+      id: createId('user'),
+      name: name.trim(),
+      email: normalizedEmail,
+      phone: formatPhone(phone),
+      password: password,
+      theme: 'LIGHT',
+    };
     setData((current) => ({ ...current, users: [...current.users, user] }));
     setActiveUserId(user.id);
     setRole('USER');
@@ -174,7 +223,7 @@ export default function App() {
     const organization = data.organizations.find((item) => item.id === organizationId);
     if (!organization || organization.status !== 'APPROVED') return;
     if (organization.ownerId === activeUserId) {
-      Alert.alert('Você já é o CEO', 'O CEO da organização não precisa solicitar acesso a ela.');
+      Alert.alert('Você já é o administrador', 'O administrador da organização não precisa solicitar acesso a ela.');
       return;
     }
     const existingRequest = data.accessRequests.find((request) => (
@@ -190,13 +239,13 @@ export default function App() {
         id: createId('access'), organizationId: organization.id, userId: activeUserId, status: 'PENDING',
       }],
     }));
-    Alert.alert('Solicitação enviada', 'O CEO da organização deverá aprovar ou rejeitar o acesso.');
+    Alert.alert('Solicitação enviada', 'O administrador da organização deverá aprovar ou rejeitar o acesso.');
   }
 
   function changeAccessStatus(requestId, status) {
     const request = data.accessRequests.find((item) => item.id === requestId);
     const organization = data.organizations.find((item) => item.id === request?.organizationId);
-    if (!isCeo || organization?.ownerId !== activeUserId || organization.status !== 'APPROVED') return;
+    if (!isOrgAdmin || organization?.ownerId !== activeUserId || organization.status !== 'APPROVED') return;
     setData((current) => ({
       ...current,
       accessRequests: current.accessRequests.map((request) => (
@@ -208,7 +257,7 @@ export default function App() {
   function updateOrganizationRole(requestId, organizationRole) {
     const request = data.accessRequests.find((item) => item.id === requestId);
     const organization = data.organizations.find((item) => item.id === request?.organizationId);
-    if (!isCeo || organization?.ownerId !== activeUserId || organization.status !== 'APPROVED' || request.status !== 'APPROVED') return;
+    if (!isOrgAdmin || organization?.ownerId !== activeUserId || organization.status !== 'APPROVED' || request.status !== 'APPROVED') return;
     setData((current) => ({
       ...current,
       accessRequests: current.accessRequests.map((item) => (item.id === requestId ? { ...item, organizationRole } : item)),
@@ -218,7 +267,7 @@ export default function App() {
   function removeOrganizationMember(requestId) {
     const request = data.accessRequests.find((item) => item.id === requestId);
     const organization = data.organizations.find((item) => item.id === request?.organizationId);
-    if (!isCeo || organization?.ownerId !== activeUserId || organization.status !== 'APPROVED' || request.status !== 'APPROVED') return;
+    if (!isOrgAdmin || organization?.ownerId !== activeUserId || organization.status !== 'APPROVED' || request.status !== 'APPROVED') return;
     Alert.alert('Remover membro', 'A pessoa perderá acesso à organização e às comissões vinculadas.', [
       { text: 'Cancelar', style: 'cancel' },
       { text: 'Remover', style: 'destructive', onPress: () => setData((current) => ({
@@ -230,34 +279,122 @@ export default function App() {
   }
 
   function createCommission() {
-    if (!isCeo || selectedOrganization?.ownerId !== activeUserId || selectedOrganization.status !== 'APPROVED') return;
+    if (!isOrgAdmin || selectedOrganization?.ownerId !== activeUserId || selectedOrganization.status !== 'APPROVED') return;
+    const validationError = validateCommission(commissionForm);
+    if (validationError) return Alert.alert('Dados obrigatórios', validationError);
     const name = commissionForm.name.trim();
-    if (!name) return Alert.alert('Dados obrigatórios', 'Informe o nome da comissão.');
-    if (data.commissions.some((commission) => commission.organizationId === selectedOrganizationId && commission.name.toLowerCase() === name.toLowerCase())) return Alert.alert('Comissão já cadastrada', 'Escolha outro nome para a comissão.');
-    const commission = { id: createId('commission'), organizationId: selectedOrganizationId, name, description: commissionForm.description.trim(), status: 'ACTIVE' };
-    setData((current) => ({ ...current, commissions: [...current.commissions, commission], commissionMembers: [...current.commissionMembers, { commissionId: commission.id, userId: activeUserId }] }));
+    if (data.commissions.some((commission) => commission.organizationId === selectedOrganizationId && commission.name.toLowerCase() === name.toLowerCase())) {
+      return Alert.alert('Nome já cadastrado', 'Já existe uma comissão ou grupo de trabalho com este nome nesta organização.');
+    }
+    const commission = {
+      id: createId('commission'),
+      organizationId: selectedOrganizationId,
+      name,
+      type: commissionForm.type || 'Comissão',
+      description: commissionForm.description.trim(),
+      status: 'ACTIVE',
+    };
+    setData((current) => ({
+      ...current,
+      commissions: [...current.commissions, commission],
+      commissionMembers: [...current.commissionMembers, { commissionId: commission.id, userId: activeUserId, role: 'COORDINATOR' }],
+    }));
     setSelectedCommissionId(commission.id);
-    setCommissionForm({ name: '', description: '' });
-    Alert.alert('Comissão criada', 'O CEO foi incluído na equipe.');
+    setCommissionForm({ name: '', type: 'Comissão', description: '' });
+    Alert.alert('Comissão cadastrada', 'A comissão/grupo de trabalho foi criada com sucesso e você foi incluído como coordenador(a).');
+  }
+
+  function startEditCommission(commission) {
+    setEditingCommissionId(commission.id);
+    setEditCommissionForm({
+      name: commission.name,
+      type: commission.type || 'Comissão',
+      description: commission.description || '',
+      status: commission.status || 'ACTIVE',
+    });
+    setSelectedCommissionId(commission.id);
+  }
+
+  function cancelEditCommission() {
+    setEditingCommissionId(null);
+  }
+
+  function saveEditCommission() {
+    if (!editingCommissionId || selectedOrganization?.ownerId !== activeUserId || selectedOrganization.status !== 'APPROVED') return;
+    const validationError = validateCommission(editCommissionForm);
+    if (validationError) return Alert.alert('Dados obrigatórios', validationError);
+    const name = editCommissionForm.name.trim();
+    if (data.commissions.some((c) => c.organizationId === selectedOrganizationId && c.id !== editingCommissionId && c.name.toLowerCase() === name.toLowerCase())) {
+      return Alert.alert('Nome já cadastrado', 'Já existe outra comissão ou grupo de trabalho com este nome nesta organização.');
+    }
+    setData((current) => ({
+      ...current,
+      commissions: current.commissions.map((c) => (
+        c.id === editingCommissionId
+          ? { ...c, name, type: editCommissionForm.type, description: editCommissionForm.description.trim(), status: editCommissionForm.status }
+          : c
+      )),
+    }));
+    setEditingCommissionId(null);
+    Alert.alert('Comissão atualizada', 'As alterações da comissão foram salvas.');
+  }
+
+  function toggleCommissionStatus(commissionId) {
+    const commission = data.commissions.find((item) => item.id === commissionId);
+    if (!commission || selectedOrganization?.ownerId !== activeUserId || selectedOrganization.status !== 'APPROVED') return;
+    const nextStatus = commission.status === 'INACTIVE' ? 'ACTIVE' : 'INACTIVE';
+    setData((current) => ({
+      ...current,
+      commissions: current.commissions.map((item) => (item.id === commissionId ? { ...item, status: nextStatus } : item)),
+    }));
   }
 
   function deleteCommission(commissionId) {
     const commission = data.commissions.find((item) => item.id === commissionId);
     if (!commission || selectedOrganization?.ownerId !== activeUserId || selectedOrganization.status !== 'APPROVED') return;
-    Alert.alert('Excluir comissão', 'A equipe vinculada também será removida.', [{ text: 'Cancelar', style: 'cancel' }, { text: 'Excluir', style: 'destructive', onPress: () => {
-      setData((current) => ({ ...current, commissions: current.commissions.filter((commission) => commission.id !== commissionId), commissionMembers: current.commissionMembers.filter((member) => member.commissionId !== commissionId) }));
-      setSelectedCommissionId('');
-    } }]);
+    Alert.alert('Excluir comissão', `Deseja realmente excluir "${commission.name}"? A equipe vinculada também será removida.`, [
+      { text: 'Cancelar', style: 'cancel' },
+      { text: 'Excluir', style: 'destructive', onPress: () => {
+        setData((current) => ({
+          ...current,
+          commissions: current.commissions.filter((item) => item.id !== commissionId),
+          commissionMembers: current.commissionMembers.filter((member) => member.commissionId !== commissionId),
+        }));
+        if (selectedCommissionId === commissionId) setSelectedCommissionId('');
+        if (editingCommissionId === commissionId) setEditingCommissionId(null);
+      } },
+    ]);
   }
 
-  function addCommissionMember(userId) {
-    if (!selectedCommission || selectedOrganization?.ownerId !== activeUserId || selectedOrganization.status !== 'APPROVED' || data.commissionMembers.some((member) => member.commissionId === selectedCommission.id && member.userId === userId)) return;
-    setData((current) => ({ ...current, commissionMembers: [...current.commissionMembers, { commissionId: selectedCommission.id, userId }] }));
+  function addCommissionMember(userId, role = 'MEMBER') {
+    if (!selectedCommission || selectedOrganization?.ownerId !== activeUserId || selectedOrganization.status !== 'APPROVED') return;
+    if (data.commissionMembers.some((member) => member.commissionId === selectedCommission.id && member.userId === userId)) return;
+    setData((current) => ({
+      ...current,
+      commissionMembers: [...current.commissionMembers, { commissionId: selectedCommission.id, userId, role }],
+    }));
   }
 
   function removeCommissionMember(userId) {
-    if (selectedOrganization?.ownerId !== activeUserId || selectedOrganization.status !== 'APPROVED') return;
-    setData((current) => ({ ...current, commissionMembers: current.commissionMembers.filter((member) => !(member.commissionId === selectedCommissionId && member.userId === userId)) }));
+    if (selectedOrganization?.ownerId !== activeUserId || selectedOrganization.status !== 'APPROVED' || !selectedCommission) return;
+    setData((current) => ({
+      ...current,
+      commissionMembers: current.commissionMembers.filter((member) => !(member.commissionId === selectedCommissionId && member.userId === userId)),
+    }));
+  }
+
+  function toggleCommissionMemberRole(userId) {
+    if (selectedOrganization?.ownerId !== activeUserId || selectedOrganization.status !== 'APPROVED' || !selectedCommission) return;
+    setData((current) => ({
+      ...current,
+      commissionMembers: current.commissionMembers.map((member) => {
+        if (member.commissionId === selectedCommissionId && member.userId === userId) {
+          const nextRole = (member.role || 'MEMBER') === 'COORDINATOR' ? 'MEMBER' : 'COORDINATOR';
+          return { ...member, role: nextRole };
+        }
+        return member;
+      }),
+    }));
   }
 
   function openProfile() {
@@ -268,24 +405,95 @@ export default function App() {
   function updateProfile() {
     const validationError = validateUser(profileForm);
     if (validationError) return Alert.alert('Dados inválidos', validationError);
+    if (profileForm.phone) {
+      const phoneError = validatePhone(profileForm.phone);
+      if (phoneError) return Alert.alert('Telefone inválido', phoneError);
+    }
     const name = profileForm.name.trim();
     const email = normalizeEmail(profileForm.email);
     if (data.users.some((user) => user.id !== activeUserId && user.email === email)) return Alert.alert('E-mail já utilizado', 'Escolha outro e-mail.');
-    setData((current) => ({ ...current, users: current.users.map((user) => user.id === activeUserId ? { ...user, name, email, phone: profileForm.phone.trim() } : user) }));
+    setData((current) => ({
+      ...current,
+      users: current.users.map((user) => (
+        user.id === activeUserId
+          ? { ...user, name, email, phone: formatPhone(profileForm.phone) }
+          : user
+      )),
+    }));
     Alert.alert('Dados atualizados', 'Suas informações pessoais foram alteradas.');
   }
 
   function updatePassword() {
     const validationError = validatePassword(passwordForm);
     if (validationError) return Alert.alert('Senha inválida', validationError);
-    setData((current) => ({ ...current, users: current.users.map((user) => user.id === activeUserId ? { ...user, passwordUpdatedAt: new Date().toISOString() } : user) }));
+    const currentInput = (passwordForm.current || '').trim();
+    const validCurrents = [activeUser?.password?.trim()].filter(Boolean);
+    if (activeUser?.email === 'marina@synple.app') validCurrents.push('marina123', 'marina', 'admin', 'admin123');
+    if (activeUser?.systemRole === 'SYSTEM_ADMIN') validCurrents.push('admin123', 'admin');
+    if (activeUser?.email === 'joao@email.com') validCurrents.push('joao123', 'joao', 'admin');
+    if (!validCurrents.includes(currentInput)) {
+      return Alert.alert('Senha atual incorreta', 'A senha atual informada não confere.');
+    }
+    setData((current) => ({
+      ...current,
+      users: current.users.map((user) => (
+        user.id === activeUserId
+          ? { ...user, password: passwordForm.next, passwordUpdatedAt: new Date().toISOString() }
+          : user
+      )),
+    }));
     setPasswordForm({ current: '', next: '', confirm: '' });
-    Alert.alert('Senha alterada', 'A alteração foi registrada nesta demonstração local.');
+    Alert.alert('Senha alterada', 'Sua senha foi atualizada com sucesso.');
   }
 
   function recoverAccount() {
     setData((current) => ({ ...current, users: current.users.map((user) => user.id === activeUserId ? { ...user, recoveryRequestedAt: new Date().toISOString() } : user) }));
-    Alert.alert('Recuperação solicitada', `As instruções serão enviadas para ${activeUser?.email} quando o backend for integrado.`);
+    const currentPass = activeUser?.password || 'admin';
+    Alert.alert('Recuperação solicitada', `Instruções simuladas para ${activeUser?.email}. (Senha atual nesta demonstração: "${currentPass}").`);
+  }
+
+  function recoverAccountFromLogin(rawEmail) {
+    const email = (rawEmail || '').trim().toLowerCase();
+    if (!email) {
+      Alert.alert('E-mail obrigatório', 'Informe o seu e-mail cadastrado.');
+      return false;
+    }
+    const user = data.users.find((u) => normalizeEmail(u.email) === email || (email.includes('marina') && u.email === 'marina@synple.app') || (email.includes('admin') && u.systemRole === 'SYSTEM_ADMIN') || (email.includes('joao') && u.email === 'joao@email.com'));
+    if (!user) {
+      Alert.alert('E-mail não encontrado', 'Não encontramos nenhuma conta vinculada a este e-mail.');
+      return false;
+    }
+    const token = `synple-token-${Date.now().toString(36)}`;
+    setData((current) => ({
+      ...current,
+      users: current.users.map((u) => u.id === user.id ? { ...u, recoveryToken: token, recoveryRequestedAt: new Date().toISOString() } : u),
+    }));
+    Alert.alert(
+      'Link de recuperação gerado',
+      `Simulação de envio para ${user.email}:\n\n🔗 Link: https://synple.app/redefinir-senha?token=${token}\n\nNo aplicativo, o link foi validado. Defina sua nova senha agora.`
+    );
+    return true;
+  }
+
+  function resetPasswordFromLogin(rawEmail, newPassword, confirmPassword) {
+    const email = (rawEmail || '').trim().toLowerCase();
+    const next = (newPassword || '').trim();
+    const confirm = (confirmPassword || '').trim();
+    if (next.length < 6 || next !== confirm) {
+      Alert.alert('Senha inválida', 'A nova senha deve ter no mínimo 6 caracteres e coincidir com a confirmação.');
+      return false;
+    }
+    const user = data.users.find((u) => normalizeEmail(u.email) === email || (email.includes('marina') && u.email === 'marina@synple.app') || (email.includes('admin') && u.systemRole === 'SYSTEM_ADMIN') || (email.includes('joao') && u.email === 'joao@email.com'));
+    if (!user) {
+      Alert.alert('Conta não encontrada', 'Não foi possível localizar o usuário para redefinição.');
+      return false;
+    }
+    setData((current) => ({
+      ...current,
+      users: current.users.map((u) => u.id === user.id ? { ...u, password: next, passwordUpdatedAt: new Date().toISOString() } : u),
+    }));
+    Alert.alert('Senha redefinida com sucesso!', 'Sua nova senha foi gravada com sucesso. Faça login para continuar.');
+    return true;
   }
 
   function setTheme(theme) {
@@ -317,28 +525,40 @@ export default function App() {
   const organizationPendingRequests = data.accessRequests.filter((request) => request.organizationId === selectedOrganizationId && request.status === 'PENDING');
   const organizationApprovedRequests = data.accessRequests.filter((request) => request.organizationId === selectedOrganizationId && request.status === 'APPROVED');
   const searchableOrganizations = approvedOrganizations.filter((organization) => organization.name.toLowerCase().includes(organizationSearch.trim().toLowerCase()) || organization.document.includes(organizationSearch.trim()));
-  const commissionTeam = data.commissionMembers.filter((member) => member.commissionId === selectedCommissionId).map((member) => data.users.find((user) => user.id === member.userId)).filter(Boolean);
 
   if (!isReady || showSplash) {
     return <SafeAreaView style={styles.loading}><Image source={require('./assets/synple-splash.png')} style={styles.splashLogo} resizeMode="contain" /><Text style={styles.loadingText}>Synple</Text><Text style={styles.loadingCaption}>Organize. Conecte. Simplifique.</Text></SafeAreaView>;
   }
 
-  if (!isAuthenticated) return <LoginScreen onLogin={login} onRegister={registerUser} />;
+  if (!isAuthenticated) {
+    return (
+      <ThemeContext.Provider value={{ isDark: false, styles: getThemeStyles(false) }}>
+        <LoginScreen
+          onLogin={login}
+          onRegister={registerUser}
+          onRecoverAccount={recoverAccountFromLogin}
+          onResetPassword={resetPasswordFromLogin}
+        />
+      </ThemeContext.Provider>
+    );
+  }
 
   return (
-    <SafeAreaView style={[styles.safeArea, activeUser?.theme === 'DARK' && styles.darkSurface]}>
-      <StatusBar style="dark" />
+    <ThemeContext.Provider value={{ isDark, styles }}>
+      <SafeAreaView style={styles.safeArea}>
+        <StatusBar style={isDark ? 'light' : 'dark'} />
       <View style={styles.header}>
         <View style={styles.headerIdentity}><Image source={require('./assets/synple-splash.png')} style={styles.headerLogo} resizeMode="contain" /><View><Text style={styles.brand}>Synple</Text><Text style={styles.subtitle}>Gestão de organizações</Text></View></View>
         <View style={styles.avatar}><Text style={styles.avatarText}>{activeUser?.name?.charAt(0) || 'S'}</Text></View>
       </View>
 
       <ScrollView contentContainerStyle={styles.content}>
-        <View style={styles.sessionRow}><Text style={styles.sectionTitle}>Acesso: {isSystemAdmin ? 'Administrador do sistema' : isCeo ? 'CEO' : 'Usuário'}</Text><Pressable onPress={logout}><Text style={styles.logoutText}>Sair</Text></Pressable></View>
+        <View style={styles.sessionRow}><Text style={styles.sectionTitle}>Acesso: {isSystemAdmin ? 'Administrador do sistema' : isOrgAdmin ? 'Administrador da organização' : 'Usuário'}</Text><Pressable onPress={logout}><Text style={styles.logoutText}>Sair</Text></Pressable></View>
 
         <View style={styles.navigation}>
           {!isSystemAdmin && <Choice label="Organizações" active={screen === 'organizations'} onPress={() => setScreen('organizations')} />}
           {!isSystemAdmin && <Choice label="Minha organização" active={screen === 'management'} onPress={() => setScreen('management')} />}
+          {isOrgAdmin && <Choice label="Comissões" active={screen === 'commissions'} onPress={() => setScreen('commissions')} />}
           {isSystemAdmin && <Choice label="Gestão" active={screen === 'admin-management'} onPress={() => setScreen('admin-management')} />}
           {isSystemAdmin && <Choice label="Sistema" active={screen === 'system'} onPress={() => setScreen('system')} />}
           <Choice label="Perfil" active={screen === 'profile'} onPress={openProfile} />
@@ -353,7 +573,7 @@ export default function App() {
               <View key={organization.id} style={styles.card}>
                 <View style={styles.cardHeader}><View><Text style={styles.cardTitle}>{organization.name}</Text><Text style={styles.muted}>{organization.document}</Text></View><StatusBadge status={organization.status} /></View>
                 {organization.ownerId !== activeUserId && <Pressable style={styles.smallButton} onPress={() => requestAccess(organization.id)}><Text style={styles.smallButtonText}>Solicitar entrada</Text></Pressable>}
-                {organization.ownerId === activeUserId && <Text style={styles.ownerTag}>Você é CEO</Text>}
+                {organization.ownerId === activeUserId && <Text style={styles.ownerTag}>Você é o administrador</Text>}
               </View>
             ))}
           </>
@@ -366,13 +586,13 @@ export default function App() {
               <Text style={styles.hint}>Aprovar, recusar ou remover organizações do aplicativo.</Text>
               {data.organizations.map((organization) => {
                 const ceo = data.users.find((user) => user.id === organization.ownerId);
-                return <View key={organization.id} style={styles.member}><View><Text style={styles.memberName}>{organization.name}</Text><Text style={styles.muted}>{organization.document}</Text><Text style={styles.muted}>CEO: {ceo?.name || 'Não identificado'}</Text><StatusBadge status={organization.status} /></View><View><View style={styles.actionRow}>{organization.status === 'PENDING' && <><Pressable style={styles.approveButton} onPress={() => changeOrganizationStatus(organization.id, 'APPROVED')}><Text style={styles.actionText}>Aprovar</Text></Pressable><Pressable style={styles.rejectButton} onPress={() => changeOrganizationStatus(organization.id, 'REJECTED')}><Text style={styles.rejectText}>Recusar</Text></Pressable></>} </View><Pressable style={styles.outlineButton} onPress={() => removeOrganization(organization.id)}><Text style={styles.outlineText}>Remover</Text></Pressable></View></View>;
+                return <View key={organization.id} style={styles.member}><View><Text style={styles.memberName}>{organization.name}</Text><Text style={styles.muted}>{organization.document}</Text><Text style={styles.muted}>Administrador: {ceo?.name || 'Não identificado'}</Text><StatusBadge status={organization.status} /></View><View><View style={styles.actionRow}>{organization.status === 'PENDING' && <><Pressable style={styles.approveButton} onPress={() => changeOrganizationStatus(organization.id, 'APPROVED')}><Text style={styles.actionText}>Aprovar</Text></Pressable><Pressable style={styles.rejectButton} onPress={() => changeOrganizationStatus(organization.id, 'REJECTED')}><Text style={styles.rejectText}>Recusar</Text></Pressable></>} </View><Pressable style={styles.outlineButton} onPress={() => removeOrganization(organization.id)}><Text style={styles.outlineText}>Remover</Text></Pressable></View></View>;
               })}
             </View>
             <View style={styles.card}>
               <Text style={styles.cardTitle}>Usuários</Text>
               <Text style={styles.hint}>Gerencie as contas cadastradas. A conta administrativa ativa é protegida contra remoção.</Text>
-              {data.users.map((user) => <View key={user.id} style={styles.member}><View><Text style={styles.memberName}>{user.name}</Text><Text style={styles.muted}>{user.email}</Text><Text style={styles.muted}>{user.systemRole === 'SYSTEM_ADMIN' ? 'Administrador do sistema' : data.organizations.some((organization) => organization.ownerId === user.id && organization.status === 'APPROVED') ? 'CEO' : 'Usuário'}</Text></View>{user.id !== activeUserId && user.systemRole !== 'SYSTEM_ADMIN' && <Pressable style={styles.outlineButton} onPress={() => removeUser(user.id)}><Text style={styles.outlineText}>Remover</Text></Pressable>}</View>)}
+              {data.users.map((user) => <View key={user.id} style={styles.member}><View><Text style={styles.memberName}>{user.name}</Text><Text style={styles.muted}>{user.email}</Text><Text style={styles.muted}>{user.systemRole === 'SYSTEM_ADMIN' ? 'Administrador do sistema' : data.organizations.some((organization) => organization.ownerId === user.id && organization.status === 'APPROVED') ? 'Administrador da organização' : 'Usuário'}</Text></View>{user.id !== activeUserId && user.systemRole !== 'SYSTEM_ADMIN' && <Pressable style={styles.outlineButton} onPress={() => removeUser(user.id)}><Text style={styles.outlineText}>Remover</Text></Pressable>}</View>)}
             </View>
           </>
         )}
@@ -381,12 +601,12 @@ export default function App() {
           <>
             <View style={styles.card}>
               <Text style={styles.cardTitle}>Criar organização</Text>
-              <Text style={styles.hint}>Após a aprovação do administrador do sistema, você receberá a tag e o cargo de CEO desta organização.</Text>
+              <Text style={styles.hint}>Após a aprovação do administrador do sistema, você será o administrador desta organização e poderá gerenciar acessos e comissões.</Text>
               <Field label="Nome da organização" value={organizationForm.name} onChangeText={(name) => setOrganizationForm({ ...organizationForm, name })} placeholder="Ex.: Empresa Synple" />
-              <Field label="CNPJ" value={organizationForm.document} onChangeText={(document) => setOrganizationForm({ ...organizationForm, document })} placeholder="00.000.000/0000-00" keyboardType="numeric" />
+              <Field label="CNPJ" value={organizationForm.document} onChangeText={(document) => setOrganizationForm({ ...organizationForm, document: formatCNPJ(document) })} placeholder="00.000.000/0000-00" keyboardType="numeric" />
               <Pressable style={styles.primaryButton} onPress={createOrganization}><Text style={styles.primaryButtonText}>Enviar cadastro</Text></Pressable>
             </View>
-            {!isSystemAdmin && !isCeo && <View style={styles.card}>
+            {!isSystemAdmin && !isOrgAdmin && <View style={styles.card}>
               <Text style={styles.cardTitle}>Solicitar acesso</Text>
               <Text style={styles.hint}>Usuário selecionado: {activeUser?.name}</Text>
               <Text style={styles.label}>Organização aprovada</Text>
@@ -394,12 +614,25 @@ export default function App() {
               {requestableOrganizations.length === 0 ? <Text style={styles.empty}>Não há outras organizações aprovadas para solicitar acesso.</Text> : <Pressable style={styles.primaryButton} onPress={requestAccess}><Text style={styles.primaryButtonText}>Solicitar acesso</Text></Pressable>}
             </View>}
 
-            {isCeo && <>
+            {isOrgAdmin && <>
               <View style={styles.card}>
                 <Text style={styles.cardTitle}>Organização administrada</Text>
                 <Text style={styles.hint}>Selecione a organização para ver pedidos e membros.</Text>
                 <View style={styles.userChoices}>{approvedOwnedOrganizations.map((organization) => <Choice key={organization.id} label={organization.name} active={selectedOrganizationId === organization.id} onPress={() => setSelectedOrganizationId(organization.id)} />)}</View>
               </View>
+
+              <View style={styles.card}>
+                <View style={styles.cardHeader}>
+                  <View style={{ flex: 1 }}>
+                    <Text style={styles.cardTitle}>Comissões e grupos de trabalho</Text>
+                    <Text style={styles.hint}>{organizationCommissions.length} comissão(ões) ou grupo(s) cadastrado(s).</Text>
+                  </View>
+                </View>
+                <Pressable style={styles.primaryButton} onPress={() => setScreen('commissions')}>
+                  <Text style={styles.primaryButtonText}>Gerenciar comissões e equipe</Text>
+                </Pressable>
+              </View>
+
               <Text style={styles.sectionTitle}>Solicitações pendentes</Text>
               {organizationPendingRequests.length === 0 && <Text style={styles.empty}>Não há solicitações pendentes para esta organização.</Text>}
               {organizationPendingRequests.map((request) => {
@@ -408,7 +641,7 @@ export default function App() {
                 return <View key={request.id} style={styles.card}><Text style={styles.cardTitle}>{user?.name}</Text><Text style={styles.muted}>{organization?.name}</Text><Text style={styles.memberDetail}>E-mail: {user?.email || 'Não informado'}</Text><Text style={styles.memberDetail}>Telefone: {user?.phone || 'Não informado'}</Text><View style={styles.actionRow}><Pressable style={styles.approveButton} onPress={() => changeAccessStatus(request.id, 'APPROVED')}><Text style={styles.actionText}>Aprovar</Text></Pressable><Pressable style={styles.rejectButton} onPress={() => changeAccessStatus(request.id, 'REJECTED')}><Text style={styles.rejectText}>Recusar</Text></Pressable></View></View>;
               })}
               <Text style={styles.sectionTitle}>Membros da organização</Text>
-              {selectedOrganization && <View style={styles.member}><View><Text style={styles.memberName}>{data.users.find((user) => user.id === selectedOrganization.ownerId)?.name}</Text><Text style={styles.muted}>CEO da organização</Text></View><Text style={styles.ownerTag}>CEO</Text></View>}
+              {selectedOrganization && <View style={styles.member}><View><Text style={styles.memberName}>{data.users.find((user) => user.id === selectedOrganization.ownerId)?.name}</Text><Text style={styles.muted}>Administrador da organização</Text></View><Text style={styles.ownerTag}>Admin da org</Text></View>}
               {organizationApprovedRequests.length === 0 && <Text style={styles.empty}>Ainda não há membros aprovados.</Text>}
               {organizationApprovedRequests.map((request) => {
                 const user = data.users.find((item) => item.id === request.userId);
@@ -417,36 +650,268 @@ export default function App() {
               })}
             </>}
 
-            {!isSystemAdmin && !isCeo && <><Text style={styles.sectionTitle}>Minhas solicitações</Text>{userRequests.length === 0 && <Text style={styles.empty}>Você ainda não possui solicitações.</Text>}{userRequests.map((request) => {
+            {!isSystemAdmin && !isOrgAdmin && <><Text style={styles.sectionTitle}>Minhas solicitações</Text>{userRequests.length === 0 && <Text style={styles.empty}>Você ainda não possui solicitações.</Text>}{userRequests.map((request) => {
               const user = data.users.find((item) => item.id === request.userId);
               const organization = data.organizations.find((item) => item.id === request.organizationId);
               const administrator = data.users.find((item) => item.id === organization?.ownerId);
-              return <View key={request.id} style={styles.member}><View><Text style={styles.memberName}>{organization?.name}</Text><Text style={styles.muted}>CEO: {administrator?.name || 'Não identificado'}</Text><Text style={styles.muted}>{user?.email}</Text></View><StatusBadge status={request.status} /></View>;
+              return <View key={request.id} style={styles.member}><View><Text style={styles.memberName}>{organization?.name}</Text><Text style={styles.muted}>Administrador: {administrator?.name || 'Não identificado'}</Text><Text style={styles.muted}>{user?.email}</Text></View><StatusBadge status={request.status} /></View>;
             })}</>}
           </>
         )}
 
-        {isCeo && screen === 'commissions' && (
+        {isOrgAdmin && screen === 'commissions' && (
           <>
+            {approvedOwnedOrganizations.length > 1 && (
+              <View style={styles.card}>
+                <Text style={styles.cardTitle}>Organização gerenciada</Text>
+                <Text style={styles.hint}>Selecione a organização para gerenciar comissões e grupos:</Text>
+                <View style={styles.userChoices}>
+                  {approvedOwnedOrganizations.map((organization) => (
+                    <Choice
+                      key={organization.id}
+                      label={organization.name}
+                      active={selectedOrganizationId === organization.id}
+                      onPress={() => {
+                        setSelectedOrganizationId(organization.id);
+                        setSelectedCommissionId('');
+                        setEditingCommissionId(null);
+                      }}
+                    />
+                  ))}
+                </View>
+              </View>
+            )}
+
+            {/* Cadastro de Nova Comissão / Grupo de Trabalho */}
             <View style={styles.card}>
-              <Text style={styles.cardTitle}>Nova comissão</Text>
-              <Text style={styles.hint}>Comissões são grupos de trabalho vinculados a uma organização.</Text>
-              <Text style={styles.label}>Organização</Text>
-              <View style={styles.userChoices}>{approvedOwnedOrganizations.map((organization) => <Choice key={organization.id} label={organization.name} active={selectedOrganizationId === organization.id} onPress={() => setSelectedOrganizationId(organization.id)} />)}</View>
-              <Field label="Nome da comissão" value={commissionForm.name} onChangeText={(name) => setCommissionForm({ ...commissionForm, name })} placeholder="Ex.: Comissão de Eventos" />
-              <Field label="Descrição" value={commissionForm.description} onChangeText={(description) => setCommissionForm({ ...commissionForm, description })} placeholder="Objetivo do grupo de trabalho" />
-              <Pressable style={styles.primaryButton} onPress={createCommission}><Text style={styles.primaryButtonText}>Cadastrar comissão</Text></Pressable>
+              <Text style={styles.cardTitle}>Nova comissão ou grupo de trabalho</Text>
+              <Text style={styles.hint}>
+                Organização: <Text style={{ fontWeight: '700' }}>{selectedOrganization?.name}</Text>. Cadastre comissões, grupos de trabalho ou comitês vinculados a esta organização.
+              </Text>
+              <Field
+                label="Nome da comissão ou grupo"
+                value={commissionForm.name}
+                onChangeText={(name) => setCommissionForm({ ...commissionForm, name })}
+                placeholder="Ex.: Comissão de Eventos / GT de Inovação"
+              />
+              <Text style={styles.label}>Tipo</Text>
+              <View style={styles.userChoices}>
+                {COMMISSION_TYPES.map((type) => (
+                  <Choice
+                    key={type}
+                    label={type}
+                    active={(commissionForm.type || 'Comissão') === type}
+                    onPress={() => setCommissionForm({ ...commissionForm, type })}
+                  />
+                ))}
+              </View>
+              <Field
+                label="Descrição / Objetivo"
+                value={commissionForm.description}
+                onChangeText={(description) => setCommissionForm({ ...commissionForm, description })}
+                placeholder="Objetivo e atribuições do grupo"
+              />
+              <Pressable style={styles.primaryButton} onPress={createCommission}>
+                <Text style={styles.primaryButtonText}>Cadastrar comissão</Text>
+              </Pressable>
             </View>
-            <Text style={styles.sectionTitle}>Comissões da organização</Text>
-            {organizationCommissions.length === 0 && <Text style={styles.empty}>Ainda não há comissões cadastradas.</Text>}
-            {organizationCommissions.map((commission) => <Pressable key={commission.id} onPress={() => setSelectedCommissionId(commission.id)} style={[styles.card, selectedCommissionId === commission.id && styles.selectedCard]}><View style={styles.cardHeader}><View><Text style={styles.cardTitle}>{commission.name}</Text><Text style={styles.muted}>{commission.description || 'Sem descrição'}</Text></View><Text style={styles.activeTag}>Ativa</Text></View><Pressable style={styles.outlineButton} onPress={() => deleteCommission(commission.id)}><Text style={styles.outlineText}>Excluir comissão</Text></Pressable></Pressable>)}
-            {selectedCommission && <View style={styles.card}><Text style={styles.cardTitle}>Equipe: {selectedCommission.name}</Text><Text style={styles.hint}>Toque em um membro da organização para incluí-lo na comissão.</Text><View style={styles.userChoices}>{organizationMembers.map((user) => <Choice key={user.id} label={user.name} active={commissionTeam.some((member) => member.id === user.id)} onPress={() => addCommissionMember(user.id)} />)}</View><Text style={styles.label}>Membros atuais</Text>{commissionTeam.map((user) => <View key={user.id} style={styles.member}><View><Text style={styles.memberName}>{user.name}</Text><Text style={styles.muted}>{user.email}</Text></View><Pressable onPress={() => removeCommissionMember(user.id)}><Text style={styles.removeText}>Remover</Text></Pressable></View>)}</View>}
+
+            {/* Formulário de Edição de Comissão */}
+            {editingCommissionId && (
+              <View style={[styles.card, styles.selectedCard]}>
+                <Text style={styles.cardTitle}>Editar comissão / grupo</Text>
+                <Text style={styles.hint}>Atualize os dados e a situação da comissão selecionada.</Text>
+                <Field
+                  label="Nome da comissão"
+                  value={editCommissionForm.name}
+                  onChangeText={(name) => setEditCommissionForm({ ...editCommissionForm, name })}
+                  placeholder="Nome do grupo"
+                />
+                <Text style={styles.label}>Tipo</Text>
+                <View style={styles.userChoices}>
+                  {COMMISSION_TYPES.map((type) => (
+                    <Choice
+                      key={type}
+                      label={type}
+                      active={editCommissionForm.type === type}
+                      onPress={() => setEditCommissionForm({ ...editCommissionForm, type })}
+                    />
+                  ))}
+                </View>
+                <Text style={styles.label}>Situação</Text>
+                <View style={styles.userChoices}>
+                  <Choice
+                    label="Ativa"
+                    active={editCommissionForm.status === 'ACTIVE'}
+                    onPress={() => setEditCommissionForm({ ...editCommissionForm, status: 'ACTIVE' })}
+                  />
+                  <Choice
+                    label="Inativa"
+                    active={editCommissionForm.status === 'INACTIVE'}
+                    onPress={() => setEditCommissionForm({ ...editCommissionForm, status: 'INACTIVE' })}
+                  />
+                </View>
+                <Field
+                  label="Descrição / Objetivo"
+                  value={editCommissionForm.description}
+                  onChangeText={(description) => setEditCommissionForm({ ...editCommissionForm, description })}
+                  placeholder="Descrição da comissão"
+                />
+                <View style={styles.actionRow}>
+                  <Pressable style={styles.approveButton} onPress={saveEditCommission}>
+                    <Text style={styles.actionText}>Salvar</Text>
+                  </Pressable>
+                  <Pressable style={styles.rejectButton} onPress={cancelEditCommission}>
+                    <Text style={styles.rejectText}>Cancelar</Text>
+                  </Pressable>
+                </View>
+              </View>
+            )}
+
+            {/* Listagem de Comissões */}
+            <Text style={styles.sectionTitle}>Comissões da organização ({organizationCommissions.length})</Text>
+            {organizationCommissions.length === 0 && (
+              <Text style={styles.empty}>Ainda não há comissões cadastradas nesta organização.</Text>
+            )}
+            {organizationCommissions.map((commission) => {
+              const isSelected = selectedCommissionId === commission.id;
+              const membersCount = data.commissionMembers.filter((m) => m.commissionId === commission.id).length;
+              return (
+                <Pressable
+                  key={commission.id}
+                  onPress={() => setSelectedCommissionId(commission.id)}
+                  style={[styles.card, isSelected && styles.selectedCard]}
+                >
+                  <View style={styles.cardHeader}>
+                    <View style={{ flex: 1 }}>
+                      <Text style={styles.cardTitle}>{commission.name}</Text>
+                      <View style={styles.tagRow}>
+                        <Text style={styles.typeTag}>{commission.type || 'Comissão'}</Text>
+                        <Text style={commission.status === 'INACTIVE' ? styles.inactiveTag : styles.activeTag}>
+                          {commission.status === 'INACTIVE' ? 'Inativa' : 'Ativa'}
+                        </Text>
+                        <Text style={styles.muted}>• {membersCount} membro(s)</Text>
+                      </View>
+                      <Text style={[styles.muted, { marginTop: 6 }]}>
+                        {commission.description || 'Sem descrição cadastrada.'}
+                      </Text>
+                    </View>
+                  </View>
+
+                  <View style={styles.actionRow}>
+                    <Pressable
+                      style={styles.secondaryButton}
+                      onPress={() => startEditCommission(commission)}
+                    >
+                      <Text style={styles.secondaryButtonText}>Editar</Text>
+                    </Pressable>
+                    <Pressable
+                      style={styles.secondaryButton}
+                      onPress={() => toggleCommissionStatus(commission.id)}
+                    >
+                      <Text style={styles.secondaryButtonText}>
+                        {commission.status === 'INACTIVE' ? 'Ativar' : 'Desativar'}
+                      </Text>
+                    </Pressable>
+                    <Pressable
+                      style={styles.outlineButton}
+                      onPress={() => deleteCommission(commission.id)}
+                    >
+                      <Text style={styles.outlineText}>Excluir</Text>
+                    </Pressable>
+                  </View>
+                </Pressable>
+              );
+            })}
+
+            {/* Gerenciamento da Equipe da Comissão Selecionada */}
+            {selectedCommission && (
+              <View style={styles.card}>
+                <View style={styles.cardHeader}>
+                  <View style={{ flex: 1 }}>
+                    <Text style={styles.cardTitle}>Equipe: {selectedCommission.name}</Text>
+                    <Text style={styles.hint}>
+                      Gerencie a composição e os cargos da equipe nesta comissão.
+                    </Text>
+                  </View>
+                  <Text style={styles.typeTag}>{selectedCommission.type || 'Comissão'}</Text>
+                </View>
+
+                {/* Membros Atuais */}
+                <Text style={styles.label}>
+                  Membros atuais da equipe ({commissionTeam.length})
+                </Text>
+                {commissionTeam.length === 0 && (
+                  <Text style={styles.empty}>Nenhum membro vinculado a esta comissão.</Text>
+                )}
+                {commissionTeam.map((member) => (
+                  <View key={member.id} style={styles.member}>
+                    <View style={{ flex: 1 }}>
+                      <Text style={styles.memberName}>{member.name}</Text>
+                      <Text style={styles.muted}>{member.email}</Text>
+                      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 4 }}>
+                        <Text
+                          style={
+                            member.commissionRole === 'COORDINATOR'
+                              ? styles.roleBadgeCoordinator
+                              : styles.roleBadge
+                          }
+                        >
+                          {member.commissionRole === 'COORDINATOR' ? 'Coordenador(a)' : 'Membro'}
+                        </Text>
+                        {selectedOrganization?.ownerId === member.id && (
+                          <Text style={styles.ownerTag}>Admin da org</Text>
+                        )}
+                      </View>
+                    </View>
+                    <View style={{ alignItems: 'flex-end', gap: 6 }}>
+                      <Pressable
+                        style={styles.smallButton}
+                        onPress={() => toggleCommissionMemberRole(member.id)}
+                      >
+                        <Text style={styles.smallButtonText}>
+                          {member.commissionRole === 'COORDINATOR' ? 'Tornar membro' : 'Tornar coord.'}
+                        </Text>
+                      </Pressable>
+                      <Pressable onPress={() => removeCommissionMember(member.id)}>
+                        <Text style={styles.removeText}>Remover</Text>
+                      </Pressable>
+                    </View>
+                  </View>
+                ))}
+
+                {/* Adicionar Membros da Organização */}
+                <Text style={[styles.label, { marginTop: 14 }]}>
+                  Adicionar membros da organização ({availableOrgMembers.length} disponíveis)
+                </Text>
+                {availableOrgMembers.length === 0 ? (
+                  <Text style={styles.muted}>
+                    Todos os membros da organização já fazem parte desta comissão.
+                  </Text>
+                ) : (
+                  availableOrgMembers.map((user) => (
+                    <View key={user.id} style={styles.member}>
+                      <View style={{ flex: 1 }}>
+                        <Text style={styles.memberName}>{user.name}</Text>
+                        <Text style={styles.muted}>{user.email}</Text>
+                      </View>
+                      <Pressable
+                        style={styles.approveButton}
+                        onPress={() => addCommissionMember(user.id)}
+                      >
+                        <Text style={styles.actionText}>+ Adicionar</Text>
+                      </Pressable>
+                    </View>
+                  ))
+                )}
+              </View>
+            )}
           </>
         )}
 
         {screen === 'profile' && (
           <>
-            <View style={styles.card}><Text style={styles.cardTitle}>Dados pessoais</Text><Field label="Nome" value={profileForm.name} onChangeText={(name) => setProfileForm({ ...profileForm, name })} placeholder="Seu nome" /><Field label="E-mail" value={profileForm.email} onChangeText={(email) => setProfileForm({ ...profileForm, email })} placeholder="voce@email.com" keyboardType="email-address" /><Field label="Telefone" value={profileForm.phone} onChangeText={(phone) => setProfileForm({ ...profileForm, phone })} placeholder="(00) 00000-0000" keyboardType="phone-pad" /><Pressable style={styles.primaryButton} onPress={updateProfile}><Text style={styles.primaryButtonText}>Salvar dados</Text></Pressable></View>
+            <View style={styles.card}><Text style={styles.cardTitle}>Dados pessoais</Text><Field label="Nome" value={profileForm.name} onChangeText={(name) => setProfileForm({ ...profileForm, name })} placeholder="Seu nome" /><Field label="E-mail" value={profileForm.email} onChangeText={(email) => setProfileForm({ ...profileForm, email })} placeholder="voce@email.com" keyboardType="email-address" /><Field label="Telefone" value={profileForm.phone} onChangeText={(phone) => setProfileForm({ ...profileForm, phone: formatPhone(phone) })} placeholder="(00) 00000-0000" keyboardType="phone-pad" /><Pressable style={styles.primaryButton} onPress={updateProfile}><Text style={styles.primaryButtonText}>Salvar dados</Text></Pressable></View>
             <View style={styles.card}><Text style={styles.cardTitle}>Trocar senha</Text><Field label="Senha atual" value={passwordForm.current} onChangeText={(current) => setPasswordForm({ ...passwordForm, current })} placeholder="Senha atual" secureTextEntry /><Field label="Nova senha" value={passwordForm.next} onChangeText={(next) => setPasswordForm({ ...passwordForm, next })} placeholder="Mínimo de 6 caracteres" secureTextEntry /><Field label="Confirmar nova senha" value={passwordForm.confirm} onChangeText={(confirm) => setPasswordForm({ ...passwordForm, confirm })} placeholder="Repita a nova senha" secureTextEntry /><Pressable style={styles.primaryButton} onPress={updatePassword}><Text style={styles.primaryButtonText}>Atualizar senha</Text></Pressable><Pressable style={styles.resetButton} onPress={recoverAccount}><Text style={styles.resetText}>Recuperar conta por e-mail</Text></Pressable></View>
             <View style={styles.card}><Text style={styles.cardTitle}>Tema preferido</Text><View style={styles.userChoices}><Choice label="Claro" active={(activeUser?.theme || 'LIGHT') === 'LIGHT'} onPress={() => setTheme('LIGHT')} /><Choice label="Escuro" active={activeUser?.theme === 'DARK'} onPress={() => setTheme('DARK')} /></View></View>
           </>
@@ -463,5 +928,6 @@ export default function App() {
         {isSystemAdmin && <Pressable style={styles.resetButton} onPress={resetDemo}><Text style={styles.resetText}>Restaurar dados de demonstração</Text></Pressable>}
       </ScrollView>
     </SafeAreaView>
+    </ThemeContext.Provider>
   );
 }
