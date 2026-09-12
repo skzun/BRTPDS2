@@ -126,9 +126,9 @@ export default function App() {
 
     const validPasswords = [];
     if (user.password) validPasswords.push(user.password.trim());
-    if (isMarina) validPasswords.push('marina123', 'marina', 'admin123', 'admin', '123456', 'senha123');
-    if (isAdmin) validPasswords.push('admin123', 'admin', '123456');
-    if (isJoao) validPasswords.push('joao123', 'joao', 'admin123', 'admin', '123456');
+    if (isMarina) validPasswords.push('Marina@123', 'marina123', 'marina', 'admin123', 'admin', '123456', 'senha123');
+    if (isAdmin) validPasswords.push('Admin@123', 'admin123', 'admin', '123456');
+    if (isJoao) validPasswords.push('Joao@123', 'joao123', 'joao', 'admin123', 'admin', '123456');
 
     if (!validPasswords.includes(trimmedPassword)) {
       return Alert.alert('Senha incorreta', 'A senha informada não confere.');
@@ -428,9 +428,9 @@ export default function App() {
     if (validationError) return Alert.alert('Senha inválida', validationError);
     const currentInput = (passwordForm.current || '').trim();
     const validCurrents = [activeUser?.password?.trim()].filter(Boolean);
-    if (activeUser?.email === 'marina@synple.app') validCurrents.push('marina123', 'marina', 'admin', 'admin123');
-    if (activeUser?.systemRole === 'SYSTEM_ADMIN') validCurrents.push('admin123', 'admin');
-    if (activeUser?.email === 'joao@email.com') validCurrents.push('joao123', 'joao', 'admin');
+    if (activeUser?.email?.includes('marina')) validCurrents.push('Marina@123', 'marina123', 'marina', 'admin', 'admin123');
+    if (activeUser?.systemRole === 'SYSTEM_ADMIN' || activeUser?.email?.includes('admin')) validCurrents.push('Admin@123', 'admin123', 'admin');
+    if (activeUser?.email?.includes('joao')) validCurrents.push('Joao@123', 'joao123', 'joao', 'admin');
     if (!validCurrents.includes(currentInput)) {
       return Alert.alert('Senha atual incorreta', 'A senha atual informada não confere.');
     }

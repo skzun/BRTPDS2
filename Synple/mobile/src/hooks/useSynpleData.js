@@ -4,9 +4,12 @@ import { INITIAL_DATA } from '../constants/data';
 import { loadStoredData, saveData } from '../services/storage';
 
 const DEMO_PASSWORDS = {
-  'admin@synple.app': 'admin123',
-  'marina@synple.app': 'marina123',
-  'joao@email.com': 'joao123',
+  'admin@synple.com': 'Admin@123',
+  'admin@synple.app': 'Admin@123',
+  'marina@synple.com': 'Marina@123',
+  'marina@synple.app': 'Marina@123',
+  'joao@synple.com': 'Joao@123',
+  'joao@email.com': 'Joao@123',
 };
 
 function mergeData(savedData) {
