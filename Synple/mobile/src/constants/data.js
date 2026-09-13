@@ -1,7 +1,8 @@
 const INITIAL_DATA = {
+  schemaVersion: 3,
   organizations: [
     { id: 'org-aurora', name: 'Estúdio Aurora', document: '12.345.678/0001-90', status: 'APPROVED', ownerId: 'user-admin' },
-    { id: 'org-horizonte', name: 'Coletivo Horizonte', document: '98.765.432/0001-10', status: 'APPROVED', ownerId: 'user-admin' },
+    { id: 'org-horizonte', name: 'Coletivo Horizonte', document: '98.765.432/0001-10', status: 'APPROVED', ownerId: 'user-visitante' },
   ],
   users: [
     { id: 'user-system-admin', name: 'Administrador do Sistema', email: 'admin@synple.com', phone: '(11) 99999-1111', password: 'Admin@123', theme: 'LIGHT', systemRole: 'SYSTEM_ADMIN' },

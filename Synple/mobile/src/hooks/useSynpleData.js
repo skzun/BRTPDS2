@@ -12,11 +12,39 @@ const DEMO_PASSWORDS = {
   'joao@email.com': 'Joao@123',
 };
 
+function mergeDemoUsers(savedUsers) {
+  const users = Array.isArray(savedUsers) ? savedUsers : [];
+  const demoUsers = INITIAL_DATA.users.map((demoUser) => {
+    const savedUser = users.find((user) => user.id === demoUser.id);
+    return savedUser ? { ...demoUser, ...savedUser } : demoUser;
+  });
+  const registeredUsers = users.filter((user) => !INITIAL_DATA.users.some((demoUser) => demoUser.id === user.id));
+
+  return [...demoUsers, ...registeredUsers];
+}
+
+function migrateOrganizations(savedOrganizations, schemaVersion) {
+  const organizations = Array.isArray(savedOrganizations) ? savedOrganizations : INITIAL_DATA.organizations;
+
+  if (schemaVersion >= 3) return organizations;
+
+  return organizations.map((organization) => (
+    organization.id === 'org-horizonte' && organization.ownerId === 'user-admin'
+      ? { ...organization, ownerId: 'user-visitante' }
+      : organization
+  ));
+}
+
 function mergeData(savedData) {
+  const users = mergeDemoUsers(savedData.users);
+  const organizations = migrateOrganizations(savedData.organizations, savedData.schemaVersion || 0);
+
   return {
     ...INITIAL_DATA,
     ...savedData,
-    users: (savedData.users || INITIAL_DATA.users).map((user) => ({
+    schemaVersion: 3,
+    organizations,
+    users: users.map((user) => ({
       ...user,
       password: user.password && user.password !== 'admin' ? user.password : (DEMO_PASSWORDS[user.email] || user.password || 'admin123'),
     })),

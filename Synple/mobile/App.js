@@ -21,6 +21,15 @@ import { getThemeStyles, ThemeContext } from './src/styles/theme';
 
 const createId = (prefix) => `${prefix}-${Date.now()}`;
 
+const DEMO_LOGIN_ALIASES = {
+  'admin@synple.com': 'user-system-admin',
+  'admin@synple.app': 'user-system-admin',
+  'marina@synple.com': 'user-admin',
+  'marina@synple.app': 'user-admin',
+  'joao@synple.com': 'user-visitante',
+  'joao@email.com': 'user-visitante',
+};
+
 export default function App() {
   const { data, isReady, setData, storageError } = useSynpleData();
   const [showSplash, setShowSplash] = useState(true);
@@ -112,12 +121,9 @@ export default function App() {
     const validationError = validateLogin({ email: trimmedEmail, password: trimmedPassword });
     if (validationError) return Alert.alert('Dados inválidos', validationError);
 
-    let user = data.users.find((item) => normalizeEmail(item.email) === trimmedEmail);
-    if (!user) {
-      if (trimmedEmail.includes('marina')) user = data.users.find((u) => u.email === 'marina@synple.app');
-      else if (trimmedEmail.includes('admin')) user = data.users.find((u) => u.systemRole === 'SYSTEM_ADMIN');
-      else if (trimmedEmail.includes('joao')) user = data.users.find((u) => u.email === 'joao@email.com');
-    }
+    const demoUserId = DEMO_LOGIN_ALIASES[trimmedEmail];
+    const user = data.users.find((item) => normalizeEmail(item.email) === trimmedEmail)
+      || (demoUserId ? data.users.find((item) => item.id === demoUserId) : undefined);
     if (!user) return Alert.alert('Conta não encontrada', 'Cadastre um usuário antes de entrar.');
 
     const isMarina = user.email === 'marina@synple.app' || user.id === 'user-admin';
