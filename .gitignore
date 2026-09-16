@@ -1,0 +1,21 @@
+# Dependências
+node_modules/
+package-lock.json
+
+# Expo e builds
+.expo/
+dist/
+web-build/
+
+# Variáveis de ambiente sensíveis
+.env
+.env.local
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+
+# Sistema
+.DS_Store
+Thumbs.db
