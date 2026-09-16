@@ -12,6 +12,7 @@ import {
 
 import { INITIAL_DATA } from './src/constants/data';
 import { useSynpleData } from './src/hooks/useSynpleData';
+import { saveData } from './src/services/storage';
 import { formatCNPJ, formatPhone } from './src/services/formatters';
 import { normalizeEmail, validateCommission, validateLogin, validateOrganization, validatePassword, validatePhone, validateRegistration, validateUser } from './src/services/validation';
 import {
@@ -186,6 +187,7 @@ export default function App() {
       password: password,
       theme: 'LIGHT',
       systemRole: 'USER',
+      pendingSync: true,
     };
 
     // Salva no banco PostgreSQL diretamente se o backend estiver rodando
@@ -193,13 +195,18 @@ export default function App() {
       const apiRes = await registerWithApi({ name: user.name, email: normalizedEmail, phone: user.phone, password });
       if (apiRes && apiRes.success && apiRes.user?.id) {
         user.id = apiRes.user.id;
+        user.pendingSync = false;
         newUserId = apiRes.user.id;
       }
     } catch (err) {
       console.warn('Registro mantido localmente:', err);
     }
 
-    setData((current) => ({ ...current, users: [...current.users, user] }));
+    setData((current) => {
+      const updated = { ...current, users: [...current.users, user] };
+      saveData(updated).catch(() => {});
+      return updated;
+    });
     setActiveUserId(newUserId);
     const firstOrg = data.organizations.find((o) => o.status === 'APPROVED');
     if (firstOrg) setSelectedOrganizationId(firstOrg.id);
@@ -232,13 +239,15 @@ export default function App() {
         deleteOrganizationWithApi(organizationId).catch(() => {});
         setData((current) => {
           const commissionIds = current.commissions.filter((commission) => commission.organizationId === organizationId).map((commission) => commission.id);
-          return {
+          const updated = {
             ...current,
             organizations: current.organizations.filter((organization) => organization.id !== organizationId),
             accessRequests: current.accessRequests.filter((request) => request.organizationId !== organizationId),
             commissions: current.commissions.filter((commission) => commission.organizationId !== organizationId),
             commissionMembers: current.commissionMembers.filter((member) => !commissionIds.includes(member.commissionId)),
           };
+          saveData(updated).catch(() => {});
+          return updated;
         });
       } },
     ]);
@@ -247,17 +256,22 @@ export default function App() {
   function removeUser(userId) {
     const user = data.users.find((item) => item.id === userId);
     if (!isSystemAdmin || !user || user.id === activeUserId || user.systemRole === 'SYSTEM_ADMIN') return;
-    Alert.alert('Remover usuário', 'As organizações e acessos vinculados a esta conta também serão removidos.', [
+    Alert.alert('Remover usuário', 'O usuário e todas as suas organizações, acessos e vínculos serão removidos permanentemente.', [
       { text: 'Cancelar', style: 'cancel' },
-      { text: 'Remover', style: 'destructive', onPress: () => {
-        // Exclui no PostgreSQL por ID e por e-mail para garantir compatibilidade
-        if (user.id) deleteUserWithApi(user.id).catch(() => {});
-        if (user.email) deleteUserWithApi(user.email).catch(() => {});
+      { text: 'Remover', style: 'destructive', onPress: async () => {
+        // 1. Exclui no PostgreSQL por ID e por e-mail imediatamente
+        try {
+          if (user.id) await deleteUserWithApi(user.id);
+          if (user.email) await deleteUserWithApi(user.email);
+        } catch (e) {
+          console.warn('Erro ao excluir usuário remotamente:', e);
+        }
 
+        // 2. Atualiza estado e persiste imediatamente no armazenamento local para evitar ressuscitação
         setData((current) => {
           const organizationIds = current.organizations.filter((organization) => organization.ownerId === userId).map((organization) => organization.id);
           const commissionIds = current.commissions.filter((commission) => organizationIds.includes(commission.organizationId)).map((commission) => commission.id);
-          return {
+          const updated = {
             ...current,
             users: current.users.filter((item) => item.id !== userId && item.email !== user.email),
             organizations: current.organizations.filter((organization) => organization.ownerId !== userId),
@@ -265,6 +279,8 @@ export default function App() {
             commissions: current.commissions.filter((commission) => !organizationIds.includes(commission.organizationId)),
             commissionMembers: current.commissionMembers.filter((member) => member.userId !== userId && !commissionIds.includes(member.commissionId)),
           };
+          saveData(updated).catch(() => {});
+          return updated;
         });
       } },
     ]);

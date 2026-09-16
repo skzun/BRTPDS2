@@ -152,20 +152,14 @@ export async function requestAccessWithApi(organizationId, userId) {
 }
 
 /**
- * Sincroniza usuários criados localmente com o PostgreSQL
+ * Sincroniza usuários criados localmente com o PostgreSQL (apenas pendências explícitas)
  */
-export async function syncPendingUsers(localUsers = [], remoteUsers = []) {
+export async function syncPendingUsers(localUsers = []) {
   if (!Array.isArray(localUsers) || localUsers.length === 0) return [];
-  const remoteEmails = new Set((remoteUsers || []).map((u) => (u.email || '').toLowerCase()));
   const synced = [];
 
   for (const user of localUsers) {
-    const email = (user.email || '').toLowerCase();
-    if (
-      email &&
-      !['admin@synple.com', 'marina@synple.com', 'joao@synple.com', 'admin@synple.app', 'marina@synple.app', 'joao@email.com'].includes(email) &&
-      !remoteEmails.has(email)
-    ) {
+    if (user && user.pendingSync && user.email) {
       try {
         const res = await registerWithApi({
           name: user.name || 'Usuário',
@@ -174,6 +168,8 @@ export async function syncPendingUsers(localUsers = [], remoteUsers = []) {
           password: user.password || 'Synple@123',
         });
         if (res && res.success && res.user) {
+          user.pendingSync = false;
+          user.id = res.user.id;
           synced.push(res.user);
         }
       } catch {
