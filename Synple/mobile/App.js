@@ -17,6 +17,7 @@ import { useSynpleData } from './src/hooks/useSynpleData';
 import { formatCNPJ, formatPhone } from './src/services/formatters';
 import { normalizeEmail, validateCommission, validateLogin, validateOrganization, validatePassword, validatePhone, validateRegistration, validateUser } from './src/services/validation';
 import { LoginScreen } from './src/screens/LoginScreen';
+import { registerWithApi } from './src/services/api';
 import { getThemeStyles, ThemeContext } from './src/styles/theme';
 
 const createId = (prefix) => `${prefix}-${Date.now()}`;
@@ -158,16 +159,24 @@ export default function App() {
     const normalizedEmail = normalizeEmail(email);
     if (data.users.some((user) => user.email === normalizedEmail)) return Alert.alert('E-mail já cadastrado', 'Use outro e-mail ou entre com a conta existente.');
 
+    const newUserId = createId('user');
     const user = {
-      id: createId('user'),
+      id: newUserId,
       name: name.trim(),
       email: normalizedEmail,
       phone: formatPhone(phone),
       password: password,
       theme: 'LIGHT',
+      systemRole: 'USER',
     };
+
+    // Salva no banco PostgreSQL se o backend estiver rodando
+    registerWithApi({ name: user.name, email: normalizedEmail, phone: user.phone, password }).catch(() => {});
+
     setData((current) => ({ ...current, users: [...current.users, user] }));
-    setActiveUserId(user.id);
+    setActiveUserId(newUserId);
+    const firstOrg = data.organizations.find((o) => o.status === 'APPROVED');
+    if (firstOrg) setSelectedOrganizationId(firstOrg.id);
     setRole('USER');
     setScreen('organizations');
     setIsAuthenticated(true);
@@ -225,27 +234,31 @@ export default function App() {
     ]);
   }
 
-  function requestAccess(organizationId = selectedOrganizationId) {
-    const organization = data.organizations.find((item) => item.id === organizationId);
-    if (!organization || organization.status !== 'APPROVED') return;
+  function requestAccess(organizationId) {
+    const orgId = typeof organizationId === 'string' ? organizationId : selectedOrganizationId;
+    const organization = data.organizations.find((item) => item.id === orgId);
+    if (!organization || organization.status !== 'APPROVED') {
+      return Alert.alert('Organização indisponível', 'Selecione uma organização válida e aprovada.');
+    }
     if (organization.ownerId === activeUserId) {
-      Alert.alert('Você já é o administrador', 'O administrador da organização não precisa solicitar acesso a ela.');
-      return;
+      return Alert.alert('Você já é o administrador', 'O administrador da organização não precisa solicitar acesso a ela.');
     }
     const existingRequest = data.accessRequests.find((request) => (
       request.organizationId === organization.id && request.userId === activeUserId && ['PENDING', 'APPROVED'].includes(request.status)
     ));
     if (existingRequest) {
-      Alert.alert('Solicitação existente', 'Este usuário já possui uma solicitação ou acesso nesta organização.');
-      return;
+      const msg = existingRequest.status === 'APPROVED'
+        ? `Você já é um membro aprovado da organização "${organization.name}".`
+        : `Você já possui uma solicitação de acesso pendente para a organização "${organization.name}".`;
+      return Alert.alert('Solicitação existente', msg);
     }
     setData((current) => ({
       ...current,
       accessRequests: [...current.accessRequests, {
-        id: createId('access'), organizationId: organization.id, userId: activeUserId, status: 'PENDING',
+        id: createId('access'), organizationId: organization.id, userId: activeUserId, status: 'PENDING', organizationRole: 'MEMBER',
       }],
     }));
-    Alert.alert('Solicitação enviada', 'O administrador da organização deverá aprovar ou rejeitar o acesso.');
+    Alert.alert('Solicitação enviada', `Sua solicitação de entrada na organização "${organization.name}" foi enviada com sucesso e aguarda aprovação.`);
   }
 
   function changeAccessStatus(requestId, status) {
@@ -575,13 +588,36 @@ export default function App() {
             <Text style={styles.sectionTitle}>Organizações</Text>
             <View style={styles.card}><Text style={styles.hint}>Encontre organizações disponíveis para participar.</Text><Field label="Pesquisar" value={organizationSearch} onChangeText={setOrganizationSearch} placeholder="Nome ou CNPJ" /></View>
             {searchableOrganizations.length === 0 && <Text style={styles.empty}>Nenhuma organização encontrada.</Text>}
-            {searchableOrganizations.map((organization) => (
-              <View key={organization.id} style={styles.card}>
-                <View style={styles.cardHeader}><View><Text style={styles.cardTitle}>{organization.name}</Text><Text style={styles.muted}>{organization.document}</Text></View><StatusBadge status={organization.status} /></View>
-                {organization.ownerId !== activeUserId && <Pressable style={styles.smallButton} onPress={() => requestAccess(organization.id)}><Text style={styles.smallButtonText}>Solicitar entrada</Text></Pressable>}
-                {organization.ownerId === activeUserId && <Text style={styles.ownerTag}>Você é o administrador</Text>}
-              </View>
-            ))}
+            {searchableOrganizations.map((organization) => {
+              const isOwner = organization.ownerId === activeUserId;
+              const userReq = data.accessRequests.find(
+                (r) => r.organizationId === organization.id && r.userId === activeUserId && ['PENDING', 'APPROVED'].includes(r.status)
+              );
+
+              return (
+                <View key={organization.id} style={styles.card}>
+                  <View style={styles.cardHeader}>
+                    <View>
+                      <Text style={styles.cardTitle}>{organization.name}</Text>
+                      <Text style={styles.muted}>{organization.document}</Text>
+                    </View>
+                    <StatusBadge status={organization.status} />
+                  </View>
+                  {isOwner && <Text style={styles.ownerTag}>Você é o administrador</Text>}
+                  {!isOwner && userReq?.status === 'APPROVED' && (
+                    <Text style={{ color: '#10B981', fontWeight: 'bold', marginTop: 8 }}>✓ Membro aprovado</Text>
+                  )}
+                  {!isOwner && userReq?.status === 'PENDING' && (
+                    <Text style={{ color: '#F59E0B', fontWeight: 'bold', marginTop: 8 }}>⏳ Solicitação enviada (aguardando aprovação)</Text>
+                  )}
+                  {!isOwner && !userReq && (
+                    <Pressable style={styles.smallButton} onPress={() => requestAccess(organization.id)}>
+                      <Text style={styles.smallButtonText}>Solicitar entrada</Text>
+                    </Pressable>
+                  )}
+                </View>
+              );
+            })}
           </>
         )}
 
@@ -617,7 +653,24 @@ export default function App() {
               <Text style={styles.hint}>Usuário selecionado: {activeUser?.name}</Text>
               <Text style={styles.label}>Organização aprovada</Text>
               <View style={styles.userChoices}>{requestableOrganizations.map((organization) => <Choice key={organization.id} label={organization.name} active={selectedOrganizationId === organization.id} onPress={() => setSelectedOrganizationId(organization.id)} />)}</View>
-              {requestableOrganizations.length === 0 ? <Text style={styles.empty}>Não há outras organizações aprovadas para solicitar acesso.</Text> : <Pressable style={styles.primaryButton} onPress={requestAccess}><Text style={styles.primaryButtonText}>Solicitar acesso</Text></Pressable>}
+              {requestableOrganizations.length === 0 ? (
+                <Text style={styles.empty}>Não há outras organizações aprovadas para solicitar acesso.</Text>
+              ) : (() => {
+                const req = data.accessRequests.find(
+                  (r) => r.organizationId === selectedOrganizationId && r.userId === activeUserId && ['PENDING', 'APPROVED'].includes(r.status)
+                );
+                if (req?.status === 'APPROVED') {
+                  return <Text style={{ color: '#10B981', fontWeight: 'bold', marginTop: 8 }}>✓ Você já é membro aprovado desta organização.</Text>;
+                }
+                if (req?.status === 'PENDING') {
+                  return <Text style={{ color: '#F59E0B', fontWeight: 'bold', marginTop: 8 }}>⏳ Sua solicitação para esta organização está aguardando aprovação.</Text>;
+                }
+                return (
+                  <Pressable style={styles.primaryButton} onPress={() => requestAccess(selectedOrganizationId)}>
+                    <Text style={styles.primaryButtonText}>Solicitar acesso</Text>
+                  </Pressable>
+                );
+              })()}
             </View>}
 
             {isOrgAdmin && <>
