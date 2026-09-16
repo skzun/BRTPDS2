@@ -34,4 +34,25 @@ router.put('/:id', async (req, res) => {
   }
 });
 
+// DELETE /api/users/:id - Excluir usuário pelo Administrador do Sistema
+router.delete('/:id', async (req, res) => {
+  const { id } = req.params;
+
+  try {
+    const deleteRes = await db.query(
+      'DELETE FROM users WHERE id::text = $1 OR LOWER(email) = LOWER($1) RETURNING id, name, email;',
+      [id]
+    );
+
+    if (deleteRes.rowCount === 0) {
+      return res.status(404).json({ error: 'Usuário não encontrado no banco de dados.' });
+    }
+
+    return res.json({ success: true, deleted: deleteRes.rows[0] });
+  } catch (err) {
+    console.error('Erro ao excluir usuário:', err);
+    return res.status(500).json({ error: 'Falha ao excluir usuário no PostgreSQL.' });
+  }
+});
+
 module.exports = router;

@@ -17,7 +17,14 @@ import { useSynpleData } from './src/hooks/useSynpleData';
 import { formatCNPJ, formatPhone } from './src/services/formatters';
 import { normalizeEmail, validateCommission, validateLogin, validateOrganization, validatePassword, validatePhone, validateRegistration, validateUser } from './src/services/validation';
 import { LoginScreen } from './src/screens/LoginScreen';
-import { registerWithApi } from './src/services/api';
+import {
+  deleteOrganizationWithApi,
+  deleteUserWithApi,
+  registerWithApi,
+  requestAccessWithApi,
+  updateAccessRequestStatusWithApi,
+  updateOrganizationStatusWithApi,
+} from './src/services/api';
 import { getThemeStyles, ThemeContext } from './src/styles/theme';
 
 const createId = (prefix) => `${prefix}-${Date.now()}`;
@@ -153,13 +160,13 @@ export default function App() {
     setIsAuthenticated(true);
   }
 
-  function registerUser({ name, email, phone, password, confirmPassword }) {
+  async function registerUser({ name, email, phone, password, confirmPassword }) {
     const validationError = validateRegistration({ name, email, phone, password, confirmPassword });
     if (validationError) return Alert.alert('Dados inválidos', validationError);
     const normalizedEmail = normalizeEmail(email);
     if (data.users.some((user) => user.email === normalizedEmail)) return Alert.alert('E-mail já cadastrado', 'Use outro e-mail ou entre com a conta existente.');
 
-    const newUserId = createId('user');
+    let newUserId = createId('user');
     const user = {
       id: newUserId,
       name: name.trim(),
@@ -170,8 +177,16 @@ export default function App() {
       systemRole: 'USER',
     };
 
-    // Salva no banco PostgreSQL se o backend estiver rodando
-    registerWithApi({ name: user.name, email: normalizedEmail, phone: user.phone, password }).catch(() => {});
+    // Salva no banco PostgreSQL diretamente se o backend estiver rodando
+    try {
+      const apiRes = await registerWithApi({ name: user.name, email: normalizedEmail, phone: user.phone, password });
+      if (apiRes && apiRes.success && apiRes.user?.id) {
+        user.id = apiRes.user.id;
+        newUserId = apiRes.user.id;
+      }
+    } catch (err) {
+      console.warn('Registro mantido localmente:', err);
+    }
 
     setData((current) => ({ ...current, users: [...current.users, user] }));
     setActiveUserId(newUserId);
@@ -189,6 +204,7 @@ export default function App() {
 
   function changeOrganizationStatus(organizationId, status) {
     if (!isSystemAdmin) return;
+    updateOrganizationStatusWithApi(organizationId, status).catch(() => {});
     setData((current) => ({
       ...current,
       organizations: current.organizations.map((organization) => (
@@ -201,16 +217,19 @@ export default function App() {
     if (!isSystemAdmin) return;
     Alert.alert('Remover organização', 'A organização, suas comissões e seus acessos serão removidos.', [
       { text: 'Cancelar', style: 'cancel' },
-      { text: 'Remover', style: 'destructive', onPress: () => setData((current) => {
-        const commissionIds = current.commissions.filter((commission) => commission.organizationId === organizationId).map((commission) => commission.id);
-        return {
-          ...current,
-          organizations: current.organizations.filter((organization) => organization.id !== organizationId),
-          accessRequests: current.accessRequests.filter((request) => request.organizationId !== organizationId),
-          commissions: current.commissions.filter((commission) => commission.organizationId !== organizationId),
-          commissionMembers: current.commissionMembers.filter((member) => !commissionIds.includes(member.commissionId)),
-        };
-      }) },
+      { text: 'Remover', style: 'destructive', onPress: () => {
+        deleteOrganizationWithApi(organizationId).catch(() => {});
+        setData((current) => {
+          const commissionIds = current.commissions.filter((commission) => commission.organizationId === organizationId).map((commission) => commission.id);
+          return {
+            ...current,
+            organizations: current.organizations.filter((organization) => organization.id !== organizationId),
+            accessRequests: current.accessRequests.filter((request) => request.organizationId !== organizationId),
+            commissions: current.commissions.filter((commission) => commission.organizationId !== organizationId),
+            commissionMembers: current.commissionMembers.filter((member) => !commissionIds.includes(member.commissionId)),
+          };
+        });
+      } },
     ]);
   }
 
@@ -219,18 +238,24 @@ export default function App() {
     if (!isSystemAdmin || !user || user.id === activeUserId || user.systemRole === 'SYSTEM_ADMIN') return;
     Alert.alert('Remover usuário', 'As organizações e acessos vinculados a esta conta também serão removidos.', [
       { text: 'Cancelar', style: 'cancel' },
-      { text: 'Remover', style: 'destructive', onPress: () => setData((current) => {
-        const organizationIds = current.organizations.filter((organization) => organization.ownerId === userId).map((organization) => organization.id);
-        const commissionIds = current.commissions.filter((commission) => organizationIds.includes(commission.organizationId)).map((commission) => commission.id);
-        return {
-          ...current,
-          users: current.users.filter((item) => item.id !== userId),
-          organizations: current.organizations.filter((organization) => organization.ownerId !== userId),
-          accessRequests: current.accessRequests.filter((request) => request.userId !== userId && !organizationIds.includes(request.organizationId)),
-          commissions: current.commissions.filter((commission) => !organizationIds.includes(commission.organizationId)),
-          commissionMembers: current.commissionMembers.filter((member) => member.userId !== userId && !commissionIds.includes(member.commissionId)),
-        };
-      }) },
+      { text: 'Remover', style: 'destructive', onPress: () => {
+        // Exclui no PostgreSQL por ID e por e-mail para garantir compatibilidade
+        if (user.id) deleteUserWithApi(user.id).catch(() => {});
+        if (user.email) deleteUserWithApi(user.email).catch(() => {});
+
+        setData((current) => {
+          const organizationIds = current.organizations.filter((organization) => organization.ownerId === userId).map((organization) => organization.id);
+          const commissionIds = current.commissions.filter((commission) => organizationIds.includes(commission.organizationId)).map((commission) => commission.id);
+          return {
+            ...current,
+            users: current.users.filter((item) => item.id !== userId && item.email !== user.email),
+            organizations: current.organizations.filter((organization) => organization.ownerId !== userId),
+            accessRequests: current.accessRequests.filter((request) => request.userId !== userId && !organizationIds.includes(request.organizationId)),
+            commissions: current.commissions.filter((commission) => !organizationIds.includes(commission.organizationId)),
+            commissionMembers: current.commissionMembers.filter((member) => member.userId !== userId && !commissionIds.includes(member.commissionId)),
+          };
+        });
+      } },
     ]);
   }
 
@@ -258,6 +283,7 @@ export default function App() {
         id: createId('access'), organizationId: organization.id, userId: activeUserId, status: 'PENDING', organizationRole: 'MEMBER',
       }],
     }));
+    requestAccessWithApi(organization.id, activeUserId).catch(() => {});
     Alert.alert('Solicitação enviada', `Sua solicitação de entrada na organização "${organization.name}" foi enviada com sucesso e aguarda aprovação.`);
   }
 
@@ -265,6 +291,7 @@ export default function App() {
     const request = data.accessRequests.find((item) => item.id === requestId);
     const organization = data.organizations.find((item) => item.id === request?.organizationId);
     if (!isOrgAdmin || organization?.ownerId !== activeUserId || organization.status !== 'APPROVED') return;
+    updateAccessRequestStatusWithApi(requestId, status, status === 'APPROVED' ? (request.organizationRole || 'MEMBER') : request.organizationRole).catch(() => {});
     setData((current) => ({
       ...current,
       accessRequests: current.accessRequests.map((request) => (

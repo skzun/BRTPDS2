@@ -44,6 +44,21 @@ test('verifica os 3 usuários de teste pré-configurados no banco', async () => 
   assert.equal(admin.system_role, 'SYSTEM_ADMIN');
 });
 
+test('exclui usuário do PostgreSQL com sucesso por id ou email', async () => {
+  const insert = await db.query(`
+    INSERT INTO users (name, email, password_hash, system_role)
+    VALUES ('Temp Del Test', 'temp.del@synple.com', 'hash', 'USER')
+    RETURNING id, email;
+  `);
+  const userId = insert.rows[0].id;
+
+  const del = await db.query('DELETE FROM users WHERE id = $1 RETURNING id;', [userId]);
+  assert.equal(del.rowCount, 1);
+
+  const check = await db.query('SELECT id FROM users WHERE id = $1;', [userId]);
+  assert.equal(check.rowCount, 0);
+});
+
 test.after(async () => {
   await db.pool.end();
 });

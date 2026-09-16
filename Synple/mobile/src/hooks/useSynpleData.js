@@ -2,7 +2,7 @@ import { useEffect, useState, useCallback } from 'react';
 
 import { INITIAL_DATA } from '../constants/data';
 import { loadStoredData, saveData } from '../services/storage';
-import { fetchRemoteData } from '../services/api';
+import { fetchRemoteData, syncPendingUsers } from '../services/api';
 
 const DEMO_PASSWORDS = {
   'admin@synple.com': 'Admin@123',
@@ -88,6 +88,9 @@ export function useSynpleData() {
     try {
       const remote = await fetchRemoteData();
       if (remote) {
+        if (data?.users?.length) {
+          await syncPendingUsers(data.users, remote.users);
+        }
         setData((current) => mergeData(current, remote));
         setDbStatus('ONLINE');
       } else {
@@ -96,7 +99,7 @@ export function useSynpleData() {
     } catch {
       setDbStatus('OFFLINE');
     }
-  }, []);
+  }, [data?.users]);
 
   useEffect(() => {
     async function loadData() {
@@ -107,6 +110,9 @@ export function useSynpleData() {
         // Sincroniza em segundo plano com o PostgreSQL (Banco_synple)
         const remote = await fetchRemoteData();
         if (remote) {
+          if (savedData?.users?.length) {
+            await syncPendingUsers(savedData.users, remote.users);
+          }
           setData((current) => mergeData(current, remote));
           setDbStatus('ONLINE');
         } else {
