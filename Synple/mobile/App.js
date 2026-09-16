@@ -10,13 +10,10 @@ import {
   View,
 } from 'react-native';
 
-import { Choice, Field, StatusBadge } from './src/components/FormControls';
 import { INITIAL_DATA } from './src/constants/data';
-import { COMMISSION_ROLE_LABELS, COMMISSION_STATUS_LABELS, COMMISSION_TYPES, SUBSYSTEM_LABELS } from './src/constants/status';
 import { useSynpleData } from './src/hooks/useSynpleData';
 import { formatCNPJ, formatPhone } from './src/services/formatters';
 import { normalizeEmail, validateCommission, validateLogin, validateOrganization, validatePassword, validatePhone, validateRegistration, validateUser } from './src/services/validation';
-import { LoginScreen } from './src/screens/LoginScreen';
 import {
   deleteOrganizationWithApi,
   deleteUserWithApi,
@@ -24,8 +21,22 @@ import {
   requestAccessWithApi,
   updateAccessRequestStatusWithApi,
   updateOrganizationStatusWithApi,
+  updateUserWithApi,
 } from './src/services/api';
 import { getThemeStyles, ThemeContext } from './src/styles/theme';
+
+// Componentes modulares
+import { AppHeader } from './src/components/AppHeader';
+import { NavigationTabs } from './src/components/NavigationTabs';
+
+// Telas modulares
+import { LoginScreen } from './src/screens/LoginScreen';
+import { OrganizationsScreen } from './src/screens/OrganizationsScreen';
+import { MyOrganizationScreen } from './src/screens/MyOrganizationScreen';
+import { CommissionsScreen } from './src/screens/CommissionsScreen';
+import { AdminManagementScreen } from './src/screens/AdminManagementScreen';
+import { SystemScreen } from './src/screens/SystemScreen';
+import { ProfileScreen } from './src/screens/ProfileScreen';
 
 const createId = (prefix) => `${prefix}-${Date.now()}`;
 
@@ -593,427 +604,141 @@ export default function App() {
     <ThemeContext.Provider value={{ isDark, styles }}>
       <SafeAreaView style={styles.safeArea}>
         <StatusBar style={isDark ? 'light' : 'dark'} />
-      <View style={styles.header}>
-        <View style={styles.headerIdentity}><Image source={require('./assets/synple-splash.png')} style={styles.headerLogo} resizeMode="contain" /><View><Text style={styles.brand}>Synple</Text><Text style={styles.subtitle}>Gestão de organizações</Text></View></View>
-        <View style={styles.avatar}><Text style={styles.avatarText}>{activeUser?.name?.charAt(0) || 'S'}</Text></View>
-      </View>
+        <AppHeader userName={activeUser?.name} />
 
-      <ScrollView contentContainerStyle={styles.content}>
-        <View style={styles.sessionRow}><Text style={styles.sectionTitle}>Acesso: {isSystemAdmin ? 'Administrador do sistema' : isOrgAdmin ? 'Administrador da organização' : 'Usuário'}</Text><Pressable onPress={logout}><Text style={styles.logoutText}>Sair</Text></Pressable></View>
+        <ScrollView contentContainerStyle={styles.content}>
+          <View style={styles.sessionRow}>
+            <Text style={styles.sectionTitle}>
+              Acesso: {isSystemAdmin ? 'Administrador do sistema' : isOrgAdmin ? 'Administrador da organização' : 'Usuário'}
+            </Text>
+            <Pressable onPress={logout}>
+              <Text style={styles.logoutText}>Sair</Text>
+            </Pressable>
+          </View>
 
-        <View style={styles.navigation}>
-          {!isSystemAdmin && <Choice label="Organizações" active={screen === 'organizations'} onPress={() => setScreen('organizations')} />}
-          {!isSystemAdmin && <Choice label="Minha organização" active={screen === 'management'} onPress={() => setScreen('management')} />}
-          {isOrgAdmin && <Choice label="Comissões" active={screen === 'commissions'} onPress={() => setScreen('commissions')} />}
-          {isSystemAdmin && <Choice label="Gestão" active={screen === 'admin-management'} onPress={() => setScreen('admin-management')} />}
-          {isSystemAdmin && <Choice label="Sistema" active={screen === 'system'} onPress={() => setScreen('system')} />}
-          <Choice label="Perfil" active={screen === 'profile'} onPress={openProfile} />
-        </View>
+          <NavigationTabs
+            screen={screen}
+            setScreen={setScreen}
+            isSystemAdmin={isSystemAdmin}
+            isOrgAdmin={isOrgAdmin}
+            onOpenProfile={openProfile}
+          />
 
-        {screen === 'organizations' && (
-          <>
-            <Text style={styles.sectionTitle}>Organizações</Text>
-            <View style={styles.card}><Text style={styles.hint}>Encontre organizações disponíveis para participar.</Text><Field label="Pesquisar" value={organizationSearch} onChangeText={setOrganizationSearch} placeholder="Nome ou CNPJ" /></View>
-            {searchableOrganizations.length === 0 && <Text style={styles.empty}>Nenhuma organização encontrada.</Text>}
-            {searchableOrganizations.map((organization) => {
-              const isOwner = organization.ownerId === activeUserId;
-              const userReq = data.accessRequests.find(
-                (r) => r.organizationId === organization.id && r.userId === activeUserId && ['PENDING', 'APPROVED'].includes(r.status)
-              );
+          {screen === 'organizations' && (
+            <OrganizationsScreen
+              searchableOrganizations={searchableOrganizations}
+              organizationSearch={organizationSearch}
+              setOrganizationSearch={setOrganizationSearch}
+              activeUserId={activeUserId}
+              accessRequests={data.accessRequests}
+              onRequestAccess={requestAccess}
+            />
+          )}
 
-              return (
-                <View key={organization.id} style={styles.card}>
-                  <View style={styles.cardHeader}>
-                    <View>
-                      <Text style={styles.cardTitle}>{organization.name}</Text>
-                      <Text style={styles.muted}>{organization.document}</Text>
-                    </View>
-                    <StatusBadge status={organization.status} />
-                  </View>
-                  {isOwner && <Text style={styles.ownerTag}>Você é o administrador</Text>}
-                  {!isOwner && userReq?.status === 'APPROVED' && (
-                    <Text style={{ color: '#10B981', fontWeight: 'bold', marginTop: 8 }}>✓ Membro aprovado</Text>
-                  )}
-                  {!isOwner && userReq?.status === 'PENDING' && (
-                    <Text style={{ color: '#F59E0B', fontWeight: 'bold', marginTop: 8 }}>⏳ Solicitação enviada (aguardando aprovação)</Text>
-                  )}
-                  {!isOwner && !userReq && (
-                    <Pressable style={styles.smallButton} onPress={() => requestAccess(organization.id)}>
-                      <Text style={styles.smallButtonText}>Solicitar entrada</Text>
-                    </Pressable>
-                  )}
-                </View>
-              );
-            })}
-          </>
-        )}
+          {isSystemAdmin && screen === 'admin-management' && (
+            <AdminManagementScreen
+              organizations={data.organizations}
+              users={data.users}
+              activeUserId={activeUserId}
+              onChangeOrganizationStatus={changeOrganizationStatus}
+              onRemoveOrganization={removeOrganization}
+              onRemoveUser={removeUser}
+            />
+          )}
 
-        {isSystemAdmin && screen === 'admin-management' && (
-          <>
-            <View style={styles.card}>
-              <Text style={styles.cardTitle}>Organizações</Text>
-              <Text style={styles.hint}>Aprovar, recusar ou remover organizações do aplicativo.</Text>
-              {data.organizations.map((organization) => {
-                const ceo = data.users.find((user) => user.id === organization.ownerId);
-                return <View key={organization.id} style={styles.member}><View><Text style={styles.memberName}>{organization.name}</Text><Text style={styles.muted}>{organization.document}</Text><Text style={styles.muted}>Administrador: {ceo?.name || 'Não identificado'}</Text><StatusBadge status={organization.status} /></View><View><View style={styles.actionRow}>{organization.status === 'PENDING' && <><Pressable style={styles.approveButton} onPress={() => changeOrganizationStatus(organization.id, 'APPROVED')}><Text style={styles.actionText}>Aprovar</Text></Pressable><Pressable style={styles.rejectButton} onPress={() => changeOrganizationStatus(organization.id, 'REJECTED')}><Text style={styles.rejectText}>Recusar</Text></Pressable></>} </View><Pressable style={styles.outlineButton} onPress={() => removeOrganization(organization.id)}><Text style={styles.outlineText}>Remover</Text></Pressable></View></View>;
-              })}
-            </View>
-            <View style={styles.card}>
-              <Text style={styles.cardTitle}>Usuários</Text>
-              <Text style={styles.hint}>Gerencie as contas cadastradas. A conta administrativa ativa é protegida contra remoção.</Text>
-              {data.users.map((user) => <View key={user.id} style={styles.member}><View><Text style={styles.memberName}>{user.name}</Text><Text style={styles.muted}>{user.email}</Text><Text style={styles.muted}>{user.systemRole === 'SYSTEM_ADMIN' ? 'Administrador do sistema' : data.organizations.some((organization) => organization.ownerId === user.id && organization.status === 'APPROVED') ? 'Administrador da organização' : 'Usuário'}</Text></View>{user.id !== activeUserId && user.systemRole !== 'SYSTEM_ADMIN' && <Pressable style={styles.outlineButton} onPress={() => removeUser(user.id)}><Text style={styles.outlineText}>Remover</Text></Pressable>}</View>)}
-            </View>
-          </>
-        )}
+          {!isSystemAdmin && screen === 'management' && (
+            <MyOrganizationScreen
+              isSystemAdmin={isSystemAdmin}
+              isOrgAdmin={isOrgAdmin}
+              activeUserId={activeUserId}
+              activeUser={activeUser}
+              organizationForm={organizationForm}
+              setOrganizationForm={setOrganizationForm}
+              onCreateOrganization={createOrganization}
+              requestableOrganizations={requestableOrganizations}
+              selectedOrganizationId={selectedOrganizationId}
+              setSelectedOrganizationId={setSelectedOrganizationId}
+              data={data}
+              onRequestAccess={requestAccess}
+              approvedOwnedOrganizations={approvedOwnedOrganizations}
+              organizationCommissions={organizationCommissions}
+              onNavigateToCommissions={() => setScreen('commissions')}
+              organizationPendingRequests={organizationPendingRequests}
+              onChangeAccessStatus={changeAccessStatus}
+              selectedOrganization={selectedOrganization}
+              organizationApprovedRequests={organizationApprovedRequests}
+              onUpdateOrganizationRole={updateOrganizationRole}
+              onRemoveOrganizationMember={removeOrganizationMember}
+              userRequests={userRequests}
+            />
+          )}
 
-        {!isSystemAdmin && screen === 'management' && (
-          <>
-            <View style={styles.card}>
-              <Text style={styles.cardTitle}>Criar organização</Text>
-              <Text style={styles.hint}>Após a aprovação do administrador do sistema, você será o administrador desta organização e poderá gerenciar acessos e comissões.</Text>
-              <Field label="Nome da organização" value={organizationForm.name} onChangeText={(name) => setOrganizationForm({ ...organizationForm, name })} placeholder="Ex.: Empresa Synple" />
-              <Field label="CNPJ" value={organizationForm.document} onChangeText={(document) => setOrganizationForm({ ...organizationForm, document: formatCNPJ(document) })} placeholder="00.000.000/0000-00" keyboardType="numeric" />
-              <Pressable style={styles.primaryButton} onPress={createOrganization}><Text style={styles.primaryButtonText}>Enviar cadastro</Text></Pressable>
-            </View>
-            {!isSystemAdmin && !isOrgAdmin && <View style={styles.card}>
-              <Text style={styles.cardTitle}>Solicitar acesso</Text>
-              <Text style={styles.hint}>Usuário selecionado: {activeUser?.name}</Text>
-              <Text style={styles.label}>Organização aprovada</Text>
-              <View style={styles.userChoices}>{requestableOrganizations.map((organization) => <Choice key={organization.id} label={organization.name} active={selectedOrganizationId === organization.id} onPress={() => setSelectedOrganizationId(organization.id)} />)}</View>
-              {requestableOrganizations.length === 0 ? (
-                <Text style={styles.empty}>Não há outras organizações aprovadas para solicitar acesso.</Text>
-              ) : (() => {
-                const req = data.accessRequests.find(
-                  (r) => r.organizationId === selectedOrganizationId && r.userId === activeUserId && ['PENDING', 'APPROVED'].includes(r.status)
-                );
-                if (req?.status === 'APPROVED') {
-                  return <Text style={{ color: '#10B981', fontWeight: 'bold', marginTop: 8 }}>✓ Você já é membro aprovado desta organização.</Text>;
-                }
-                if (req?.status === 'PENDING') {
-                  return <Text style={{ color: '#F59E0B', fontWeight: 'bold', marginTop: 8 }}>⏳ Sua solicitação para esta organização está aguardando aprovação.</Text>;
-                }
-                return (
-                  <Pressable style={styles.primaryButton} onPress={() => requestAccess(selectedOrganizationId)}>
-                    <Text style={styles.primaryButtonText}>Solicitar acesso</Text>
-                  </Pressable>
-                );
-              })()}
-            </View>}
+          {isOrgAdmin && screen === 'commissions' && (
+            <CommissionsScreen
+              approvedOwnedOrganizations={approvedOwnedOrganizations}
+              selectedOrganizationId={selectedOrganizationId}
+              setSelectedOrganizationId={setSelectedOrganizationId}
+              selectedOrganization={selectedOrganization}
+              commissionForm={commissionForm}
+              setCommissionForm={setCommissionForm}
+              onCreateCommission={createCommission}
+              editingCommissionId={editingCommissionId}
+              setEditingCommissionId={setEditingCommissionId}
+              editCommissionForm={editCommissionForm}
+              setEditCommissionForm={setEditCommissionForm}
+              onSaveEditCommission={saveEditCommission}
+              onCancelEditCommission={cancelEditCommission}
+              organizationCommissions={organizationCommissions}
+              selectedCommissionId={selectedCommissionId}
+              setSelectedCommissionId={setSelectedCommissionId}
+              onStartEditCommission={startEditCommission}
+              onToggleCommissionStatus={toggleCommissionStatus}
+              onDeleteCommission={deleteCommission}
+              selectedCommission={selectedCommission}
+              commissionTeam={commissionTeam}
+              onToggleCommissionMemberRole={toggleCommissionMemberRole}
+              onRemoveCommissionMember={removeCommissionMember}
+              availableOrgMembers={availableOrgMembers}
+              onAddCommissionMember={addCommissionMember}
+              data={data}
+            />
+          )}
 
-            {isOrgAdmin && <>
-              <View style={styles.card}>
-                <Text style={styles.cardTitle}>Organização administrada</Text>
-                <Text style={styles.hint}>Selecione a organização para ver pedidos e membros.</Text>
-                <View style={styles.userChoices}>{approvedOwnedOrganizations.map((organization) => <Choice key={organization.id} label={organization.name} active={selectedOrganizationId === organization.id} onPress={() => setSelectedOrganizationId(organization.id)} />)}</View>
-              </View>
+          {screen === 'profile' && (
+            <ProfileScreen
+              profileForm={profileForm}
+              setProfileForm={setProfileForm}
+              onUpdateProfile={updateProfile}
+              passwordForm={passwordForm}
+              setPasswordForm={setPasswordForm}
+              onUpdatePassword={updatePassword}
+              onRecoverAccount={recoverAccount}
+              activeUser={activeUser}
+              onSetTheme={setTheme}
+            />
+          )}
 
-              <View style={styles.card}>
-                <View style={styles.cardHeader}>
-                  <View style={{ flex: 1 }}>
-                    <Text style={styles.cardTitle}>Comissões e grupos de trabalho</Text>
-                    <Text style={styles.hint}>{organizationCommissions.length} comissão(ões) ou grupo(s) cadastrado(s).</Text>
-                  </View>
-                </View>
-                <Pressable style={styles.primaryButton} onPress={() => setScreen('commissions')}>
-                  <Text style={styles.primaryButtonText}>Gerenciar comissões e equipe</Text>
-                </Pressable>
-              </View>
+          {isSystemAdmin && screen === 'system' && (
+            <SystemScreen
+              system={data.system}
+              usersCount={data.users.length}
+              organizationsCount={data.organizations.length}
+              commissionsCount={data.commissions.length}
+              pendingRequestsCount={data.accessRequests.filter((request) => request.status === 'PENDING').length}
+              onRestartSubsystem={restartSubsystem}
+              onInitializeSystem={initializeSystem}
+              onResetDemo={resetDemo}
+            />
+          )}
 
-              <Text style={styles.sectionTitle}>Solicitações pendentes</Text>
-              {organizationPendingRequests.length === 0 && <Text style={styles.empty}>Não há solicitações pendentes para esta organização.</Text>}
-              {organizationPendingRequests.map((request) => {
-                const user = data.users.find((item) => item.id === request.userId);
-                const organization = data.organizations.find((item) => item.id === request.organizationId);
-                return <View key={request.id} style={styles.card}><Text style={styles.cardTitle}>{user?.name}</Text><Text style={styles.muted}>{organization?.name}</Text><Text style={styles.memberDetail}>E-mail: {user?.email || 'Não informado'}</Text><Text style={styles.memberDetail}>Telefone: {user?.phone || 'Não informado'}</Text><View style={styles.actionRow}><Pressable style={styles.approveButton} onPress={() => changeAccessStatus(request.id, 'APPROVED')}><Text style={styles.actionText}>Aprovar</Text></Pressable><Pressable style={styles.rejectButton} onPress={() => changeAccessStatus(request.id, 'REJECTED')}><Text style={styles.rejectText}>Recusar</Text></Pressable></View></View>;
-              })}
-              <Text style={styles.sectionTitle}>Membros da organização</Text>
-              {selectedOrganization && <View style={styles.member}><View><Text style={styles.memberName}>{data.users.find((user) => user.id === selectedOrganization.ownerId)?.name}</Text><Text style={styles.muted}>Administrador da organização</Text></View><Text style={styles.ownerTag}>Admin da org</Text></View>}
-              {organizationApprovedRequests.length === 0 && <Text style={styles.empty}>Ainda não há membros aprovados.</Text>}
-              {organizationApprovedRequests.map((request) => {
-                const user = data.users.find((item) => item.id === request.userId);
-                const organizationCommissionsForUser = data.commissionMembers.filter((member) => member.userId === request.userId).map((member) => data.commissions.find((commission) => commission.id === member.commissionId && commission.organizationId === selectedOrganizationId)).filter(Boolean);
-                return <View key={request.id} style={styles.card}><Text style={styles.cardTitle}>{user?.name}</Text><Text style={styles.memberDetail}>E-mail: {user?.email || 'Não informado'}</Text><Text style={styles.memberDetail}>Telefone: {user?.phone || 'Não informado'}</Text><Text style={styles.label}>Cargo na organização</Text><View style={styles.userChoices}><Choice label="Membro" active={(request.organizationRole || 'MEMBER') === 'MEMBER'} onPress={() => updateOrganizationRole(request.id, 'MEMBER')} /><Choice label="Coordenador" active={request.organizationRole === 'COORDINATOR'} onPress={() => updateOrganizationRole(request.id, 'COORDINATOR')} /></View><Text style={styles.memberDetail}>Comissões: {organizationCommissionsForUser.map((commission) => commission.name).join(', ') || 'Nenhuma'}</Text><Pressable style={styles.outlineButton} onPress={() => removeOrganizationMember(request.id)}><Text style={styles.outlineText}>Remover da organização</Text></Pressable></View>;
-              })}
-            </>}
-
-            {!isSystemAdmin && !isOrgAdmin && <><Text style={styles.sectionTitle}>Minhas solicitações</Text>{userRequests.length === 0 && <Text style={styles.empty}>Você ainda não possui solicitações.</Text>}{userRequests.map((request) => {
-              const user = data.users.find((item) => item.id === request.userId);
-              const organization = data.organizations.find((item) => item.id === request.organizationId);
-              const administrator = data.users.find((item) => item.id === organization?.ownerId);
-              return <View key={request.id} style={styles.member}><View><Text style={styles.memberName}>{organization?.name}</Text><Text style={styles.muted}>Administrador: {administrator?.name || 'Não identificado'}</Text><Text style={styles.muted}>{user?.email}</Text></View><StatusBadge status={request.status} /></View>;
-            })}</>}
-          </>
-        )}
-
-        {isOrgAdmin && screen === 'commissions' && (
-          <>
-            {approvedOwnedOrganizations.length > 1 && (
-              <View style={styles.card}>
-                <Text style={styles.cardTitle}>Organização gerenciada</Text>
-                <Text style={styles.hint}>Selecione a organização para gerenciar comissões e grupos:</Text>
-                <View style={styles.userChoices}>
-                  {approvedOwnedOrganizations.map((organization) => (
-                    <Choice
-                      key={organization.id}
-                      label={organization.name}
-                      active={selectedOrganizationId === organization.id}
-                      onPress={() => {
-                        setSelectedOrganizationId(organization.id);
-                        setSelectedCommissionId('');
-                        setEditingCommissionId(null);
-                      }}
-                    />
-                  ))}
-                </View>
-              </View>
-            )}
-
-            {/* Cadastro de Nova Comissão / Grupo de Trabalho */}
-            <View style={styles.card}>
-              <Text style={styles.cardTitle}>Nova comissão ou grupo de trabalho</Text>
-              <Text style={styles.hint}>
-                Organização: <Text style={{ fontWeight: '700' }}>{selectedOrganization?.name}</Text>. Cadastre comissões, grupos de trabalho ou comitês vinculados a esta organização.
-              </Text>
-              <Field
-                label="Nome da comissão ou grupo"
-                value={commissionForm.name}
-                onChangeText={(name) => setCommissionForm({ ...commissionForm, name })}
-                placeholder="Ex.: Comissão de Eventos / GT de Inovação"
-              />
-              <Text style={styles.label}>Tipo</Text>
-              <View style={styles.userChoices}>
-                {COMMISSION_TYPES.map((type) => (
-                  <Choice
-                    key={type}
-                    label={type}
-                    active={(commissionForm.type || 'Comissão') === type}
-                    onPress={() => setCommissionForm({ ...commissionForm, type })}
-                  />
-                ))}
-              </View>
-              <Field
-                label="Descrição / Objetivo"
-                value={commissionForm.description}
-                onChangeText={(description) => setCommissionForm({ ...commissionForm, description })}
-                placeholder="Objetivo e atribuições do grupo"
-              />
-              <Pressable style={styles.primaryButton} onPress={createCommission}>
-                <Text style={styles.primaryButtonText}>Cadastrar comissão</Text>
-              </Pressable>
-            </View>
-
-            {/* Formulário de Edição de Comissão */}
-            {editingCommissionId && (
-              <View style={[styles.card, styles.selectedCard]}>
-                <Text style={styles.cardTitle}>Editar comissão / grupo</Text>
-                <Text style={styles.hint}>Atualize os dados e a situação da comissão selecionada.</Text>
-                <Field
-                  label="Nome da comissão"
-                  value={editCommissionForm.name}
-                  onChangeText={(name) => setEditCommissionForm({ ...editCommissionForm, name })}
-                  placeholder="Nome do grupo"
-                />
-                <Text style={styles.label}>Tipo</Text>
-                <View style={styles.userChoices}>
-                  {COMMISSION_TYPES.map((type) => (
-                    <Choice
-                      key={type}
-                      label={type}
-                      active={editCommissionForm.type === type}
-                      onPress={() => setEditCommissionForm({ ...editCommissionForm, type })}
-                    />
-                  ))}
-                </View>
-                <Text style={styles.label}>Situação</Text>
-                <View style={styles.userChoices}>
-                  <Choice
-                    label="Ativa"
-                    active={editCommissionForm.status === 'ACTIVE'}
-                    onPress={() => setEditCommissionForm({ ...editCommissionForm, status: 'ACTIVE' })}
-                  />
-                  <Choice
-                    label="Inativa"
-                    active={editCommissionForm.status === 'INACTIVE'}
-                    onPress={() => setEditCommissionForm({ ...editCommissionForm, status: 'INACTIVE' })}
-                  />
-                </View>
-                <Field
-                  label="Descrição / Objetivo"
-                  value={editCommissionForm.description}
-                  onChangeText={(description) => setEditCommissionForm({ ...editCommissionForm, description })}
-                  placeholder="Descrição da comissão"
-                />
-                <View style={styles.actionRow}>
-                  <Pressable style={styles.approveButton} onPress={saveEditCommission}>
-                    <Text style={styles.actionText}>Salvar</Text>
-                  </Pressable>
-                  <Pressable style={styles.rejectButton} onPress={cancelEditCommission}>
-                    <Text style={styles.rejectText}>Cancelar</Text>
-                  </Pressable>
-                </View>
-              </View>
-            )}
-
-            {/* Listagem de Comissões */}
-            <Text style={styles.sectionTitle}>Comissões da organização ({organizationCommissions.length})</Text>
-            {organizationCommissions.length === 0 && (
-              <Text style={styles.empty}>Ainda não há comissões cadastradas nesta organização.</Text>
-            )}
-            {organizationCommissions.map((commission) => {
-              const isSelected = selectedCommissionId === commission.id;
-              const membersCount = data.commissionMembers.filter((m) => m.commissionId === commission.id).length;
-              return (
-                <Pressable
-                  key={commission.id}
-                  onPress={() => setSelectedCommissionId(commission.id)}
-                  style={[styles.card, isSelected && styles.selectedCard]}
-                >
-                  <View style={styles.cardHeader}>
-                    <View style={{ flex: 1 }}>
-                      <Text style={styles.cardTitle}>{commission.name}</Text>
-                      <View style={styles.tagRow}>
-                        <Text style={styles.typeTag}>{commission.type || 'Comissão'}</Text>
-                        <Text style={commission.status === 'INACTIVE' ? styles.inactiveTag : styles.activeTag}>
-                          {commission.status === 'INACTIVE' ? 'Inativa' : 'Ativa'}
-                        </Text>
-                        <Text style={styles.muted}>• {membersCount} membro(s)</Text>
-                      </View>
-                      <Text style={[styles.muted, { marginTop: 6 }]}>
-                        {commission.description || 'Sem descrição cadastrada.'}
-                      </Text>
-                    </View>
-                  </View>
-
-                  <View style={styles.actionRow}>
-                    <Pressable
-                      style={styles.secondaryButton}
-                      onPress={() => startEditCommission(commission)}
-                    >
-                      <Text style={styles.secondaryButtonText}>Editar</Text>
-                    </Pressable>
-                    <Pressable
-                      style={styles.secondaryButton}
-                      onPress={() => toggleCommissionStatus(commission.id)}
-                    >
-                      <Text style={styles.secondaryButtonText}>
-                        {commission.status === 'INACTIVE' ? 'Ativar' : 'Desativar'}
-                      </Text>
-                    </Pressable>
-                    <Pressable
-                      style={styles.outlineButton}
-                      onPress={() => deleteCommission(commission.id)}
-                    >
-                      <Text style={styles.outlineText}>Excluir</Text>
-                    </Pressable>
-                  </View>
-                </Pressable>
-              );
-            })}
-
-            {/* Gerenciamento da Equipe da Comissão Selecionada */}
-            {selectedCommission && (
-              <View style={styles.card}>
-                <View style={styles.cardHeader}>
-                  <View style={{ flex: 1 }}>
-                    <Text style={styles.cardTitle}>Equipe: {selectedCommission.name}</Text>
-                    <Text style={styles.hint}>
-                      Gerencie a composição e os cargos da equipe nesta comissão.
-                    </Text>
-                  </View>
-                  <Text style={styles.typeTag}>{selectedCommission.type || 'Comissão'}</Text>
-                </View>
-
-                {/* Membros Atuais */}
-                <Text style={styles.label}>
-                  Membros atuais da equipe ({commissionTeam.length})
-                </Text>
-                {commissionTeam.length === 0 && (
-                  <Text style={styles.empty}>Nenhum membro vinculado a esta comissão.</Text>
-                )}
-                {commissionTeam.map((member) => (
-                  <View key={member.id} style={styles.member}>
-                    <View style={{ flex: 1 }}>
-                      <Text style={styles.memberName}>{member.name}</Text>
-                      <Text style={styles.muted}>{member.email}</Text>
-                      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 4 }}>
-                        <Text
-                          style={
-                            member.commissionRole === 'COORDINATOR'
-                              ? styles.roleBadgeCoordinator
-                              : styles.roleBadge
-                          }
-                        >
-                          {member.commissionRole === 'COORDINATOR' ? 'Coordenador(a)' : 'Membro'}
-                        </Text>
-                        {selectedOrganization?.ownerId === member.id && (
-                          <Text style={styles.ownerTag}>Admin da org</Text>
-                        )}
-                      </View>
-                    </View>
-                    <View style={{ alignItems: 'flex-end', gap: 6 }}>
-                      <Pressable
-                        style={styles.smallButton}
-                        onPress={() => toggleCommissionMemberRole(member.id)}
-                      >
-                        <Text style={styles.smallButtonText}>
-                          {member.commissionRole === 'COORDINATOR' ? 'Tornar membro' : 'Tornar coord.'}
-                        </Text>
-                      </Pressable>
-                      <Pressable onPress={() => removeCommissionMember(member.id)}>
-                        <Text style={styles.removeText}>Remover</Text>
-                      </Pressable>
-                    </View>
-                  </View>
-                ))}
-
-                {/* Adicionar Membros da Organização */}
-                <Text style={[styles.label, { marginTop: 14 }]}>
-                  Adicionar membros da organização ({availableOrgMembers.length} disponíveis)
-                </Text>
-                {availableOrgMembers.length === 0 ? (
-                  <Text style={styles.muted}>
-                    Todos os membros da organização já fazem parte desta comissão.
-                  </Text>
-                ) : (
-                  availableOrgMembers.map((user) => (
-                    <View key={user.id} style={styles.member}>
-                      <View style={{ flex: 1 }}>
-                        <Text style={styles.memberName}>{user.name}</Text>
-                        <Text style={styles.muted}>{user.email}</Text>
-                      </View>
-                      <Pressable
-                        style={styles.approveButton}
-                        onPress={() => addCommissionMember(user.id)}
-                      >
-                        <Text style={styles.actionText}>+ Adicionar</Text>
-                      </Pressable>
-                    </View>
-                  ))
-                )}
-              </View>
-            )}
-          </>
-        )}
-
-        {screen === 'profile' && (
-          <>
-            <View style={styles.card}><Text style={styles.cardTitle}>Dados pessoais</Text><Field label="Nome" value={profileForm.name} onChangeText={(name) => setProfileForm({ ...profileForm, name })} placeholder="Seu nome" /><Field label="E-mail" value={profileForm.email} onChangeText={(email) => setProfileForm({ ...profileForm, email })} placeholder="voce@email.com" keyboardType="email-address" /><Field label="Telefone" value={profileForm.phone} onChangeText={(phone) => setProfileForm({ ...profileForm, phone: formatPhone(phone) })} placeholder="(00) 00000-0000" keyboardType="phone-pad" /><Pressable style={styles.primaryButton} onPress={updateProfile}><Text style={styles.primaryButtonText}>Salvar dados</Text></Pressable></View>
-            <View style={styles.card}><Text style={styles.cardTitle}>Trocar senha</Text><Field label="Senha atual" value={passwordForm.current} onChangeText={(current) => setPasswordForm({ ...passwordForm, current })} placeholder="Senha atual" secureTextEntry /><Field label="Nova senha" value={passwordForm.next} onChangeText={(next) => setPasswordForm({ ...passwordForm, next })} placeholder="Mínimo de 6 caracteres" secureTextEntry /><Field label="Confirmar nova senha" value={passwordForm.confirm} onChangeText={(confirm) => setPasswordForm({ ...passwordForm, confirm })} placeholder="Repita a nova senha" secureTextEntry /><Pressable style={styles.primaryButton} onPress={updatePassword}><Text style={styles.primaryButtonText}>Atualizar senha</Text></Pressable><Pressable style={styles.resetButton} onPress={recoverAccount}><Text style={styles.resetText}>Recuperar conta por e-mail</Text></Pressable></View>
-            <View style={styles.card}><Text style={styles.cardTitle}>Tema preferido</Text><View style={styles.userChoices}><Choice label="Claro" active={(activeUser?.theme || 'LIGHT') === 'LIGHT'} onPress={() => setTheme('LIGHT')} /><Choice label="Escuro" active={activeUser?.theme === 'DARK'} onPress={() => setTheme('DARK')} /></View></View>
-          </>
-        )}
-
-        {isSystemAdmin && screen === 'system' && (
-          <>
-            <View style={styles.card}><Text style={styles.cardTitle}>Status do sistema</Text><Text style={styles.hint}>{data.system.initialized ? `Inicializado em ${new Date(data.system.initializedAt).toLocaleString('pt-BR')}` : 'Aguardando setup inicial.'}</Text>{data.system.subsystems.map((subsystem) => <View key={subsystem.id} style={styles.member}><View><Text style={styles.memberName}>{subsystem.name}</Text><Text style={styles.muted}>{SUBSYSTEM_LABELS[subsystem.status]}</Text></View><Pressable style={styles.smallButton} onPress={() => restartSubsystem(subsystem.id)}><Text style={styles.smallButtonText}>Reiniciar</Text></Pressable></View>)}</View>
-            <View style={styles.card}><Text style={styles.cardTitle}>Relatório resumido</Text><View style={styles.reportRow}><Text style={styles.reportNumber}>{data.users.length}</Text><Text style={styles.muted}>usuários</Text></View><View style={styles.reportRow}><Text style={styles.reportNumber}>{data.organizations.length}</Text><Text style={styles.muted}>organizações</Text></View><View style={styles.reportRow}><Text style={styles.reportNumber}>{data.commissions.length}</Text><Text style={styles.muted}>comissões</Text></View><View style={styles.reportRow}><Text style={styles.reportNumber}>{data.accessRequests.filter((request) => request.status === 'PENDING').length}</Text><Text style={styles.muted}>acessos pendentes</Text></View></View>
-            <View style={styles.card}><Text style={styles.cardTitle}>Operações administrativas</Text><Pressable style={styles.primaryButton} onPress={initializeSystem}><Text style={styles.primaryButtonText}>Executar setup inicial</Text></Pressable><Pressable style={styles.outlineButton} onPress={resetDemo}><Text style={styles.outlineText}>Resetar sistema e dados locais</Text></Pressable></View>
-          </>
-        )}
-
-        {isSystemAdmin && <Pressable style={styles.resetButton} onPress={resetDemo}><Text style={styles.resetText}>Restaurar dados de demonstração</Text></Pressable>}
-      </ScrollView>
-    </SafeAreaView>
+          {isSystemAdmin && (
+            <Pressable style={styles.resetButton} onPress={resetDemo}>
+              <Text style={styles.resetText}>Restaurar dados de demonstração</Text>
+            </Pressable>
+          )}
+        </ScrollView>
+      </SafeAreaView>
     </ThemeContext.Provider>
   );
 }
+
