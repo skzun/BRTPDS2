@@ -1,0 +1,14 @@
+{
+  "name": "synple-workspace",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Synple Monorepo - Mobile (Expo) & Backend (Node.js/PostgreSQL)",
+  "scripts": {
+    "start": "npm --prefix mobile run start",
+    "tunnel": "npm --prefix mobile run tunnel",
+    "mobile": "npm --prefix mobile run start",
+    "backend": "npm --prefix backend run start",
+    "init-db": "npm --prefix backend run init-db",
+    "test": "npm --prefix mobile test && npm --prefix backend test"
+  }
+}
