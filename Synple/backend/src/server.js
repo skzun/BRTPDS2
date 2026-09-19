@@ -52,12 +52,19 @@ app.get('/', (req, res) => {
   });
 });
 
+// Detecção dinâmica de IP da máquina local
+const { getLocalNetworkIp, updateMobileNetworkConfig } = require('./utils/network');
+
 // Inicialização do servidor
 if (require.main === module) {
-  app.listen(PORT, () => {
+  const localIp = getLocalNetworkIp();
+  updateMobileNetworkConfig(localIp, PORT);
+
+  app.listen(PORT, '0.0.0.0', () => {
     console.log('----------------------------------------------------');
-    console.log(`🚀 SYNPLE BACKEND ONLINE EM: http://localhost:${PORT}`);
+    console.log(`🚀 SYNPLE BACKEND ONLINE EM: http://${localIp}:${PORT}`);
     console.log(`🗄️  CONECTADO AO POSTGRESQL: ${process.env.DB_NAME || 'Banco_synple'}`);
+    console.log(`📱 IP CONFIGURADO AUTOMATICAMENTE: ${localIp}`);
     console.log('----------------------------------------------------');
   });
 }

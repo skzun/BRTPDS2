@@ -4,11 +4,11 @@ import {
   Alert,
   Image,
   Pressable,
-  SafeAreaView,
   ScrollView,
   Text,
   View,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { INITIAL_DATA } from './src/constants/data';
 import { useSynpleData } from './src/hooks/useSynpleData';
@@ -16,8 +16,12 @@ import { saveData } from './src/services/storage';
 import { formatCNPJ, formatPhone } from './src/services/formatters';
 import { normalizeEmail, validateCommission, validateLogin, validateOrganization, validatePassword, validatePhone, validateRegistration, validateUser } from './src/services/validation';
 import {
+  changePasswordWithApi,
+  createCommissionWithApi,
+  createOrganizationWithApi,
   deleteOrganizationWithApi,
   deleteUserWithApi,
+  getApiBaseUrl,
   registerWithApi,
   requestAccessWithApi,
   updateAccessRequestStatusWithApi,
@@ -51,7 +55,7 @@ const DEMO_LOGIN_ALIASES = {
 };
 
 export default function App() {
-  const { data, isReady, setData, storageError } = useSynpleData();
+  const { data, isReady, setData, storageError, dbStatus, syncWithRemote } = useSynpleData();
   const [showSplash, setShowSplash] = useState(true);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [screen, setScreen] = useState('organizations');
@@ -110,7 +114,7 @@ export default function App() {
     }
   }, [isOrgAdmin, approvedOwnedOrganizations, selectedOrganizationId]);
 
-  function createOrganization() {
+  async function createOrganization() {
     const validationError = validateOrganization(organizationForm);
     if (validationError) {
       Alert.alert('Campos obrigatórios', validationError);
@@ -122,7 +126,21 @@ export default function App() {
       Alert.alert('CNPJ já cadastrado', 'Já existe uma organização com este CNPJ.');
       return;
     }
-    const organization = { id: createId('org'), name, document, ownerId: activeUserId, status: 'PENDING' };
+
+    let orgId = createId('org');
+    let pendingSync = true;
+
+    try {
+      const apiRes = await createOrganizationWithApi({ name, document, ownerId: activeUserId, status: 'PENDING' });
+      if (apiRes && apiRes.success && apiRes.organization?.id) {
+        orgId = apiRes.organization.id;
+        pendingSync = false;
+      }
+    } catch (err) {
+      console.warn('Organização mantida localmente para sincronização:', err);
+    }
+
+    const organization = { id: orgId, name, document, ownerId: activeUserId, status: 'PENDING', pendingSync };
     setData((current) => ({
       ...current,
       organizations: [...current.organizations, organization],
@@ -351,7 +369,7 @@ export default function App() {
     ]);
   }
 
-  function createCommission() {
+  async function createCommission() {
     if (!isOrgAdmin || selectedOrganization?.ownerId !== activeUserId || selectedOrganization.status !== 'APPROVED') return;
     const validationError = validateCommission(commissionForm);
     if (validationError) return Alert.alert('Dados obrigatórios', validationError);
@@ -359,13 +377,34 @@ export default function App() {
     if (data.commissions.some((commission) => commission.organizationId === selectedOrganizationId && commission.name.toLowerCase() === name.toLowerCase())) {
       return Alert.alert('Nome já cadastrado', 'Já existe uma comissão ou grupo de trabalho com este nome nesta organização.');
     }
+
+    let commissionId = createId('commission');
+    let pendingSync = true;
+
+    try {
+      const apiRes = await createCommissionWithApi({
+        organizationId: selectedOrganizationId,
+        name,
+        type: commissionForm.type || 'Comissão',
+        description: commissionForm.description.trim(),
+        memberIds: [activeUserId],
+      });
+      if (apiRes && apiRes.success && apiRes.commission?.id) {
+        commissionId = apiRes.commission.id;
+        pendingSync = false;
+      }
+    } catch (err) {
+      console.warn('Comissão salva localmente para sincronização:', err);
+    }
+
     const commission = {
-      id: createId('commission'),
+      id: commissionId,
       organizationId: selectedOrganizationId,
       name,
       type: commissionForm.type || 'Comissão',
       description: commissionForm.description.trim(),
       status: 'ACTIVE',
+      pendingSync,
     };
     setData((current) => ({
       ...current,
@@ -485,6 +524,9 @@ export default function App() {
     const name = profileForm.name.trim();
     const email = normalizeEmail(profileForm.email);
     if (data.users.some((user) => user.id !== activeUserId && user.email === email)) return Alert.alert('E-mail já utilizado', 'Escolha outro e-mail.');
+
+    updateUserWithApi(activeUserId, { name, email, phone: formatPhone(profileForm.phone) }).catch(() => {});
+
     setData((current) => ({
       ...current,
       users: current.users.map((user) => (
@@ -507,6 +549,9 @@ export default function App() {
     if (!validCurrents.includes(currentInput)) {
       return Alert.alert('Senha atual incorreta', 'A senha atual informada não confere.');
     }
+
+    changePasswordWithApi(activeUserId, currentInput, passwordForm.next).catch(() => {});
+
     setData((current) => ({
       ...current,
       users: current.users.map((user) => (
@@ -570,6 +615,7 @@ export default function App() {
   }
 
   function setTheme(theme) {
+    updateUserWithApi(activeUserId, { theme }).catch(() => {});
     setData((current) => ({ ...current, users: current.users.map((user) => user.id === activeUserId ? { ...user, theme } : user) }));
   }
 

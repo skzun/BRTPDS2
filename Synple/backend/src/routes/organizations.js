@@ -2,6 +2,33 @@ const express = require('express');
 const router = express.Router();
 const db = require('../db/connection');
 
+const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+async function resolveUserId(userIdentifier) {
+  if (!userIdentifier) return null;
+  if (uuidRegex.test(userIdentifier)) return userIdentifier;
+  const aliasMap = {
+    'user-system-admin': 'admin@synple.com',
+    'user-admin': 'marina@synple.com',
+    'user-visitante': 'joao@synple.com',
+  };
+  const emailOrId = aliasMap[userIdentifier] || userIdentifier;
+  const res = await db.query('SELECT id FROM users WHERE LOWER(email) = LOWER($1) OR id::text = $1 LIMIT 1', [emailOrId]);
+  return res.rows[0]?.id || null;
+}
+
+async function resolveOrganizationId(orgIdentifier) {
+  if (!orgIdentifier) return null;
+  if (uuidRegex.test(orgIdentifier)) return orgIdentifier;
+  const aliasMap = {
+    'org-aurora': '12.345.678/0001-90',
+    'org-horizonte': '98.765.432/0001-10',
+  };
+  const docOrId = aliasMap[orgIdentifier] || orgIdentifier;
+  const res = await db.query('SELECT id FROM organizations WHERE document = $1 OR id::text = $1 LIMIT 1', [docOrId]);
+  return res.rows[0]?.id || null;
+}
+
 // GET /api/organizations - Listagem
 router.get('/', async (req, res) => {
   try {
@@ -14,14 +41,25 @@ router.get('/', async (req, res) => {
 
 // POST /api/organizations - Cadastro
 router.post('/', async (req, res) => {
-  const { name, document, ownerId } = req.body;
+  const { name, document, ownerId, status } = req.body;
+
+  if (!name || !document || !ownerId) {
+    return res.status(400).json({ error: 'Nome, documento e proprietário são obrigatórios.' });
+  }
 
   try {
+    const resolvedOwnerId = await resolveUserId(ownerId);
+    if (!resolvedOwnerId) {
+      return res.status(400).json({ error: 'Proprietário não encontrado no PostgreSQL.' });
+    }
+
+    const orgStatus = status || 'PENDING';
     const insertRes = await db.query(`
       INSERT INTO organizations (name, document, owner_id, status)
-      VALUES ($1, $2, $3, 'APPROVED')
+      VALUES ($1, $2, $3, $4)
+      ON CONFLICT (document) DO UPDATE SET name = EXCLUDED.name, status = EXCLUDED.status
       RETURNING id, name, document, owner_id as "ownerId", status;
-    `, [name.trim(), document.trim(), ownerId]);
+    `, [name.trim(), document.trim(), resolvedOwnerId, orgStatus]);
 
     return res.status(201).json(insertRes.rows[0]);
   } catch (err) {
@@ -32,14 +70,21 @@ router.post('/', async (req, res) => {
 
 // POST /api/organizations/:id/access-requests - Solicitação de entrada
 router.post('/:id/access-requests', async (req, res) => {
-  const { id: organizationId } = req.params;
-  const { userId } = req.body;
+  const { id: orgParam } = req.params;
+  const { userId: userParam } = req.body;
 
-  if (!organizationId || !userId) {
+  if (!orgParam || !userParam) {
     return res.status(400).json({ error: 'ID da organização e do usuário são obrigatórios.' });
   }
 
   try {
+    const organizationId = await resolveOrganizationId(orgParam);
+    const userId = await resolveUserId(userParam);
+
+    if (!organizationId || !userId) {
+      return res.status(400).json({ error: 'Organização ou usuário não encontrado no PostgreSQL.' });
+    }
+
     const existing = await db.query(
       'SELECT id, organization_id as "organizationId", user_id as "userId", status, organization_role as "organizationRole" FROM access_requests WHERE organization_id = $1 AND user_id = $2;',
       [organizationId, userId]
@@ -66,7 +111,12 @@ router.post('/:id/access-requests', async (req, res) => {
 router.delete('/:id', async (req, res) => {
   const { id } = req.params;
   try {
-    const deleteRes = await db.query('DELETE FROM organizations WHERE id::text = $1 RETURNING id, name;', [id]);
+    const orgId = await resolveOrganizationId(id);
+    if (!orgId) {
+      return res.status(404).json({ error: 'Organização não encontrada.' });
+    }
+
+    const deleteRes = await db.query('DELETE FROM organizations WHERE id = $1 RETURNING id, name;', [orgId]);
     if (deleteRes.rowCount === 0) {
       return res.status(404).json({ error: 'Organização não encontrada.' });
     }
@@ -82,9 +132,14 @@ router.patch('/:id/status', async (req, res) => {
   const { id } = req.params;
   const { status } = req.body;
   try {
+    const orgId = await resolveOrganizationId(id);
+    if (!orgId) {
+      return res.status(404).json({ error: 'Organização não encontrada.' });
+    }
+
     const updateRes = await db.query(
-      'UPDATE organizations SET status = $1, updated_at = NOW() WHERE id::text = $2 RETURNING id, name, status;',
-      [status, id]
+      'UPDATE organizations SET status = $1, updated_at = NOW() WHERE id = $2 RETURNING id, name, status;',
+      [status, orgId]
     );
     if (updateRes.rowCount === 0) {
       return res.status(404).json({ error: 'Organização não encontrada.' });
@@ -114,5 +169,3 @@ router.patch('/access-requests/:requestId', async (req, res) => {
 });
 
 module.exports = router;
-
-

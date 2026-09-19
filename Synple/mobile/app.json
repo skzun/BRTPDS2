@@ -4,20 +4,25 @@
     "slug": "synple",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/icon.png",
+    "icon": "./assets/synple-icon.png",
     "userInterfaceStyle": "light",
+    "splash": {
+      "image": "./assets/synple-splash.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#F7F8FC"
+    },
     "ios": {
       "supportsTablet": true
     },
     "android": {
       "adaptiveIcon": {
         "backgroundColor": "#4B43CF",
-        "foregroundImage": "./assets/android-icon-foreground.png"
+        "foregroundImage": "./assets/synple-icon.png"
       },
       "predictiveBackGestureEnabled": false
     },
     "web": {
-      "favicon": "./assets/favicon.png"
+      "favicon": "./assets/synple-icon.png"
     },
     "plugins": [
       "expo-status-bar",

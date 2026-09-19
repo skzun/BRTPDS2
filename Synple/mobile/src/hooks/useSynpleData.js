@@ -2,7 +2,7 @@ import { useEffect, useState, useCallback } from 'react';
 
 import { INITIAL_DATA } from '../constants/data';
 import { loadStoredData, saveData } from '../services/storage';
-import { fetchRemoteData, syncPendingUsers } from '../services/api';
+import { fetchRemoteData, syncPendingData } from '../services/api';
 
 const DEMO_PASSWORDS = {
   'admin@synple.com': 'Admin@123',
@@ -31,16 +31,15 @@ function mergeAllUsers(savedUsers = [], remoteUsers = null) {
       }
     });
 
-    // 3. Mescla somente usuários locais pendentes de envio (pendingSync === true)
+    // 3. Mescla dados salvos localmente, garantindo que nenhum usuário criado no aparelho seja descartado
     (Array.isArray(savedUsers) ? savedUsers : []).forEach((u) => {
       if (!u || !u.email) return;
       const key = u.email.toLowerCase();
       if (map.has(key)) {
         map.set(key, { ...u, ...map.get(key) });
-      } else if (u.pendingSync) {
+      } else {
         map.set(key, u);
       }
-      // Se não está no PostgreSQL e não é pendingSync, foi EXCLUÍDO e não deve voltar!
     });
   } else {
     // Modo offline: inicia com demonstração e adiciona dados salvos localmente
@@ -60,24 +59,48 @@ function mergeAccessRequests(savedRequests = [], remoteRequests = null) {
   return Array.isArray(savedRequests) ? savedRequests : INITIAL_DATA.accessRequests;
 }
 
-function migrateOrganizations(savedOrganizations, schemaVersion) {
-  const organizations = Array.isArray(savedOrganizations) ? savedOrganizations : INITIAL_DATA.organizations;
+function mergeOrganizations(savedOrgs = [], remoteOrgs = null) {
+  const map = new Map();
+  if (Array.isArray(remoteOrgs)) {
+    remoteOrgs.forEach((o) => {
+      if (o && o.document) map.set(o.document, o);
+      else if (o && o.id) map.set(o.id, o);
+    });
+  }
+  (Array.isArray(savedOrgs) ? savedOrgs : []).forEach((o) => {
+    if (!o) return;
+    const key = o.document || o.id;
+    if (map.has(key)) {
+      map.set(key, { ...o, ...map.get(key) });
+    } else {
+      map.set(key, o);
+    }
+  });
+  return Array.from(map.values());
+}
 
-  if (schemaVersion >= 3) return organizations;
-
-  return organizations.map((organization) => (
-    organization.id === 'org-horizonte' && organization.ownerId === 'user-admin'
-      ? { ...organization, ownerId: 'user-visitante' }
-      : organization
-  ));
+function mergeCommissions(savedComms = [], remoteComms = null) {
+  const map = new Map();
+  if (Array.isArray(remoteComms)) {
+    remoteComms.forEach((c) => {
+      if (c && c.id) map.set(c.id, c);
+    });
+  }
+  (Array.isArray(savedComms) ? savedComms : []).forEach((c) => {
+    if (!c) return;
+    if (!map.has(c.id)) {
+      map.set(c.id, c);
+    }
+  });
+  return Array.from(map.values());
 }
 
 function mergeData(savedData, remoteData = null) {
   const baseData = remoteData || savedData || {};
   const users = mergeAllUsers(savedData?.users, remoteData?.users);
-  const organizations = migrateOrganizations(remoteData?.organizations || savedData?.organizations, savedData?.schemaVersion || 0);
+  const organizations = mergeOrganizations(savedData?.organizations, remoteData?.organizations);
   const accessRequests = mergeAccessRequests(savedData?.accessRequests, remoteData?.accessRequests);
-  const commissions = remoteData?.commissions || savedData?.commissions || INITIAL_DATA.commissions;
+  const commissions = mergeCommissions(savedData?.commissions, remoteData?.commissions);
   const commissionMembers = remoteData?.commissionMembers || savedData?.commissionMembers || INITIAL_DATA.commissionMembers;
 
   return {
@@ -113,11 +136,13 @@ export function useSynpleData() {
 
   const syncWithRemote = useCallback(async () => {
     try {
+      // 1. Sincroniza primeiro as pendências locais com o banco PostgreSQL
+      if (data) {
+        await syncPendingData(data);
+      }
+      // 2. Busca dados atualizados do banco (já refletindo os novos itens persistidos)
       const remote = await fetchRemoteData();
       if (remote) {
-        if (data?.users?.length) {
-          await syncPendingUsers(data.users);
-        }
         setData((current) => mergeData(current, remote));
         setDbStatus('ONLINE');
       } else {
@@ -126,29 +151,34 @@ export function useSynpleData() {
     } catch {
       setDbStatus('OFFLINE');
     }
-  }, [data?.users]);
+  }, [data]);
 
   useEffect(() => {
     async function loadData() {
       try {
         const savedData = await loadStoredData();
         if (savedData) setData(mergeData(savedData));
+      } catch {
+        setStorageError('Não foi possível recuperar os dados locais.');
+      } finally {
+        setIsReady(true);
+      }
 
-        // Sincroniza em segundo plano com o PostgreSQL (Banco_synple)
+      // Sincroniza em segundo plano com o PostgreSQL (Banco_synple)
+      try {
+        const currentLocal = await loadStoredData();
+        if (currentLocal) {
+          await syncPendingData(currentLocal);
+        }
         const remote = await fetchRemoteData();
         if (remote) {
-          if (savedData?.users?.length) {
-            await syncPendingUsers(savedData.users);
-          }
           setData((current) => mergeData(current, remote));
           setDbStatus('ONLINE');
         } else {
           setDbStatus('OFFLINE');
         }
       } catch {
-        setStorageError('Não foi possível recuperar os dados locais.');
-      } finally {
-        setIsReady(true);
+        setDbStatus('OFFLINE');
       }
     }
     loadData();
