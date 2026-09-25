@@ -12,9 +12,15 @@ CREATE TABLE IF NOT EXISTS users (
     password_hash VARCHAR(255) NOT NULL,
     system_role VARCHAR(30) NOT NULL DEFAULT 'USER',
     theme VARCHAR(10) NOT NULL DEFAULT 'LIGHT',
+    reset_token VARCHAR(255),
+    reset_token_expires TIMESTAMPTZ,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
+
+-- Migrações automáticas para colunas de recuperação de senha em bancos existentes
+ALTER TABLE users ADD COLUMN IF NOT EXISTS reset_token VARCHAR(255);
+ALTER TABLE users ADD COLUMN IF NOT EXISTS reset_token_expires TIMESTAMPTZ;
 
 -- 2. Tabela: organizations (Organizações / Empresas / Coletivos)
 CREATE TABLE IF NOT EXISTS organizations (

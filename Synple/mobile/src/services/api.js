@@ -282,6 +282,75 @@ export async function changePasswordWithApi(userId, currentPassword, nextPasswor
 }
 
 /**
+ * Validação de identidade por E-mail + Telefone cadastrado (Custo Zero e 100% Open Source)
+ */
+export async function verifyPhoneResetWithApi({ email, phone }) {
+  try {
+    const response = await fetchWithTimeout(`${getApiBaseUrl()}/auth/verify-phone-reset`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, phone }),
+    }, 8000);
+
+    if (!response.ok) {
+      const err = await response.json().catch(() => ({}));
+      return { success: false, error: err.error || 'Dados informados não conferem com o cadastro.' };
+    }
+
+    const data = await response.json();
+    return { success: true, message: data.message, resetToken: data.resetToken };
+  } catch (err) {
+    return { success: false, error: 'Falha na comunicação com o servidor.' };
+  }
+}
+
+/**
+ * Solicita código de verificação de 6 dígitos via e-mail no PostgreSQL
+ */
+export async function requestPasswordResetWithApi(email) {
+  try {
+    const response = await fetchWithTimeout(`${getApiBaseUrl()}/auth/forgot-password`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email }),
+    }, 8000);
+
+    if (!response.ok) {
+      const err = await response.json();
+      return { success: false, error: err.error || 'Falha ao solicitar código' };
+    }
+
+    const data = await response.json();
+    return { success: true, message: data.message, previewUrl: data.previewUrl, debugCode: data.debugCode };
+  } catch (err) {
+    return { success: false, error: 'Falha na comunicação com o servidor.' };
+  }
+}
+
+/**
+ * Valida o código recebido por e-mail e redefine a senha no PostgreSQL
+ */
+export async function resetPasswordWithApi({ email, code, newPassword }) {
+  try {
+    const response = await fetchWithTimeout(`${getApiBaseUrl()}/auth/reset-password`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, code, newPassword }),
+    }, 8000);
+
+    if (!response.ok) {
+      const err = await response.json();
+      return { success: false, error: err.error || 'Código incorreto ou expirado' };
+    }
+
+    const data = await response.json();
+    return { success: true, message: data.message };
+  } catch (err) {
+    return { success: false, error: 'Falha na comunicação com o servidor.' };
+  }
+}
+
+/**
  * Exclui usuário no PostgreSQL (por ID ou e-mail)
  */
 export async function deleteUserWithApi(userIdOrEmail) {

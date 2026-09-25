@@ -59,6 +59,21 @@ test('exclui usuário do PostgreSQL com sucesso por id ou email', async () => {
   assert.equal(check.rowCount, 0);
 });
 
+test('verifica suporte e fluxo de recuperação de senha (reset_token)', async () => {
+  const email = 'temp.recovery@synple.com';
+  const insert = await db.query(`
+    INSERT INTO users (name, email, password_hash, system_role, reset_token, reset_token_expires)
+    VALUES ('Temp Recovery', $1, 'oldhash', 'USER', '654321', NOW() + INTERVAL '15 minutes')
+    RETURNING id, reset_token, reset_token_expires;
+  `, [email]);
+
+  assert.equal(insert.rows[0].reset_token, '654321');
+  assert.ok(insert.rows[0].reset_token_expires);
+
+  // Limpa o usuário de teste
+  await db.query('DELETE FROM users WHERE email = $1;', [email]);
+});
+
 test.after(async () => {
   await db.pool.end();
 });
