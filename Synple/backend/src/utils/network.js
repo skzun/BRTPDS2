@@ -13,6 +13,12 @@ const path = require('path');
  * - Tailscale, ZeroTier, Hamachi, Teredo, etc.
  */
 function getLocalNetworkIp() {
+  if (process.env.HOST_IP && process.env.HOST_IP.trim()) {
+    return process.env.HOST_IP.trim();
+  }
+  if (process.env.SERVER_IP && process.env.SERVER_IP.trim()) {
+    return process.env.SERVER_IP.trim();
+  }
   const interfaces = os.networkInterfaces();
   const candidates = [];
   const virtualKeywords = [

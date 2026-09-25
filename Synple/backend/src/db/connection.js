@@ -2,10 +2,12 @@ const { Pool } = require('pg');
 const path = require('path');
 require('dotenv').config({ path: path.join(__dirname, '../../.env') });
 
-const isRemoteDb = Boolean(
-  process.env.DB_SSL === 'true' ||
-  (process.env.DB_HOST && process.env.DB_HOST !== 'localhost' && process.env.DB_HOST !== '127.0.0.1')
-);
+const isRemoteDb = process.env.DB_SSL === 'false'
+  ? false
+  : Boolean(
+      process.env.DB_SSL === 'true' ||
+      (process.env.DB_HOST && !['localhost', '127.0.0.1', 'postgres'].includes(process.env.DB_HOST))
+    );
 
 const poolConfig = process.env.DATABASE_URL
   ? {
