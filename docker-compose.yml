@@ -1,0 +1,61 @@
+version: '3.8'
+
+services:
+  # --------------------------------------------------------------------------
+  # 1. Banco de Dados PostgreSQL (Banco_synple)
+  # --------------------------------------------------------------------------
+  postgres:
+    image: postgres:16-alpine
+    container_name: synple-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: 123
+      POSTGRES_DB: Banco_synple
+    ports:
+      - "5432:5432"
+    volumes:
+      - synple_pg_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d Banco_synple"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - synple-net
+
+  # --------------------------------------------------------------------------
+  # 2. Servidor Backend Node.js / Express (Synple API)
+  # --------------------------------------------------------------------------
+  backend:
+    build:
+      context: ./Synple/backend
+      dockerfile: Dockerfile
+    container_name: synple-backend
+    restart: unless-stopped
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      PORT: 3001
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_NAME: Banco_synple
+      DB_USER: postgres
+      DB_PASSWORD: 123
+      DB_SSL: "false"
+      HOST_IP: ${HOST_IP:-}
+    ports:
+      - "3001:3001"
+    volumes:
+      - ./Synple/mobile/src/constants:/app/mobile/src/constants
+    networks:
+      - synple-net
+
+volumes:
+  synple_pg_data:
+    driver: local
+
+networks:
+  synple-net:
+    driver: bridge
