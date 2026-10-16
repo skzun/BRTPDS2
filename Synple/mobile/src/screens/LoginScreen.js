@@ -1,12 +1,16 @@
-import { useState } from 'react';
-import { Image, Pressable, ScrollView, Text, View } from 'react-native';
+import { useEffect, useRef, useState } from 'react';
+import { Image, KeyboardAvoidingView, Platform, Pressable, ScrollView, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import * as Google from 'expo-auth-session/providers/google';
+import * as WebBrowser from 'expo-web-browser';
 
 import { formatPhone } from '../services/formatters';
 import { Choice, Field } from '../components/FormControls';
 import { styles } from '../styles/theme';
 
-export function LoginScreen({ onLogin, onRegister, onVerifyPhone, onRecoverAccount, onResetPassword }) {
+WebBrowser.maybeCompleteAuthSession();
+
+export function LoginScreen({ onLogin, onGoogleLogin, onRegister, onVerifyPhone, onRecoverAccount, onResetPassword }) {
   const [tab, setTab] = useState('LOGIN');
   const [mode, setMode] = useState('USER');
   const [email, setEmail] = useState('');
@@ -19,10 +23,62 @@ export function LoginScreen({ onLogin, onRegister, onVerifyPhone, onRecoverAccou
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isGoogleSubmitting, setIsGoogleSubmitting] = useState(false);
+  const processedGoogleTokenRef = useRef(null);
+  const googleClientIds = {
+    androidClientId: process.env.EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID,
+    iosClientId: process.env.EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID,
+    webClientId: process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID,
+  };
+  const googleClientId = Platform.select({
+    android: googleClientIds.androidClientId,
+    ios: googleClientIds.iosClientId,
+    default: googleClientIds.webClientId,
+  });
+  const [googleRequest, googleResponse, promptGoogleLogin] = Google.useIdTokenAuthRequest({
+    ...googleClientIds,
+    clientId: googleClientId || 'google-client-id-not-configured',
+    selectAccount: true,
+  });
+  const isGoogleConfigured = Boolean(googleClientId);
+
+  useEffect(() => {
+    if (!googleResponse) return;
+
+    const idToken = googleResponse.params?.id_token || googleResponse.authentication?.idToken;
+    if (!idToken) {
+      if (googleResponse.type !== 'opened') setIsGoogleSubmitting(false);
+      return;
+    }
+    if (processedGoogleTokenRef.current === idToken) return;
+
+    processedGoogleTokenRef.current = idToken;
+    setIsGoogleSubmitting(true);
+    Promise.resolve(onGoogleLogin(idToken)).finally(() => setIsGoogleSubmitting(false));
+  }, [googleResponse, onGoogleLogin]);
+
+  async function startGoogleLogin() {
+    if (!isGoogleConfigured) return;
+    setIsGoogleSubmitting(true);
+    try {
+      await promptGoogleLogin();
+    } catch {
+      setIsGoogleSubmitting(false);
+    }
+  }
 
   return (
     <SafeAreaView style={styles.loginSurface}>
-      <ScrollView contentContainerStyle={styles.loginContent} keyboardShouldPersistTaps="handled">
+      <KeyboardAvoidingView
+        style={styles.keyboardAvoidingView}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      >
+      <ScrollView
+        contentContainerStyle={styles.loginContent}
+        keyboardShouldPersistTaps="handled"
+        keyboardDismissMode={Platform.OS === 'ios' ? 'interactive' : 'on-drag'}
+        automaticallyAdjustKeyboardInsets={Platform.OS === 'ios'}
+      >
         <Image source={require('../../assets/synple-splash.png')} style={styles.loginLogo} resizeMode="contain" />
         <Text style={styles.loginTitle}>Bem-vindo ao Synple</Text>
         <Text style={styles.loginSubtitle}>Acesse sua conta para continuar.</Text>
@@ -48,6 +104,11 @@ export function LoginScreen({ onLogin, onRegister, onVerifyPhone, onRecoverAccou
               <Pressable style={styles.primaryButton} onPress={() => onLogin({ email, password, mode })}>
                 <Text style={styles.primaryButtonText}>Entrar como {mode === 'SYSTEM_ADMIN' ? 'administrador do sistema' : 'usuário'}</Text>
               </Pressable>
+              <GoogleLoginButton
+                disabled={!googleRequest || !isGoogleConfigured || isGoogleSubmitting}
+                isLoading={isGoogleSubmitting}
+                onPress={startGoogleLogin}
+              />
             </>
           )}
 
@@ -63,6 +124,11 @@ export function LoginScreen({ onLogin, onRegister, onVerifyPhone, onRecoverAccou
               <Pressable style={styles.primaryButton} onPress={() => onRegister(registration)}>
                 <Text style={styles.primaryButtonText}>Criar conta</Text>
               </Pressable>
+              <GoogleLoginButton
+                disabled={!googleRequest || !isGoogleConfigured || isGoogleSubmitting}
+                isLoading={isGoogleSubmitting}
+                onPress={startGoogleLogin}
+              />
             </>
           )}
 
@@ -166,6 +232,23 @@ export function LoginScreen({ onLogin, onRegister, onVerifyPhone, onRecoverAccou
           )}
         </View>
       </ScrollView>
+      </KeyboardAvoidingView>
     </SafeAreaView>
+  );
+}
+
+function GoogleLoginButton({ disabled, isLoading, onPress }) {
+  return (
+    <Pressable
+      style={[styles.googleButton, disabled && styles.disabledButton]}
+      disabled={disabled}
+      onPress={onPress}
+      accessibilityRole="button"
+      accessibilityState={{ disabled, busy: isLoading }}
+    >
+      <Text style={styles.googleButtonText}>
+        {isLoading ? 'Confirmando conta Google...' : 'Continuar com Google'}
+      </Text>
+    </Pressable>
   );
 }

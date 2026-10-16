@@ -2,7 +2,9 @@
   "expo": {
     "name": "Synple",
     "slug": "synple",
+    "scheme": "synple",
     "version": "1.0.0",
+    "platforms": ["ios", "android", "web"],
     "orientation": "portrait",
     "icon": "./assets/synple-icon.png",
     "userInterfaceStyle": "light",
@@ -12,14 +14,19 @@
       "backgroundColor": "#F7F8FC"
     },
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.conradobr1.synple",
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false
+      }
     },
     "android": {
       "adaptiveIcon": {
         "backgroundColor": "#4B43CF",
         "foregroundImage": "./assets/synple-icon.png"
       },
-      "predictiveBackGestureEnabled": false
+      "predictiveBackGestureEnabled": false,
+      "package": "com.conradobr1.synple"
     },
     "web": {
       "favicon": "./assets/synple-icon.png"
@@ -34,7 +41,13 @@
           "imageWidth": 200,
           "resizeMode": "contain"
         }
-      ]
-    ]
+      ],
+      "expo-web-browser"
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "b21b5ca7-5b9f-4533-bf88-0d2cdb98881e"
+      }
+    }
   }
 }

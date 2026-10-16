@@ -1,11 +1,22 @@
 const express = require('express');
 const router = express.Router();
 const bcrypt = require('bcryptjs');
+const crypto = require('crypto');
+const { OAuth2Client } = require('google-auth-library');
 const db = require('../db/connection');
 const { sendPasswordResetEmail } = require('../services/mailer');
 
 function normalizeEmail(email) {
   return (email || '').trim().toLowerCase();
+}
+
+const googleOAuthClient = new OAuth2Client();
+
+function getGoogleClientIds() {
+  return (process.env.GOOGLE_OAUTH_CLIENT_IDS || '')
+    .split(',')
+    .map((clientId) => clientId.trim())
+    .filter(Boolean);
 }
 
 // POST /api/auth/login - Autenticação com PostgreSQL
@@ -73,6 +84,63 @@ router.post('/register', async (req, res) => {
   } catch (err) {
     console.error('Erro no registro:', err);
     return res.status(500).json({ error: 'Erro ao registrar usuário no PostgreSQL.' });
+  }
+});
+
+// POST /api/auth/google - Login ou cadastro com um ID token validado pelo Google
+router.post('/google', async (req, res) => {
+  const { idToken } = req.body;
+  const clientIds = getGoogleClientIds();
+
+  if (!idToken) {
+    return res.status(400).json({ error: 'O token de identidade do Google é obrigatório.' });
+  }
+  if (clientIds.length === 0) {
+    return res.status(503).json({ error: 'O login com Google ainda não foi configurado no servidor.' });
+  }
+
+  try {
+    const ticket = await googleOAuthClient.verifyIdToken({ idToken, audience: clientIds });
+    const payload = ticket.getPayload();
+    const email = normalizeEmail(payload?.email);
+    const isEmailVerified = payload?.email_verified === true || payload?.email_verified === 'true';
+
+    if (!payload?.sub || !email || !isEmailVerified) {
+      return res.status(401).json({ error: 'A conta Google não forneceu um e-mail verificado.' });
+    }
+
+    const existingRes = await db.query(
+      'SELECT id, name, email, phone, system_role as "systemRole", theme, google_id FROM users WHERE LOWER(email) = $1;',
+      [email]
+    );
+
+    if (existingRes.rowCount > 0) {
+      const existingUser = existingRes.rows[0];
+      if (existingUser.google_id && existingUser.google_id !== payload.sub) {
+        return res.status(409).json({ error: 'Este e-mail já está associado a outra conta Google.' });
+      }
+
+      const linkedUser = await db.query(`
+        UPDATE users
+        SET google_id = COALESCE(google_id, $1), updated_at = NOW()
+        WHERE id = $2
+        RETURNING id, name, email, phone, system_role as "systemRole", theme;
+      `, [payload.sub, existingUser.id]);
+      return res.json({ ...linkedUser.rows[0], isNewUser: false });
+    }
+
+    const passwordHash = bcrypt.hashSync(crypto.randomBytes(32).toString('hex'), 10);
+    const displayName = String(payload.name || email.split('@')[0]).trim().slice(0, 120);
+    const createdUser = await db.query(`
+      INSERT INTO users (name, email, password_hash, google_id, system_role, theme)
+      VALUES ($1, $2, $3, $4, 'USER', 'LIGHT')
+      RETURNING id, name, email, phone, system_role as "systemRole", theme;
+    `, [displayName, email, passwordHash, payload.sub]);
+
+    return res.status(201).json({ ...createdUser.rows[0], isNewUser: true });
+  } catch (err) {
+    console.error('Erro no login Google:', err.message);
+    return res.status(401).json({ error: 'Não foi possível validar a identidade da conta Google.' });
   }
 });
 

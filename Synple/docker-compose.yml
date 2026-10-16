@@ -36,6 +36,8 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
+    env_file:
+      - ./backend/.env
     environment:
       PORT: 3001
       DB_HOST: postgres
@@ -44,12 +46,8 @@ services:
       DB_USER: postgres
       DB_PASSWORD: 123
       DB_SSL: "false"
-      HOST_IP: ${HOST_IP:-}
     ports:
       - "3001:3001"
-    volumes:
-      # Sincroniza o arquivo network.json com a pasta do aplicativo mobile no host
-      - ./mobile/src/constants:/app/mobile/src/constants
     networks:
       - synple-net
 

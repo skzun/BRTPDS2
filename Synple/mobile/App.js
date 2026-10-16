@@ -1,8 +1,10 @@
 import { StatusBar } from 'expo-status-bar';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import {
   Alert,
   Image,
+  KeyboardAvoidingView,
+  Platform,
   Pressable,
   ScrollView,
   Text,
@@ -22,6 +24,7 @@ import {
   deleteOrganizationWithApi,
   deleteUserWithApi,
   getApiBaseUrl,
+  loginWithGoogleApi,
   registerWithApi,
   requestAccessWithApi,
   requestPasswordResetWithApi,
@@ -65,6 +68,8 @@ export default function App() {
   const [role, setRole] = useState('USER');
   const [activeUserId, setActiveUserId] = useState('user-visitante');
   const [organizationForm, setOrganizationForm] = useState({ name: '', document: '' });
+  const [isCreatingOrganization, setIsCreatingOrganization] = useState(false);
+  const organizationCreationInFlightRef = useRef(false);
   const [organizationSearch, setOrganizationSearch] = useState('');
   const [selectedOrganizationId, setSelectedOrganizationId] = useState('org-aurora');
   const [commissionForm, setCommissionForm] = useState({ name: '', type: 'Comissão', description: '' });
@@ -118,6 +123,8 @@ export default function App() {
   }, [isOrgAdmin, approvedOwnedOrganizations, selectedOrganizationId]);
 
   async function createOrganization() {
+    if (organizationCreationInFlightRef.current) return;
+
     const validationError = validateOrganization(organizationForm);
     if (validationError) {
       Alert.alert('Campos obrigatórios', validationError);
@@ -130,29 +137,35 @@ export default function App() {
       return;
     }
 
-    let orgId = createId('org');
-    let pendingSync = true;
+    organizationCreationInFlightRef.current = true;
+    setIsCreatingOrganization(true);
 
     try {
       const apiRes = await createOrganizationWithApi({ name, document, ownerId: activeUserId, status: 'PENDING' });
-      if (apiRes && apiRes.success && apiRes.organization?.id) {
-        orgId = apiRes.organization.id;
-        pendingSync = false;
+      if (!apiRes?.success || !apiRes.organization?.id) {
+        Alert.alert('Cadastro não confirmado', apiRes?.error || 'Não foi possível confirmar o cadastro no servidor. Tente novamente.');
+        return;
       }
-    } catch (err) {
-      console.warn('Organização mantida localmente para sincronização:', err);
-    }
 
-    const organization = { id: orgId, name, document, ownerId: activeUserId, status: 'PENDING', pendingSync };
-    setData((current) => ({
-      ...current,
-      organizations: [...current.organizations, organization],
-    }));
-    setSelectedOrganizationId(organization.id);
-    setRole('USER');
-    setScreen('management');
-    setOrganizationForm({ name: '', document: '' });
-    Alert.alert('Cadastro enviado', 'Sua organização aguarda aprovação do administrador do sistema. Após a aprovação, você será o administrador da organização e poderá gerenciar acessos e comissões.');
+      const organization = { ...apiRes.organization, pendingSync: false };
+      setData((current) => ({
+        ...current,
+        organizations: current.organizations.some((item) => item.document === organization.document)
+          ? current.organizations
+          : [...current.organizations, organization],
+      }));
+      setSelectedOrganizationId(organization.id);
+      setRole('USER');
+      setScreen('management');
+      setOrganizationForm({ name: '', document: '' });
+      Alert.alert('Cadastro confirmado', 'A organização foi registrada no servidor e aguarda aprovação do administrador do sistema.');
+    } catch (err) {
+      console.warn('Falha ao confirmar organização no servidor:', err);
+      Alert.alert('Cadastro não confirmado', 'Não foi possível confirmar o cadastro no servidor. Tente novamente.');
+    } finally {
+      organizationCreationInFlightRef.current = false;
+      setIsCreatingOrganization(false);
+    }
   }
 
   function login({ email, password, mode }) {
@@ -193,6 +206,27 @@ export default function App() {
     setIsAuthenticated(true);
   }
 
+  async function loginWithGoogle(idToken) {
+    const result = await loginWithGoogleApi(idToken);
+    if (!result.success || !result.user) {
+      Alert.alert('Login com Google', result.error || 'Não foi possível entrar com Google.');
+      return false;
+    }
+
+    const user = result.user;
+    setData((current) => ({
+      ...current,
+      users: current.users.some((item) => normalizeEmail(item.email) === normalizeEmail(user.email))
+        ? current.users.map((item) => normalizeEmail(item.email) === normalizeEmail(user.email) ? { ...item, ...user, pendingSync: false } : item)
+        : [...current.users, { ...user, pendingSync: false }],
+    }));
+    setActiveUserId(user.id);
+    setRole(user.systemRole === 'SYSTEM_ADMIN' ? 'SYSTEM_ADMIN' : 'USER');
+    setScreen(user.systemRole === 'SYSTEM_ADMIN' ? 'admin-management' : 'organizations');
+    setIsAuthenticated(true);
+    return true;
+  }
+
   async function registerUser({ name, email, phone, password, confirmPassword }) {
     const validationError = validateRegistration({ name, email, phone, password, confirmPassword });
     if (validationError) return Alert.alert('Dados inválidos', validationError);
@@ -218,6 +252,14 @@ export default function App() {
         user.id = apiRes.user.id;
         user.pendingSync = false;
         newUserId = apiRes.user.id;
+        console.log('✅ Usuário salvo com sucesso no PostgreSQL:', apiRes.user.email);
+      } else {
+        const errorMsg = apiRes?.error || 'Servidor indisponível';
+        console.warn('⚠️ Não foi possível salvar no PostgreSQL:', errorMsg);
+        Alert.alert(
+          'Aviso de Conexão',
+          `Não foi possível salvar diretamente no PostgreSQL (${errorMsg}). O usuário foi salvo temporariamente no celular e será sincronizado quando o servidor conectar.`
+        );
       }
     } catch (err) {
       console.warn('Registro mantido localmente:', err);
@@ -744,6 +786,7 @@ export default function App() {
       <ThemeContext.Provider value={{ isDark: false, styles: getThemeStyles(false) }}>
         <LoginScreen
           onLogin={login}
+          onGoogleLogin={loginWithGoogle}
           onRegister={registerUser}
           onVerifyPhone={verifyPhoneForReset}
           onRecoverAccount={recoverAccountFromLogin}
@@ -759,7 +802,16 @@ export default function App() {
         <StatusBar style={isDark ? 'light' : 'dark'} />
         <AppHeader userName={activeUser?.name} />
 
-        <ScrollView contentContainerStyle={styles.content}>
+        <KeyboardAvoidingView
+          style={styles.keyboardAvoidingView}
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        >
+        <ScrollView
+          contentContainerStyle={styles.content}
+          keyboardShouldPersistTaps="handled"
+          keyboardDismissMode={Platform.OS === 'ios' ? 'interactive' : 'on-drag'}
+          automaticallyAdjustKeyboardInsets={Platform.OS === 'ios'}
+        >
           <View style={styles.sessionRow}>
             <Text style={styles.sectionTitle}>
               Acesso: {isSystemAdmin ? 'Administrador do sistema' : isOrgAdmin ? 'Administrador da organização' : 'Usuário'}
@@ -808,6 +860,7 @@ export default function App() {
               organizationForm={organizationForm}
               setOrganizationForm={setOrganizationForm}
               onCreateOrganization={createOrganization}
+              isCreatingOrganization={isCreatingOrganization}
               requestableOrganizations={requestableOrganizations}
               selectedOrganizationId={selectedOrganizationId}
               setSelectedOrganizationId={setSelectedOrganizationId}
@@ -890,6 +943,7 @@ export default function App() {
             </Pressable>
           )}
         </ScrollView>
+        </KeyboardAvoidingView>
       </SafeAreaView>
     </ThemeContext.Provider>
   );

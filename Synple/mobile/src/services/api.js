@@ -8,13 +8,12 @@ import networkConfig from '../constants/network.json';
 
 /**
  * Determina dinamicamente a URL base da API
- * Funciona automaticamente em qualquer máquina, rede ou dispositivo:
+ * Funciona localmente em qualquer máquina, sem depender de IP fixo no código:
  * 1. EXPO_PUBLIC_API_URL (se definido)
- * 2. Túnel público do Expo (exp.direct ou ngrok): encaminha automaticamente via proxy do Metro
+ * 2. IP do Metro (Expo Go na mesma rede)
  * 3. Web -> http://localhost:3001/api
- * 4. Expo Go (dispositivo físico) -> IP da máquina atual
- * 5. Autoconfiguração de rede -> network.json
- * 6. Emuladores Android -> http://10.0.2.2:3001/api
+ * 4. Emuladores Android -> http://10.0.2.2:3001/api
+ * 5. IP detectado no início do Expo Go ou localhost
  */
 export function getApiBaseUrl() {
   // 1. Variável de ambiente explícita
@@ -30,31 +29,18 @@ export function getApiBaseUrl() {
     return `http://${webHost}:${defaultPort}/api`;
   }
 
-  // 3. Detecção em tempo real via scriptURL do Metro Bundler (Expo Go)
+  // 3. Em execução LAN, o Metro informa o IP do computador no scriptURL.
+  // O túnel do Expo expõe apenas o Metro; não encaminha a API na porta 3001.
   try {
     const scriptURL = NativeModules?.SourceCode?.scriptURL || '';
     if (scriptURL) {
       const match = scriptURL.match(/^([a-zA-Z]+):\/\/([^/:]+)(?::(\d+))?/);
       if (match) {
-        const protocol = match[1] || 'http';
         const host = match[2];
-        const scriptPort = match[3];
+        const isExpoTunnel = host.includes('exp.direct') || host.includes('ngrok');
+        const isLoopback = host === 'localhost' || host === '127.0.0.1';
 
-        // Se o Metro Bundler estiver rodando via túnel Expo (exp.direct ou ngrok):
-        // O Metro Bundler no PC agora encaminha automaticamente requisições /api para a porta 3001!
-        if (host.includes('exp.direct') || host.includes('ngrok')) {
-          const portPart = scriptPort && scriptPort !== '80' && scriptPort !== '443' ? `:${scriptPort}` : '';
-          return `${protocol}://${host}${portPart}/api`;
-        }
-
-        // Se for conexão direta em rede local
-        if (
-          host !== 'localhost' &&
-          host !== '127.0.0.1' &&
-          !host.startsWith('192.168.56.') &&
-          !host.startsWith('169.254.') &&
-          !host.startsWith('26.')
-        ) {
+        if (!isExpoTunnel && !isLoopback) {
           return `http://${host}:${defaultPort}/api`;
         }
       }
@@ -63,25 +49,13 @@ export function getApiBaseUrl() {
     // Continua para a próxima estratégia
   }
 
-  // 4. IP detectado dinamicamente na máquina atual (gravado em network.json na inicialização)
-  const configuredIp = networkConfig?.serverIp;
-  if (
-    configuredIp &&
-    configuredIp !== 'localhost' &&
-    configuredIp !== '127.0.0.1' &&
-    !configuredIp.startsWith('192.168.56.') &&
-    !configuredIp.startsWith('169.254.') &&
-    !configuredIp.startsWith('26.')
-  ) {
-    return `http://${configuredIp}:${defaultPort}/api`;
-  }
-
-  // 5. Emulador Android (o host do PC é mapeado para 10.0.2.2)
+  // 4. Emulador Android (o host do PC é mapeado para 10.0.2.2)
   if (Platform?.OS === 'android') {
     return `http://10.0.2.2:${defaultPort}/api`;
   }
 
-  return `http://localhost:${defaultPort}/api`;
+  // 5. Fallback seguro quando não há URL pública, Metro LAN ou .env.local.
+  return `http://${networkConfig?.serverIp || 'localhost'}:${defaultPort}/api`;
 }
 
 export const API_BASE_URL = getApiBaseUrl();
@@ -171,6 +145,29 @@ export async function loginWithApi(email, password) {
 }
 
 /**
+ * Envia ao backend o ID token emitido pelo Google. O token é validado no
+ * servidor antes de criar ou acessar a conta do usuário.
+ */
+export async function loginWithGoogleApi(idToken) {
+  try {
+    const response = await fetchWithTimeout(`${getApiBaseUrl()}/auth/google`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ idToken }),
+    }, 10000);
+
+    if (!response.ok) {
+      const err = await response.json().catch(() => ({}));
+      return { success: false, error: err.error || 'Não foi possível entrar com Google.' };
+    }
+
+    return { success: true, user: await response.json() };
+  } catch (err) {
+    return { success: false, error: 'Não foi possível conectar ao servidor para validar a conta Google.' };
+  }
+}
+
+/**
  * Cadastra novo usuário no PostgreSQL
  */
 export async function registerWithApi({ name, email, phone, password }) {
@@ -179,7 +176,7 @@ export async function registerWithApi({ name, email, phone, password }) {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ name, email, phone, password }),
-    }, 4000);
+    }, 7000);
 
     if (!response.ok) {
       const err = await response.json();
@@ -439,7 +436,7 @@ export async function createOrganizationWithApi({ name, document, ownerId, statu
     const org = await response.json();
     return { success: true, organization: org };
   } catch (err) {
-    return { success: false, error: 'Servidor offline, organização salva localmente.' };
+    return { success: false, error: 'Servidor offline ou indisponível.' };
   }
 }
 

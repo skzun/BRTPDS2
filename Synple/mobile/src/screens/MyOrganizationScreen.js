@@ -12,6 +12,7 @@ export function MyOrganizationScreen({
   organizationForm,
   setOrganizationForm,
   onCreateOrganization,
+  isCreatingOrganization,
   requestableOrganizations,
   selectedOrganizationId,
   setSelectedOrganizationId,
@@ -51,8 +52,15 @@ export function MyOrganizationScreen({
           placeholder="00.000.000/0000-00"
           keyboardType="numeric"
         />
-        <Pressable style={styles.primaryButton} onPress={onCreateOrganization}>
-          <Text style={styles.primaryButtonText}>Enviar cadastro</Text>
+        <Pressable
+          style={[styles.primaryButton, isCreatingOrganization && styles.disabledButton]}
+          onPress={onCreateOrganization}
+          disabled={isCreatingOrganization}
+          accessibilityState={{ disabled: isCreatingOrganization }}
+        >
+          <Text style={styles.primaryButtonText}>
+            {isCreatingOrganization ? 'Confirmando no servidor...' : 'Enviar cadastro'}
+          </Text>
         </Pressable>
       </View>
 

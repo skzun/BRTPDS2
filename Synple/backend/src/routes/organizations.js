@@ -57,9 +57,13 @@ router.post('/', async (req, res) => {
     const insertRes = await db.query(`
       INSERT INTO organizations (name, document, owner_id, status)
       VALUES ($1, $2, $3, $4)
-      ON CONFLICT (document) DO UPDATE SET name = EXCLUDED.name, status = EXCLUDED.status
+      ON CONFLICT (document) DO NOTHING
       RETURNING id, name, document, owner_id as "ownerId", status;
     `, [name.trim(), document.trim(), resolvedOwnerId, orgStatus]);
+
+    if (insertRes.rowCount === 0) {
+      return res.status(409).json({ error: 'Já existe uma organização com este CNPJ.' });
+    }
 
     return res.status(201).json(insertRes.rows[0]);
   } catch (err) {

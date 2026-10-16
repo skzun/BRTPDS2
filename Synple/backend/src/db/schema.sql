@@ -10,6 +10,7 @@ CREATE TABLE IF NOT EXISTS users (
     email VARCHAR(150) NOT NULL UNIQUE,
     phone VARCHAR(20),
     password_hash VARCHAR(255) NOT NULL,
+    google_id VARCHAR(255) UNIQUE,
     system_role VARCHAR(30) NOT NULL DEFAULT 'USER',
     theme VARCHAR(10) NOT NULL DEFAULT 'LIGHT',
     reset_token VARCHAR(255),
@@ -21,6 +22,8 @@ CREATE TABLE IF NOT EXISTS users (
 -- Migrações automáticas para colunas de recuperação de senha em bancos existentes
 ALTER TABLE users ADD COLUMN IF NOT EXISTS reset_token VARCHAR(255);
 ALTER TABLE users ADD COLUMN IF NOT EXISTS reset_token_expires TIMESTAMPTZ;
+ALTER TABLE users ADD COLUMN IF NOT EXISTS google_id VARCHAR(255);
+CREATE UNIQUE INDEX IF NOT EXISTS idx_users_google_id ON users(google_id) WHERE google_id IS NOT NULL;
 
 -- 2. Tabela: organizations (Organizações / Empresas / Coletivos)
 CREATE TABLE IF NOT EXISTS organizations (

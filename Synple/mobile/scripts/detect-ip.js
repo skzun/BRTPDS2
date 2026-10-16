@@ -1,71 +1,33 @@
-const os = require('os');
 const fs = require('fs');
+const os = require('os');
 const path = require('path');
 
-/**
- * Filtra adaptadores virtuais e identifica o IP real da máquina na rede local.
- * Descarta:
- * - VirtualBox (192.168.56.x, MAC 0a:00:27/08:00:27, nomes com vbox/virtual)
- * - Radmin VPN (26.x.x.x, nomes com radmin)
- * - APIPA (169.254.x.x)
- * - Hyper-V, WSL, Docker (nomes com vethernet, wsl, docker)
- * - VMware (MAC 00:05:69, 00:0c:29, 00:50:56, nomes com vmware)
- * - Tailscale, ZeroTier, Hamachi, Teredo, etc.
- */
+// Detecta o IPv4 atual do computador para o Expo Go na mesma rede Wi-Fi.
+// Nenhum IP fixo da rede doméstica é salvo no código-fonte.
 function getLocalNetworkIp() {
   const interfaces = os.networkInterfaces();
   const candidates = [];
-  const virtualKeywords = [
-    'virtual', 'vbox', 'radmin', 'vmware', 'loopback',
-    'vethernet', 'wsl', 'docker', 'tailscale', 'zerotier',
-    'hamachi', 'tap', 'tun', 'teredo', 'bluetooth', 'pseudo'
-  ];
 
-  for (const [name, addrs] of Object.entries(interfaces)) {
-    const lowerName = name.toLowerCase();
-    if (virtualKeywords.some((k) => lowerName.includes(k))) {
-      continue;
-    }
+  for (const [interfaceName, addresses] of Object.entries(interfaces)) {
+    for (const address of addresses || []) {
+      if (address.family !== 'IPv4' || address.internal || !isPrivateNetwork(address.address)) continue;
 
-    for (const addr of addrs) {
-      if (addr.family !== 'IPv4' || addr.internal) continue;
-      const ip = addr.address;
+      const isVirtual = /vpn|virtual|vbox|vmware|hyper-v|wsl|docker|teredo/i.test(interfaceName)
+        || /^0a:00:27/i.test(address.mac || '');
 
-      // Descartar IPs reservados, virtuais e de link-local
-      if (
-        ip.startsWith('127.') ||
-        ip.startsWith('169.254.') ||
-        ip.startsWith('192.168.56.') || // Sub-rede host-only default do VirtualBox
-        ip.startsWith('26.') // Radmin VPN
-      ) {
-        continue;
-      }
-
-      // Descartar MACs conhecidos de hipervisores
-      const mac = (addr.mac || '').toLowerCase();
-      if (
-        mac.startsWith('0a:00:27') ||
-        mac.startsWith('08:00:27') ||
-        mac.startsWith('00:05:69') ||
-        mac.startsWith('00:0c:29') ||
-        mac.startsWith('00:50:56')
-      ) {
-        continue;
-      }
-
-      // Redes privadas padrão: 192.168.x.x, 10.x.x.x, 172.16-31.x.x
-      if (ip.startsWith('192.168.')) {
-        candidates.push({ ip, priority: 1 }); // Prioridade máxima: LAN comum / Wi-Fi / Ethernet
-      } else if (ip.startsWith('10.') || ip.startsWith('172.')) {
-        candidates.push({ ip, priority: 2 });
-      } else {
-        candidates.push({ ip, priority: 3 });
-      }
+      candidates.push({ address: address.address, isVirtual });
     }
   }
 
-  candidates.sort((a, b) => a.priority - b.priority);
-  return candidates[0]?.ip || 'localhost';
+  const physicalNetwork = candidates.find((candidate) => !candidate.isVirtual);
+  return physicalNetwork?.address || candidates[0]?.address || 'localhost';
+}
+
+function isPrivateNetwork(ip) {
+  const [first, second] = ip.split('.').map(Number);
+  return first === 10
+    || (first === 172 && second >= 16 && second <= 31)
+    || (first === 192 && second === 168);
 }
 
 const serverIp = getLocalNetworkIp();
@@ -75,16 +37,14 @@ const config = {
   updatedAt: new Date().toISOString(),
 };
 
-const targetPath = path.resolve(__dirname, '../src/constants/network.json');
+// Expo carrega .env.local ao iniciar e o arquivo já é ignorado pelo Git.
+// Assim, o IP atual não é versionado junto com o código.
+const targetPath = path.resolve(__dirname, '../.env.local');
 try {
-  const targetDir = path.dirname(targetPath);
-  if (!fs.existsSync(targetDir)) {
-    fs.mkdirSync(targetDir, { recursive: true });
-  }
-  fs.writeFileSync(targetPath, JSON.stringify(config, null, 2), 'utf8');
-  console.log(`[Synple IP Detector] Configurado IP automático da máquina: http://${serverIp}:3001`);
+  fs.writeFileSync(targetPath, `EXPO_PUBLIC_API_URL=http://${serverIp}:${config.port}/api\n`, 'utf8');
+  console.log(`[Synple API] Expo Go: http://${serverIp}:3001 | Emulador/Web: localhost:3001`);
 } catch (err) {
-  console.warn('[Synple IP Detector] Erro ao gravar network.json:', err.message);
+  console.warn('[Synple API] Erro ao gravar .env.local:', err.message);
 }
 
 module.exports = { getLocalNetworkIp };

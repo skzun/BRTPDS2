@@ -72,7 +72,17 @@ Abra uma **nova janela do CMD** e execute:
 cd /d C:\Users\Conra\OneDrive\Documentos\GitHub\BRTPDS2\Synple\mobile
 npm start
 ```
-Aponte a câmera do seu celular no aplicativo **Expo Go** para escanear o QR Code e usar o app!
+Para testar no navegador ou emulador, a API já estará em `http://localhost:3001` em qualquer computador. No emulador Android, o app converte o acesso para `10.0.2.2`, que é o `localhost` do computador hospedeiro. Para o Expo Go no celular físico, use os scripts do projeto: eles detectam o IP atual do notebook automaticamente e o app usa esse IP na mesma rede Wi-Fi, sem IP fixo salvo no repositório.
+
+> Use `npm --prefix mobile run tunnel` em vez de `npx expo start --tunnel`, pois o script atualiza o IP antes de abrir o Metro. O `--tunnel` do Expo disponibiliza o Metro, mas não encaminha sozinho a porta `3001` da API. Celular e notebook precisam estar no mesmo Wi-Fi e o Firewall do Windows deve permitir conexões privadas para a porta 3001. Além disso, o login Google com OAuth não roda no Expo Go; para ele use development build. Consulte [LOGIN_COM_GOOGLE.md](LOGIN_COM_GOOGLE.md).
+
+Antes de abrir o Expo, confirme que a API (e não apenas o PostgreSQL) responde no notebook:
+
+```cmd
+curl http://localhost:3001/api/health
+```
+
+Se não responder, suba todos os serviços com `docker compose up -d --build` e verifique `docker compose logs backend`.
 
 ---
 
