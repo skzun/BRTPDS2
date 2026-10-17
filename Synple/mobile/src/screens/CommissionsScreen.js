@@ -1,5 +1,6 @@
 import { useContext } from 'react';
-import { Pressable, Text, View } from 'react-native';
+import { Text, View } from 'react-native';
+import { Pressable } from '../components/ActionPressable';
 import { Choice, Field } from '../components/FormControls';
 import { COMMISSION_TYPES } from '../constants/status';
 import { ThemeContext } from '../styles/theme';

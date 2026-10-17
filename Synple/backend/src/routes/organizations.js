@@ -154,6 +154,59 @@ router.patch('/:id/status', async (req, res) => {
   }
 });
 
+// PATCH /api/organizations/:id/owner - Transfere a propriedade para um membro aprovado.
+router.patch('/:id/owner', async (req, res) => {
+  const { id } = req.params;
+  const { currentOwnerId, newOwnerId } = req.body;
+  const client = await db.connect();
+  try {
+    const organizationId = await resolveOrganizationId(id);
+    const currentOwner = await resolveUserId(currentOwnerId);
+    const newOwner = await resolveUserId(newOwnerId);
+    if (!organizationId || !currentOwner || !newOwner || currentOwner === newOwner) {
+      return res.status(400).json({ error: 'Organização e participantes válidos são obrigatórios.' });
+    }
+    await client.query('BEGIN');
+    const org = await client.query('SELECT id FROM organizations WHERE id = $1 AND owner_id = $2 FOR UPDATE', [organizationId, currentOwner]);
+    if (!org.rowCount) {
+      await client.query('ROLLBACK');
+      return res.status(403).json({ error: 'Somente o proprietário atual pode transferir a organização.' });
+    }
+    const member = await client.query("SELECT id FROM access_requests WHERE organization_id = $1 AND user_id = $2 AND status = 'APPROVED' FOR UPDATE", [organizationId, newOwner]);
+    if (!member.rowCount) {
+      await client.query('ROLLBACK');
+      return res.status(400).json({ error: 'O novo proprietário precisa ser membro aprovado da organização.' });
+    }
+    await client.query("INSERT INTO access_requests (organization_id, user_id, status, organization_role) VALUES ($1, $2, 'APPROVED', 'MEMBER') ON CONFLICT (organization_id, user_id) DO UPDATE SET status = 'APPROVED', organization_role = 'MEMBER', updated_at = NOW()", [organizationId, currentOwner]);
+    const updated = await client.query('UPDATE organizations SET owner_id = $1, updated_at = NOW() WHERE id = $2 RETURNING id, name, document, owner_id as "ownerId", status', [newOwner, organizationId]);
+    await client.query('COMMIT');
+    return res.json(updated.rows[0]);
+  } catch (err) {
+    await client.query('ROLLBACK');
+    console.error('Erro ao transferir organização:', err);
+    return res.status(500).json({ error: 'Erro ao transferir a propriedade da organização.' });
+  } finally {
+    client.release();
+  }
+});
+
+// PATCH /api/organizations/:id - Atualizar dados básicos da organização.
+router.patch('/:id', async (req, res) => {
+  const { name, document, ownerId } = req.body;
+  try {
+    const organizationId = await resolveOrganizationId(req.params.id);
+    const resolvedOwnerId = await resolveUserId(ownerId);
+    if (!organizationId || !resolvedOwnerId || !name?.trim() || !document?.trim()) {
+      return res.status(400).json({ error: 'Nome, CNPJ e proprietário são obrigatórios.' });
+    }
+    const result = await db.query('UPDATE organizations SET name = $1, document = $2, updated_at = NOW() WHERE id = $3 AND owner_id = $4 RETURNING id, name, document, owner_id as "ownerId", status', [name.trim(), document.trim(), organizationId, resolvedOwnerId]);
+    if (!result.rowCount) return res.status(403).json({ error: 'Somente o proprietário pode alterar a organização.' });
+    return res.json(result.rows[0]);
+  } catch (err) {
+    return res.status(500).json({ error: 'Erro ao atualizar organização. Verifique se o CNPJ já está cadastrado.' });
+  }
+});
+
 // PATCH /api/organizations/access-requests/:requestId - Atualizar status de solicitação de acesso
 router.patch('/access-requests/:requestId', async (req, res) => {
   const { requestId } = req.params;

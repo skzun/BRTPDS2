@@ -1,5 +1,6 @@
 import { useContext } from 'react';
-import { Pressable, Text, View } from 'react-native';
+import { Text, View } from 'react-native';
+import { Pressable } from '../components/ActionPressable';
 import { SUBSYSTEM_LABELS } from '../constants/status';
 import { ThemeContext } from '../styles/theme';
 

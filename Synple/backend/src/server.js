@@ -10,6 +10,7 @@ const syncRoutes = require('./routes/sync');
 const usersRoutes = require('./routes/users');
 const organizationsRoutes = require('./routes/organizations');
 const commissionsRoutes = require('./routes/commissions');
+const meetingsRoutes = require('./routes/meetings');
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -32,6 +33,7 @@ app.use('/api/sync', syncRoutes);
 app.use('/api/users', usersRoutes);
 app.use('/api/organizations', organizationsRoutes);
 app.use('/api/commissions', commissionsRoutes);
+app.use('/api/meetings', meetingsRoutes);
 
 // Rota raiz informativa
 app.get('/', (req, res) => {
@@ -48,6 +50,7 @@ app.get('/', (req, res) => {
       '/api/users/:id',
       '/api/organizations',
       '/api/commissions',
+      '/api/meetings',
     ],
   });
 });

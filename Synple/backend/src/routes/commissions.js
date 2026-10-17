@@ -62,14 +62,14 @@ router.post('/', async (req, res) => {
     const newCommission = insertRes.rows[0];
 
     if (Array.isArray(memberIds)) {
-      for (const uid of memberIds) {
+      for (const [index, uid] of memberIds.entries()) {
         const resolvedUid = await resolveUserId(uid);
         if (resolvedUid) {
           await db.query(`
             INSERT INTO commission_members (commission_id, user_id, role)
-            VALUES ($1, $2, 'MEMBER')
+            VALUES ($1, $2, $3)
             ON CONFLICT DO NOTHING;
-          `, [newCommission.id, resolvedUid]);
+          `, [newCommission.id, resolvedUid, index === 0 ? 'COORDINATOR' : 'MEMBER']);
         }
       }
     }

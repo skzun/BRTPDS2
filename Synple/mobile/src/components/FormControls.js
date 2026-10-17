@@ -1,5 +1,6 @@
 import { useContext } from 'react';
-import { Pressable, Text, TextInput, View } from 'react-native';
+import { Text, TextInput, View } from 'react-native';
+import { Pressable } from './ActionPressable';
 
 import { STATUS_LABELS } from '../constants/status';
 import { ThemeContext } from '../styles/theme';
@@ -9,7 +10,7 @@ export function StatusBadge({ status }) {
   return <Text style={[themeStyles.badge, themeStyles[`badge${status}`]]}>{STATUS_LABELS[status] || status}</Text>;
 }
 
-export function Field({ label, value, onChangeText, placeholder, keyboardType = 'default', secureTextEntry = false, autoCapitalize }) {
+export function Field({ label, value, onChangeText, placeholder, keyboardType = 'default', secureTextEntry = false, autoCapitalize, multiline = false }) {
   const { isDark, styles: themeStyles } = useContext(ThemeContext);
   const resolvedAutoCapitalize = autoCapitalize || (secureTextEntry || keyboardType === 'email-address' ? 'none' : 'sentences');
   return (
@@ -24,7 +25,9 @@ export function Field({ label, value, onChangeText, placeholder, keyboardType = 
         secureTextEntry={secureTextEntry}
         autoCapitalize={resolvedAutoCapitalize}
         autoCorrect={false}
-        style={themeStyles.input}
+        multiline={multiline}
+        textAlignVertical={multiline ? 'top' : 'center'}
+        style={[themeStyles.input, multiline && { minHeight: 100 }]}
       />
     </View>
   );
@@ -33,7 +36,7 @@ export function Field({ label, value, onChangeText, placeholder, keyboardType = 
 export function Choice({ active, label, onPress }) {
   const { styles: themeStyles } = useContext(ThemeContext);
   return (
-    <Pressable onPress={onPress} style={[themeStyles.choice, active && themeStyles.choiceActive]}>
+    <Pressable hitSlop={4} accessibilityRole="button" onPress={onPress} style={[themeStyles.choice, active && themeStyles.choiceActive]}>
       <Text style={[themeStyles.choiceText, active && themeStyles.choiceTextActive]}>{label}</Text>
     </Pressable>
   );

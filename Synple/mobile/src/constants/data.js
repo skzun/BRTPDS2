@@ -1,5 +1,5 @@
 const INITIAL_DATA = {
-  schemaVersion: 3,
+  schemaVersion: 4,
   organizations: [
     { id: 'org-aurora', name: 'Estúdio Aurora', document: '12.345.678/0001-90', status: 'APPROVED', ownerId: 'user-admin' },
     { id: 'org-horizonte', name: 'Coletivo Horizonte', document: '98.765.432/0001-10', status: 'APPROVED', ownerId: 'user-visitante' },
@@ -12,6 +12,9 @@ const INITIAL_DATA = {
   accessRequests: [{ id: 'request-1', organizationId: 'org-aurora', userId: 'user-visitante', status: 'PENDING' }],
   commissions: [{ id: 'commission-1', organizationId: 'org-aurora', name: 'Comunicação', description: 'Divulgação e relacionamento com a comunidade.', status: 'ACTIVE' }],
   commissionMembers: [{ commissionId: 'commission-1', userId: 'user-admin' }],
+  meetings: [],
+  meetingInvitations: [],
+  meetingAttendance: [],
   system: {
     initialized: true,
     initializedAt: '2026-09-01T00:00:00.000Z',

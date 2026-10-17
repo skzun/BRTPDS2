@@ -399,6 +399,62 @@ export async function updateOrganizationStatusWithApi(organizationId, status) {
   }
 }
 
+export async function transferOrganizationOwnershipWithApi(organizationId, currentOwnerId, newOwnerId) {
+  try {
+    const response = await fetchWithTimeout(`${getApiBaseUrl()}/organizations/${encodeURIComponent(organizationId)}/owner`, {
+      method: 'PATCH', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ currentOwnerId, newOwnerId }),
+    }, 4000);
+    if (!response.ok) return { success: false, error: (await response.json()).error || 'Não foi possível transferir a organização.' };
+    return { success: true, organization: await response.json() };
+  } catch {
+    return { success: false, error: 'Servidor offline. A transferência não foi realizada.' };
+  }
+}
+
+export async function updateOrganizationWithApi(organizationId, { name, document, ownerId }) {
+  try {
+    const response = await fetchWithTimeout(`${getApiBaseUrl()}/organizations/${encodeURIComponent(organizationId)}`, {
+      method: 'PATCH', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name, document, ownerId }),
+    }, 4000);
+    if (!response.ok) return { success: false, error: (await response.json()).error || 'Não foi possível atualizar a organização.' };
+    return { success: true, organization: await response.json() };
+  } catch {
+    return { success: false, error: 'Servidor offline. A alteração não foi realizada.' };
+  }
+}
+
+export async function scheduleMeetingWithApi(meeting) {
+  try {
+    const response = await fetchWithTimeout(`${getApiBaseUrl()}/meetings`, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(meeting),
+    }, 5000);
+    if (!response.ok) return { success: false, error: (await response.json()).error || 'Não foi possível agendar.' };
+    return { success: true, meeting: await response.json() };
+  } catch { return { success: false, error: 'Servidor offline. A reunião não foi agendada.' }; }
+}
+
+export async function respondToMeetingInvitationWithApi(meetingId, userId, status) {
+  try {
+    const response = await fetchWithTimeout(`${getApiBaseUrl()}/meetings/${encodeURIComponent(meetingId)}/invitation`, {
+      method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ userId, status }),
+    }, 5000);
+    if (!response.ok) return { success: false, error: (await response.json()).error || 'Não foi possível responder ao convite.' };
+    return { success: true, invitation: await response.json() };
+  } catch { return { success: false, error: 'Servidor offline. A resposta não foi salva.' }; }
+}
+
+export async function recordMeetingAttendanceWithApi(meetingId, userId, action) {
+  try {
+    const response = await fetchWithTimeout(`${getApiBaseUrl()}/meetings/${encodeURIComponent(meetingId)}/attendance`, {
+      method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ userId, action }),
+    }, 5000);
+    if (!response.ok) return { success: false, error: (await response.json()).error || 'Não foi possível registrar a presença.' };
+    return { success: true, attendance: await response.json() };
+  } catch { return { success: false, error: 'Servidor offline. A presença não foi salva.' }; }
+}
+
 /**
  * Altera status de solicitação de acesso no PostgreSQL
  */

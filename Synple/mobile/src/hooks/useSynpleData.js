@@ -102,15 +102,21 @@ function mergeData(savedData, remoteData = null) {
   const accessRequests = mergeAccessRequests(savedData?.accessRequests, remoteData?.accessRequests);
   const commissions = mergeCommissions(savedData?.commissions, remoteData?.commissions);
   const commissionMembers = remoteData?.commissionMembers || savedData?.commissionMembers || INITIAL_DATA.commissionMembers;
+  const meetings = remoteData?.meetings || savedData?.meetings || INITIAL_DATA.meetings;
+  const meetingInvitations = remoteData?.meetingInvitations || savedData?.meetingInvitations || INITIAL_DATA.meetingInvitations;
+  const meetingAttendance = remoteData?.meetingAttendance || savedData?.meetingAttendance || INITIAL_DATA.meetingAttendance;
 
   return {
     ...INITIAL_DATA,
     ...savedData,
     ...baseData,
-    schemaVersion: 3,
+    schemaVersion: 4,
     organizations,
     commissions,
     commissionMembers,
+    meetings,
+    meetingInvitations,
+    meetingAttendance,
     users: users.map((user) => ({
       ...user,
       password: user.password && user.password !== 'admin' ? user.password : (DEMO_PASSWORDS[user.email] || user.password || 'Admin@123'),

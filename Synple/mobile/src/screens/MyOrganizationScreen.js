@@ -1,5 +1,6 @@
-import { useContext } from 'react';
-import { Pressable, Text, View } from 'react-native';
+import { useContext, useEffect, useState } from 'react';
+import { Text, View } from 'react-native';
+import { Pressable } from '../components/ActionPressable';
 import { Choice, Field, StatusBadge } from '../components/FormControls';
 import { formatCNPJ } from '../services/formatters';
 import { ThemeContext } from '../styles/theme';
@@ -27,9 +28,17 @@ export function MyOrganizationScreen({
   organizationApprovedRequests,
   onUpdateOrganizationRole,
   onRemoveOrganizationMember,
+  onTransferOrganizationOwnership,
+  onInviteOrganizationMember,
+  onUpdateOrganization,
   userRequests,
 }) {
   const { styles } = useContext(ThemeContext);
+  const [inviteEmail, setInviteEmail] = useState('');
+  const [organizationEdit, setOrganizationEdit] = useState({ id: '', name: '', document: '' });
+  useEffect(() => {
+    if (selectedOrganization) setOrganizationEdit({ id: selectedOrganization.id, name: selectedOrganization.name, document: selectedOrganization.document });
+  }, [selectedOrganization?.id, selectedOrganization?.name, selectedOrganization?.document]);
 
   return (
     <>
@@ -104,6 +113,24 @@ export function MyOrganizationScreen({
       {/* 3. Painel do Administrador da Organização */}
       {isOrgAdmin && (
         <>
+          <View style={styles.card}>
+            <Text style={styles.cardTitle}>Convidar participante</Text>
+            <Text style={styles.hint}>Informe o e-mail de uma conta já cadastrada. O convite ficará pendente até a aprovação.</Text>
+            <Field label="E-mail do usuário" value={inviteEmail} onChangeText={setInviteEmail} placeholder="usuario@email.com" keyboardType="email-address" />
+            <Pressable style={styles.primaryButton} onPress={() => { onInviteOrganizationMember(inviteEmail); setInviteEmail(''); }}>
+              <Text style={styles.primaryButtonText}>Enviar convite</Text>
+            </Pressable>
+          </View>
+          {selectedOrganization && (
+            <View style={styles.card}>
+              <Text style={styles.cardTitle}>Dados da organização</Text>
+              <Field label="Nome" value={organizationEdit.name} onChangeText={(name) => setOrganizationEdit((current) => ({ ...current, name }))} placeholder="Nome da organização" />
+              <Field label="CNPJ" value={organizationEdit.document} onChangeText={(document) => setOrganizationEdit((current) => ({ ...current, document: formatCNPJ(document) }))} placeholder="00.000.000/0000-00" keyboardType="numeric" />
+              <Pressable style={styles.primaryButton} onPress={() => onUpdateOrganization(selectedOrganization.id, organizationEdit)}>
+                <Text style={styles.primaryButtonText}>Salvar organização</Text>
+              </Pressable>
+            </View>
+          )}
           <View style={styles.card}>
             <Text style={styles.cardTitle}>Organização administrada</Text>
             <Text style={styles.hint}>Selecione a organização para ver pedidos e membros.</Text>
@@ -199,6 +226,9 @@ export function MyOrganizationScreen({
                 </Text>
                 <Pressable style={styles.outlineButton} onPress={() => onRemoveOrganizationMember(request.id)}>
                   <Text style={styles.outlineText}>Remover da organização</Text>
+                </Pressable>
+                <Pressable style={styles.secondaryButton} onPress={() => onTransferOrganizationOwnership(request.userId)}>
+                  <Text style={styles.secondaryButtonText}>Transferir cargo de dono</Text>
                 </Pressable>
               </View>
             );

@@ -5,7 +5,7 @@ import {
   Image,
   KeyboardAvoidingView,
   Platform,
-  Pressable,
+  RefreshControl,
   ScrollView,
   Text,
   View,
@@ -32,12 +32,18 @@ import {
   verifyPhoneResetWithApi,
   updateAccessRequestStatusWithApi,
   updateOrganizationStatusWithApi,
+  transferOrganizationOwnershipWithApi,
+  updateOrganizationWithApi,
+  scheduleMeetingWithApi,
+  respondToMeetingInvitationWithApi,
+  recordMeetingAttendanceWithApi,
   updateUserWithApi,
 } from './src/services/api';
 import { getThemeStyles, ThemeContext } from './src/styles/theme';
 
 // Componentes modulares
 import { AppHeader } from './src/components/AppHeader';
+import { Pressable } from './src/components/ActionPressable';
 import { NavigationTabs } from './src/components/NavigationTabs';
 
 // Telas modulares
@@ -48,6 +54,7 @@ import { CommissionsScreen } from './src/screens/CommissionsScreen';
 import { AdminManagementScreen } from './src/screens/AdminManagementScreen';
 import { SystemScreen } from './src/screens/SystemScreen';
 import { ProfileScreen } from './src/screens/ProfileScreen';
+import { MeetingsScreen } from './src/screens/MeetingsScreen';
 
 const createId = (prefix) => `${prefix}-${Date.now()}`;
 
@@ -70,6 +77,7 @@ export default function App() {
   const [organizationForm, setOrganizationForm] = useState({ name: '', document: '' });
   const [isCreatingOrganization, setIsCreatingOrganization] = useState(false);
   const organizationCreationInFlightRef = useRef(false);
+  const [isRefreshing, setIsRefreshing] = useState(false);
   const [organizationSearch, setOrganizationSearch] = useState('');
   const [selectedOrganizationId, setSelectedOrganizationId] = useState('org-aurora');
   const [commissionForm, setCommissionForm] = useState({ name: '', type: 'Comissão', description: '' });
@@ -113,6 +121,23 @@ export default function App() {
     return user ? { ...user, commissionRole: membership.role || 'MEMBER' } : null;
   }).filter(Boolean);
   const availableOrgMembers = organizationMembers.filter((user) => !commissionMemberships.some((m) => m.userId === user.id));
+  const hasMeetingsAccess = !isSystemAdmin && (
+    data.commissionMembers.some((member) => member.userId === activeUserId)
+    || data.organizations.some((organization) => organization.ownerId === activeUserId)
+  );
+
+  async function refreshData() {
+    if (isRefreshing) return;
+    setIsRefreshing(true);
+    try { await syncWithRemote(); } finally { setIsRefreshing(false); }
+  }
+
+  function confirmAction(title, message, action, destructive = false) {
+    Alert.alert(title, message, [
+      { text: 'Cancelar', style: 'cancel' },
+      { text: 'Confirmar', style: destructive ? 'destructive' : 'default', onPress: action },
+    ]);
+  }
 
   useEffect(() => {
     if (isOrgAdmin && (!selectedOrganizationId || !approvedOwnedOrganizations.some((org) => org.id === selectedOrganizationId))) {
@@ -137,6 +162,7 @@ export default function App() {
       return;
     }
 
+    confirmAction('Confirmar cadastro', `Criar a organização "${name}" com o CNPJ ${document}?`, async () => {
     organizationCreationInFlightRef.current = true;
     setIsCreatingOrganization(true);
 
@@ -166,6 +192,7 @@ export default function App() {
       organizationCreationInFlightRef.current = false;
       setIsCreatingOrganization(false);
     }
+    });
   }
 
   function login({ email, password, mode }) {
@@ -285,6 +312,9 @@ export default function App() {
 
   function changeOrganizationStatus(organizationId, status) {
     if (!isSystemAdmin) return;
+    const organization = data.organizations.find((item) => item.id === organizationId);
+    if (!organization) return;
+    confirmAction('Confirmar alteração', `Alterar a situação de "${organization.name}" para ${status === 'APPROVED' ? 'aprovada' : status === 'REJECTED' ? 'rejeitada' : 'pendente'}?`, () => {
     updateOrganizationStatusWithApi(organizationId, status).catch(() => {});
     setData((current) => ({
       ...current,
@@ -292,6 +322,7 @@ export default function App() {
         organization.id === organizationId ? { ...organization, status } : organization
       )),
     }));
+    });
   }
 
   function removeOrganization(organizationId) {
@@ -367,6 +398,7 @@ export default function App() {
         : `Você já possui uma solicitação de acesso pendente para a organização "${organization.name}".`;
       return Alert.alert('Solicitação existente', msg);
     }
+    confirmAction('Confirmar solicitação', `Enviar pedido para participar de "${organization.name}"?`, () => {
     setData((current) => ({
       ...current,
       accessRequests: [...current.accessRequests, {
@@ -375,6 +407,7 @@ export default function App() {
     }));
     requestAccessWithApi(organization.id, activeUserId).catch(() => {});
     Alert.alert('Solicitação enviada', `Sua solicitação de entrada na organização "${organization.name}" foi enviada com sucesso e aguarda aprovação.`);
+    });
   }
 
   function changeAccessStatus(requestId, status) {
@@ -394,10 +427,11 @@ export default function App() {
     const request = data.accessRequests.find((item) => item.id === requestId);
     const organization = data.organizations.find((item) => item.id === request?.organizationId);
     if (!isOrgAdmin || organization?.ownerId !== activeUserId || organization.status !== 'APPROVED' || request.status !== 'APPROVED') return;
-    setData((current) => ({
+    const member = data.users.find((user) => user.id === request.userId);
+    confirmAction('Confirmar alteração de cargo', `Alterar o cargo de ${member?.name || 'participante'} para ${organizationRole === 'COORDINATOR' ? 'coordenador' : 'membro'}?`, () => setData((current) => ({
       ...current,
       accessRequests: current.accessRequests.map((item) => (item.id === requestId ? { ...item, organizationRole } : item)),
-    }));
+    })));
   }
 
   function removeOrganizationMember(requestId) {
@@ -412,6 +446,76 @@ export default function App() {
         commissionMembers: current.commissionMembers.filter((member) => member.userId !== request.userId || !current.commissions.some((commission) => commission.id === member.commissionId && commission.organizationId === request.organizationId)),
       })) },
     ]);
+  }
+
+  function transferOrganizationOwnership(userId) {
+    const member = data.users.find((user) => user.id === userId);
+    if (!member || !selectedOrganization || selectedOrganization.ownerId !== activeUserId) return;
+    confirmAction('Transferir propriedade', `Transferir o cargo de dono de "${selectedOrganization.name}" para ${member.name}? Você permanecerá como membro.`, async () => {
+      const result = await transferOrganizationOwnershipWithApi(selectedOrganization.id, activeUserId, userId);
+      if (!result.success) return Alert.alert('Transferência não realizada', result.error);
+      setData((current) => ({
+        ...current,
+        organizations: current.organizations.map((org) => org.id === selectedOrganization.id ? { ...org, ownerId: userId } : org),
+        accessRequests: current.accessRequests.map((request) => request.organizationId === selectedOrganization.id && request.userId === activeUserId
+          ? { ...request, status: 'APPROVED', organizationRole: 'MEMBER' } : request),
+      }));
+      Alert.alert('Propriedade transferida', `${member.name} agora é o proprietário da organização.`);
+    });
+  }
+
+  function inviteOrganizationMember(email) {
+    const invitedUser = data.users.find((user) => normalizeEmail(user.email) === normalizeEmail(email));
+    if (!selectedOrganization || selectedOrganization.ownerId !== activeUserId) return;
+    if (!invitedUser) return Alert.alert('Usuário não encontrado', 'O convite precisa usar o e-mail de uma conta já cadastrada.');
+    if (invitedUser.id === activeUserId) return Alert.alert('Convite inválido', 'Você já é o proprietário da organização.');
+    const existing = data.accessRequests.find((request) => request.organizationId === selectedOrganization.id && request.userId === invitedUser.id && ['PENDING', 'APPROVED'].includes(request.status));
+    if (existing) return Alert.alert('Participação existente', existing.status === 'APPROVED' ? 'Esse usuário já participa da organização.' : 'Esse usuário já tem um pedido pendente.');
+    confirmAction('Confirmar convite', `Convidar ${invitedUser.name} (${invitedUser.email}) para "${selectedOrganization.name}"?`, () => {
+      requestAccessWithApi(selectedOrganization.id, invitedUser.id).catch(() => {});
+      setData((current) => ({ ...current, accessRequests: [...current.accessRequests, {
+        id: createId('invite'), organizationId: selectedOrganization.id, userId: invitedUser.id, status: 'PENDING', organizationRole: 'MEMBER', invitedBy: activeUserId,
+      }] }));
+      Alert.alert('Convite enviado', 'O usuário aparecerá nas solicitações pendentes para aprovação.');
+    });
+  }
+
+  function updateOrganization(organizationId, changes) {
+    const organization = data.organizations.find((item) => item.id === organizationId);
+    if (!organization || organization.ownerId !== activeUserId) return;
+    const name = changes.name.trim();
+    const document = changes.document.trim();
+    if (!name || !document) return Alert.alert('Dados obrigatórios', 'Informe o nome e o CNPJ da organização.');
+    confirmAction('Confirmar alterações', `Salvar as informações da organização "${organization.name}"?`, async () => {
+      const result = await updateOrganizationWithApi(organizationId, { name, document, ownerId: activeUserId });
+      if (!result.success) return Alert.alert('Alteração não realizada', result.error);
+      setData((current) => ({ ...current, organizations: current.organizations.map((item) => item.id === organizationId ? { ...item, ...result.organization } : item) }));
+      Alert.alert('Organização atualizada', 'As informações foram salvas.');
+    });
+  }
+
+  async function scheduleMeeting(meeting) {
+    const result = await scheduleMeetingWithApi({ ...meeting, createdBy: activeUserId });
+    if (!result.success) return Alert.alert('Reunião não agendada', result.error);
+    await syncWithRemote();
+    Alert.alert('Reunião agendada', 'Os participantes da comissão foram convidados.');
+  }
+
+  async function respondToMeeting(meetingId, status) {
+    const result = await respondToMeetingInvitationWithApi(meetingId, activeUserId, status);
+    if (!result.success) return Alert.alert('Resposta não salva', result.error);
+    setData((current) => ({ ...current, meetingInvitations: current.meetingInvitations.map((invite) => invite.id === result.invitation.id ? result.invitation : invite) }));
+  }
+
+  async function recordAttendance(meetingId, action) {
+    const result = await recordMeetingAttendanceWithApi(meetingId, activeUserId, action);
+    if (!result.success) return Alert.alert('Presença não registrada', result.error);
+    setData((current) => ({
+      ...current,
+      meetingAttendance: current.meetingAttendance.some((item) => item.id === result.attendance.id)
+        ? current.meetingAttendance.map((item) => item.id === result.attendance.id ? result.attendance : item)
+        : [...current.meetingAttendance, result.attendance],
+    }));
   }
 
   async function createCommission() {
@@ -570,6 +674,7 @@ export default function App() {
     const email = normalizeEmail(profileForm.email);
     if (data.users.some((user) => user.id !== activeUserId && user.email === email)) return Alert.alert('E-mail já utilizado', 'Escolha outro e-mail.');
 
+    confirmAction('Confirmar alterações', 'Salvar as alterações dos seus dados pessoais?', () => {
     updateUserWithApi(activeUserId, { name, email, phone: formatPhone(profileForm.phone) }).catch(() => {});
 
     setData((current) => ({
@@ -581,6 +686,7 @@ export default function App() {
       )),
     }));
     Alert.alert('Dados atualizados', 'Suas informações pessoais foram alteradas.');
+    });
   }
 
   function updatePassword() {
@@ -595,6 +701,7 @@ export default function App() {
       return Alert.alert('Senha atual incorreta', 'A senha atual informada não confere.');
     }
 
+    confirmAction('Confirmar troca de senha', 'Deseja atualizar sua senha agora?', () => {
     changePasswordWithApi(activeUserId, currentInput, passwordForm.next).catch(() => {});
 
     setData((current) => ({
@@ -607,6 +714,7 @@ export default function App() {
     }));
     setPasswordForm({ current: '', next: '', confirm: '' });
     Alert.alert('Senha alterada', 'Sua senha foi atualizada com sucesso.');
+    });
   }
 
   function recoverAccount() {
@@ -747,8 +855,11 @@ export default function App() {
   }
 
   function setTheme(theme) {
+    if (activeUser?.theme === theme) return;
+    confirmAction('Confirmar tema', `Alterar o tema do perfil para ${theme === 'DARK' ? 'escuro' : 'claro'}?`, () => {
     updateUserWithApi(activeUserId, { theme }).catch(() => {});
     setData((current) => ({ ...current, users: current.users.map((user) => user.id === activeUserId ? { ...user, theme } : user) }));
+    });
   }
 
   function restartSubsystem(subsystemId) {
@@ -808,6 +919,7 @@ export default function App() {
         >
         <ScrollView
           contentContainerStyle={styles.content}
+          refreshControl={<RefreshControl refreshing={isRefreshing} onRefresh={refreshData} />}
           keyboardShouldPersistTaps="handled"
           keyboardDismissMode={Platform.OS === 'ios' ? 'interactive' : 'on-drag'}
           automaticallyAdjustKeyboardInsets={Platform.OS === 'ios'}
@@ -826,6 +938,8 @@ export default function App() {
             setScreen={setScreen}
             isSystemAdmin={isSystemAdmin}
             isOrgAdmin={isOrgAdmin}
+            hasMeetingsAccess={hasMeetingsAccess}
+            onOpenMeetings={() => setScreen('meetings')}
             onOpenProfile={openProfile}
           />
 
@@ -875,6 +989,9 @@ export default function App() {
               organizationApprovedRequests={organizationApprovedRequests}
               onUpdateOrganizationRole={updateOrganizationRole}
               onRemoveOrganizationMember={removeOrganizationMember}
+              onTransferOrganizationOwnership={transferOrganizationOwnership}
+              onInviteOrganizationMember={inviteOrganizationMember}
+              onUpdateOrganization={updateOrganization}
               userRequests={userRequests}
             />
           )}
@@ -907,6 +1024,17 @@ export default function App() {
               availableOrgMembers={availableOrgMembers}
               onAddCommissionMember={addCommissionMember}
               data={data}
+            />
+          )}
+
+          {hasMeetingsAccess && screen === 'meetings' && (
+            <MeetingsScreen
+              data={data}
+              activeUser={activeUser}
+              meetings={data.meetings || []}
+              onSchedule={scheduleMeeting}
+              onRespond={respondToMeeting}
+              onAttendance={recordAttendance}
             />
           )}
 
