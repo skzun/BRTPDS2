@@ -279,29 +279,6 @@ export async function changePasswordWithApi(userId, currentPassword, nextPasswor
 }
 
 /**
- * Validação de identidade por E-mail + Telefone cadastrado (Custo Zero e 100% Open Source)
- */
-export async function verifyPhoneResetWithApi({ email, phone }) {
-  try {
-    const response = await fetchWithTimeout(`${getApiBaseUrl()}/auth/verify-phone-reset`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email, phone }),
-    }, 8000);
-
-    if (!response.ok) {
-      const err = await response.json().catch(() => ({}));
-      return { success: false, error: err.error || 'Dados informados não conferem com o cadastro.' };
-    }
-
-    const data = await response.json();
-    return { success: true, message: data.message, resetToken: data.resetToken };
-  } catch (err) {
-    return { success: false, error: 'Falha na comunicação com o servidor.' };
-  }
-}
-
-/**
  * Solicita código de verificação de 6 dígitos via e-mail no PostgreSQL
  */
 export async function requestPasswordResetWithApi(email) {
@@ -310,7 +287,9 @@ export async function requestPasswordResetWithApi(email) {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ email }),
-    }, 8000);
+    // O backend só responde depois que o provedor SMTP aceita o e-mail.
+    // Em redes externas/túneis esse envio pode levar mais que o timeout padrão.
+    }, 45000);
 
     if (!response.ok) {
       const err = await response.json();
@@ -318,7 +297,7 @@ export async function requestPasswordResetWithApi(email) {
     }
 
     const data = await response.json();
-    return { success: true, message: data.message, previewUrl: data.previewUrl, debugCode: data.debugCode };
+    return { success: true, message: data.message };
   } catch (err) {
     return { success: false, error: 'Falha na comunicação com o servidor.' };
   }
@@ -333,7 +312,7 @@ export async function resetPasswordWithApi({ email, code, newPassword }) {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ email, code, newPassword }),
-    }, 8000);
+    }, 20000);
 
     if (!response.ok) {
       const err = await response.json();

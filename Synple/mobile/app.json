@@ -4,7 +4,11 @@
     "slug": "synple",
     "scheme": "synple",
     "version": "1.0.0",
-    "platforms": ["ios", "android", "web"],
+    "platforms": [
+      "ios",
+      "android",
+      "web"
+    ],
     "orientation": "portrait",
     "icon": "./assets/synple-icon.png",
     "userInterfaceStyle": "light",
@@ -42,7 +46,13 @@
           "resizeMode": "contain"
         }
       ],
-      "expo-web-browser"
+      "expo-web-browser",
+      [
+        "@react-native-google-signin/google-signin",
+        {
+          "iosUrlScheme": "com.googleusercontent.apps.236318220270-fsjeskbvqq2rbfserqv6j1lh86f6f3k9"
+        }
+      ]
     ],
     "extra": {
       "eas": {

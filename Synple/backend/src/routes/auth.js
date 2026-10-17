@@ -172,60 +172,7 @@ router.post('/change-password', async (req, res) => {
   }
 });
 
-// POST /api/auth/verify-phone-reset - Validação por telefone cadastrado (Custo Zero e 100% Open Source)
-router.post('/verify-phone-reset', async (req, res) => {
-  const { email, phone } = req.body;
-  const cleanEmail = normalizeEmail(email);
-  const cleanPhone = (phone || '').replace(/\D/g, '');
-
-  if (!cleanEmail || !cleanPhone) {
-    return res.status(400).json({ error: 'E-mail e telefone cadastrado são obrigatórios.' });
-  }
-
-  try {
-    const userRes = await db.query('SELECT id, name, email, phone FROM users WHERE LOWER(email) = $1;', [cleanEmail]);
-    if (userRes.rowCount === 0) {
-      return res.status(404).json({ error: 'Nenhum usuário cadastrado com este e-mail.' });
-    }
-
-    const user = userRes.rows[0];
-    const userPhoneDigits = (user.phone || '').replace(/\D/g, '');
-
-    // Verifica se os dígitos coincidem (número completo ou últimos 8/9 dígitos)
-    const isMatch = Boolean(
-      (userPhoneDigits && userPhoneDigits === cleanPhone) ||
-      (userPhoneDigits.length >= 8 && cleanPhone.length >= 8 && (
-        userPhoneDigits.endsWith(cleanPhone) || cleanPhone.endsWith(userPhoneDigits)
-      ))
-    );
-
-    if (!isMatch) {
-      return res.status(400).json({ error: 'O telefone informado não confere com o cadastrado nesta conta.' });
-    }
-
-    // Gera token de redefinição de 6 dígitos válido por 15 minutos
-    const resetToken = Math.floor(100000 + Math.random() * 900000).toString();
-
-    await db.query(`
-      UPDATE users 
-      SET reset_token = $1, 
-          reset_token_expires = NOW() + INTERVAL '15 minutes', 
-          updated_at = NOW() 
-      WHERE id = $2;
-    `, [resetToken, user.id]);
-
-    console.log(`🔐 [Recuperação por Telefone] Identidade validada para ${user.email} (${user.phone}). Token: ${resetToken}`);
-
-    return res.json({
-      success: true,
-      message: 'Identidade confirmada com sucesso!',
-      resetToken,
-    });
-  } catch (err) {
-    console.error('Erro em verify-phone-reset:', err);
-    return res.status(500).json({ error: 'Erro ao validar dados no banco de dados.' });
-  }
-});
+// POST /api/auth/forgot-password - Envia código de redefinição ao e-mail cadastrado
 router.post('/forgot-password', async (req, res) => {
   const { email } = req.body;
   const cleanEmail = normalizeEmail(email);
@@ -234,35 +181,47 @@ router.post('/forgot-password', async (req, res) => {
     return res.status(400).json({ error: 'O e-mail é obrigatório.' });
   }
 
+  const isGmail = process.env.SMTP_SERVICE === 'gmail' ||
+    (process.env.SMTP_USER || '').toLowerCase().endsWith('@gmail.com') ||
+    (process.env.SMTP_HOST || '').toLowerCase().includes('gmail');
+  const mailIsConfigured = Boolean(process.env.SMTP_USER && process.env.SMTP_PASS && (isGmail || process.env.SMTP_HOST));
+  if (!mailIsConfigured) {
+    return res.status(503).json({ error: 'O envio de e-mail ainda não foi configurado no servidor.' });
+  }
+
   try {
     const userRes = await db.query('SELECT id, name, email FROM users WHERE LOWER(email) = $1;', [cleanEmail]);
     if (userRes.rowCount === 0) {
-      return res.status(404).json({ error: 'Nenhum usuário cadastrado com este e-mail.' });
+      return res.json({ success: true, message: 'Se houver uma conta para este e-mail, enviaremos um código de recuperação.' });
     }
 
     const user = userRes.rows[0];
 
     // Gera código numérico aleatório de 6 dígitos
-    const code = Math.floor(100000 + Math.random() * 900000).toString();
+    const code = crypto.randomInt(100000, 1000000).toString();
+    const tokenHash = crypto.createHash('sha256').update(code).digest('hex');
 
-    // Salva código e validade de 15 minutos no PostgreSQL
+    // Salva apenas o hash do código; o código em texto simples só vai por e-mail.
     await db.query(`
       UPDATE users 
       SET reset_token = $1, 
           reset_token_expires = NOW() + INTERVAL '15 minutes', 
           updated_at = NOW() 
       WHERE id = $2;
-    `, [code, user.id]);
+    `, [tokenHash, user.id]);
 
-    // Envia o e-mail real com o código
     const mailResult = await sendPasswordResetEmail(user.email, code);
-    const isSmtpConfigured = Boolean(process.env.SMTP_USER && process.env.SMTP_PASS);
+    if (!mailResult.success) {
+      await db.query(`
+        UPDATE users SET reset_token = NULL, reset_token_expires = NULL, updated_at = NOW()
+        WHERE id = $1 AND reset_token = $2;
+      `, [user.id, tokenHash]);
+      return res.status(502).json({ error: 'Não foi possível enviar o e-mail de recuperação. Tente novamente mais tarde.' });
+    }
 
     return res.json({
       success: true,
-      message: `Código de verificação enviado para ${user.email}.`,
-      previewUrl: mailResult.previewUrl || null,
-      debugCode: (!isSmtpConfigured || Boolean(mailResult.previewUrl)) ? code : undefined,
+      message: 'Se houver uma conta para este e-mail, enviaremos um código de recuperação.',
     });
   } catch (err) {
     console.error('Erro em forgot-password:', err);
@@ -293,13 +252,14 @@ router.post('/reset-password', async (req, res) => {
     `, [cleanEmail]);
 
     if (userRes.rowCount === 0) {
-      return res.status(404).json({ error: 'Usuário não encontrado.' });
+      return res.status(400).json({ error: 'Código incorreto ou expirado. Solicite outro código.' });
     }
 
     const user = userRes.rows[0];
+    const tokenHash = crypto.createHash('sha256').update(cleanCode).digest('hex');
 
-    if (!user.reset_token || user.reset_token !== cleanCode) {
-      return res.status(400).json({ error: 'Código de verificação incorreto.' });
+    if (!user.reset_token || user.reset_token !== tokenHash) {
+      return res.status(400).json({ error: 'Código incorreto ou expirado. Solicite outro código.' });
     }
 
     if (new Date(user.reset_token_expires) < new Date()) {

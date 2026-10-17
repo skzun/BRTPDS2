@@ -29,7 +29,6 @@ import {
   requestAccessWithApi,
   requestPasswordResetWithApi,
   resetPasswordWithApi,
-  verifyPhoneResetWithApi,
   updateAccessRequestStatusWithApi,
   updateOrganizationStatusWithApi,
   transferOrganizationOwnershipWithApi,
@@ -723,51 +722,6 @@ export default function App() {
     Alert.alert('Recuperação solicitada', `Instruções simuladas para ${activeUser?.email}. (Senha atual nesta demonstração: "${currentPass}").`);
   }
 
-  async function verifyPhoneForReset(rawEmail, rawPhone) {
-    const email = (rawEmail || '').trim().toLowerCase();
-    const phone = (rawPhone || '').trim();
-
-    if (!email || !phone) {
-      Alert.alert('Campos obrigatórios', 'Informe o seu e-mail e telefone celular cadastrados.');
-      return { success: false };
-    }
-
-    try {
-      const apiRes = await verifyPhoneResetWithApi({ email, phone });
-      if (apiRes && apiRes.success && apiRes.resetToken) {
-        Alert.alert(
-          'Identidade Confirmada! ✅',
-          'Dados cadastrais validados com sucesso no banco PostgreSQL. Agora defina sua nova senha.'
-        );
-        return { success: true, token: apiRes.resetToken };
-      }
-
-      // Fallback local se estiver offline
-      const user = data.users.find(
-        (u) => normalizeEmail(u.email) === email || (email.includes('marina') && u.email === 'marina@synple.app') || (email.includes('admin') && u.systemRole === 'SYSTEM_ADMIN') || (email.includes('joao') && u.email === 'joao@email.com')
-      );
-      if (user) {
-        const cleanUserPhone = (user.phone || '').replace(/\D/g, '');
-        const cleanInputPhone = phone.replace(/\D/g, '');
-        if (
-          !cleanUserPhone ||
-          cleanUserPhone === cleanInputPhone ||
-          cleanUserPhone.endsWith(cleanInputPhone) ||
-          cleanInputPhone.endsWith(cleanUserPhone)
-        ) {
-          Alert.alert('Identidade Confirmada! ✅', 'Dados validados com sucesso no cadastro. Agora defina sua nova senha.');
-          return { success: true, token: 'local-token-' + Date.now() };
-        }
-      }
-
-      Alert.alert('Dados incorretos', apiRes?.error || 'O telefone informado não confere com o e-mail cadastrado.');
-      return { success: false };
-    } catch (err) {
-      Alert.alert('Erro', 'Não foi possível validar seus dados de recuperação.');
-      return { success: false };
-    }
-  }
-
   async function recoverAccountFromLogin(rawEmail) {
     const email = (rawEmail || '').trim().toLowerCase();
     if (!email) {
@@ -778,23 +732,11 @@ export default function App() {
     try {
       const apiRes = await requestPasswordResetWithApi(email);
       if (apiRes && apiRes.success) {
-        let alertMsg = `Enviamos um código de verificação de 6 dígitos para ${email}.\n\nVerifique sua caixa de entrada e spam. O código é válido por 15 minutos.`;
-        if (apiRes.debugCode) {
-          alertMsg += `\n\n(Aviso de Teste: o SMTP do Gmail ainda não foi configurado no .env, seu código é: ${apiRes.debugCode})`;
-        }
+        const alertMsg = `Se houver uma conta vinculada a ${email}, enviaremos um código de 6 dígitos. Verifique sua caixa de entrada e spam. O código vale por 15 minutos.`;
         Alert.alert('Código enviado!', alertMsg);
         return true;
       } else {
-        // Fallback de demonstração caso o backend esteja temporariamente offline
-        const user = data.users.find((u) => normalizeEmail(u.email) === email || (email.includes('marina') && u.email === 'marina@synple.app') || (email.includes('admin') && u.systemRole === 'SYSTEM_ADMIN') || (email.includes('joao') && u.email === 'joao@email.com'));
-        if (user) {
-          Alert.alert(
-            'Código demonstrativo',
-            `Modo de demonstração: Utilize o código 123456 para redefinir a senha de ${user.email}.`
-          );
-          return true;
-        }
-        Alert.alert('E-mail não encontrado', apiRes?.error || 'Não encontramos nenhuma conta vinculada a este e-mail.');
+        Alert.alert('Não foi possível enviar o e-mail', apiRes?.error || 'Confira a configuração de envio de e-mail no servidor e tente novamente.');
         return false;
       }
     } catch (err) {
@@ -819,15 +761,6 @@ export default function App() {
     }
 
     try {
-      if (cleanCode.startsWith('local-token-')) {
-        setData((current) => ({
-          ...current,
-          users: current.users.map((u) => normalizeEmail(u.email) === email ? { ...u, password: next, passwordUpdatedAt: new Date().toISOString() } : u),
-        }));
-        Alert.alert('Senha redefinida com sucesso!', 'Sua nova senha foi atualizada. Faça login para continuar.');
-        return true;
-      }
-
       const apiRes = await resetPasswordWithApi({ email, code: cleanCode, newPassword: next });
       if (apiRes && apiRes.success) {
         setData((current) => ({
@@ -837,14 +770,6 @@ export default function App() {
         Alert.alert('Senha redefinida com sucesso!', 'Sua nova senha foi gravada no banco PostgreSQL. Faça login para continuar.');
         return true;
       } else {
-        if (cleanCode === '123456') {
-          setData((current) => ({
-            ...current,
-            users: current.users.map((u) => normalizeEmail(u.email) === email ? { ...u, password: next, passwordUpdatedAt: new Date().toISOString() } : u),
-          }));
-          Alert.alert('Senha redefinida!', 'Sua nova senha foi atualizada com sucesso. Faça login para continuar.');
-          return true;
-        }
         Alert.alert('Falha na redefinição', apiRes?.error || 'Código incorreto ou expirado.');
         return false;
       }
@@ -899,7 +824,6 @@ export default function App() {
           onLogin={login}
           onGoogleLogin={loginWithGoogle}
           onRegister={registerUser}
-          onVerifyPhone={verifyPhoneForReset}
           onRecoverAccount={recoverAccountFromLogin}
           onResetPassword={resetPasswordFromLogin}
         />

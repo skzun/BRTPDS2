@@ -4,8 +4,10 @@
   "main": "index.js",
   "dependencies": {
     "@react-native-async-storage/async-storage": "2.2.0",
+    "@react-native-google-signin/google-signin": "^16.1.5",
     "expo": "~57.0.24",
     "expo-auth-session": "~57.0.15",
+    "expo-dev-client": "~57.0.20",
     "expo-splash-screen": "~57.0.9",
     "expo-status-bar": "~57.0.1",
     "expo-web-browser": "~57.0.3",
@@ -16,8 +18,13 @@
     "react-native-web": "^0.21.2"
   },
   "scripts": {
-    "start": "node scripts/detect-ip.js && expo start",
-    "tunnel": "node scripts/detect-ip.js && expo start --tunnel",
+    "start": "node scripts/detect-ip.js && expo start --dev-client",
+    "start:go": "node scripts/detect-ip.js && expo start --go",
+    "start:tunnel:go": "expo start --tunnel --go",
+    "start:dev-client": "node scripts/detect-ip.js && expo start --dev-client",
+    "start:tunnel:dev-client": "expo start --tunnel --dev-client",
+    "tunnel": "node ../scripts/dev-tunnel.js",
+    "tunnel:go": "node ../scripts/dev-tunnel.js --go",
     "android": "node scripts/detect-ip.js && expo start --android",
     "ios": "node scripts/detect-ip.js && expo start --ios",
     "web": "node scripts/detect-ip.js && expo start --web",

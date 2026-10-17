@@ -2,6 +2,8 @@
 
 Este guia contém **todos os comandos e passos necessários** para rodar o Banco de Dados (PostgreSQL) e o Backend (API Node.js) em qualquer computador utilizando Docker via CMD (Prompt de Comando).
 
+Para o passo a passo completo de instalação, uso do app, login Google e recuperação de senha, consulte [GUIA_USO_E_INICIALIZACAO.md](GUIA_USO_E_INICIALIZACAO.md).
+
 ---
 
 ## ⚡ Opção Rápida (1 Clique)
@@ -70,11 +72,11 @@ docker compose logs -f backend
 Abra uma **nova janela do CMD** e execute:
 ```cmd
 cd /d C:\Users\Conra\OneDrive\Documentos\GitHub\BRTPDS2\Synple\mobile
-npm start
+npm run start:go
 ```
-Para testar no navegador ou emulador, a API já estará em `http://localhost:3001` em qualquer computador. No emulador Android, o app converte o acesso para `10.0.2.2`, que é o `localhost` do computador hospedeiro. Para o Expo Go no celular físico, use os scripts do projeto: eles detectam o IP atual do notebook automaticamente e o app usa esse IP na mesma rede Wi-Fi, sem IP fixo salvo no repositório.
+Esse comando inicia o Expo Go e detecta o IP atual do notebook automaticamente. Para usar o development build do Synple (necessário ao Google Login), execute `npm run start:dev-client`. O celular físico precisa estar na mesma rede Wi-Fi; navegador e emulador Android usam `http://localhost:3001`, e no emulador Android `10.0.2.2` aponta para o computador hospedeiro.
 
-> Use `npm --prefix mobile run tunnel` em vez de `npx expo start --tunnel`, pois o script atualiza o IP antes de abrir o Metro. O `--tunnel` do Expo disponibiliza o Metro, mas não encaminha sozinho a porta `3001` da API. Celular e notebook precisam estar no mesmo Wi-Fi e o Firewall do Windows deve permitir conexões privadas para a porta 3001. Além disso, o login Google com OAuth não roda no Expo Go; para ele use development build. Consulte [LOGIN_COM_GOOGLE.md](LOGIN_COM_GOOGLE.md).
+Para testar em outra rede, inicie backend, túnel da API e Metro com `npm run dev:tunnel` na raiz do projeto (ou `npm --prefix mobile run tunnel`). O `npx expo start --tunnel` sozinho encaminha apenas o Metro; a porta `3001` da API precisa do túnel separado que o script inicia. Para uso somente na rede local, com Docker/API já ativos, rode `npm --prefix mobile run start:go` para Expo Go ou `npm --prefix mobile run start:dev-client` para o development build; os scripts detectam o IP local. O login Google não roda no Expo Go; para ele use development build. Consulte [LOGIN_COM_GOOGLE.md](LOGIN_COM_GOOGLE.md).
 
 Antes de abrir o Expo, confirme que a API (e não apenas o PostgreSQL) responde no notebook:
 
@@ -93,7 +95,9 @@ Se não responder, suba todos os serviços com `docker compose up -d --build` e 
 | **Parar tudo** | `docker compose down` |
 | **Ligar novamente** | `docker compose up -d` |
 | **Ver logs do backend** | `docker compose logs backend` |
-| **Resetar banco do zero** | `docker compose down -v && docker compose up -d --build` |
+| **Apagar o banco e recriar do zero (destrutivo)** | `docker compose down -v && docker compose up -d --build` |
+
+> O comando com `down -v` apaga permanentemente o volume do PostgreSQL, incluindo usuários e dados cadastrados. Para apenas parar e iniciar os serviços preservando os dados, use `docker compose down` e depois `docker compose up -d`.
 
 ---
 

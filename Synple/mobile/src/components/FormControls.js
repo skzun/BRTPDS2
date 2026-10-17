@@ -10,7 +10,7 @@ export function StatusBadge({ status }) {
   return <Text style={[themeStyles.badge, themeStyles[`badge${status}`]]}>{STATUS_LABELS[status] || status}</Text>;
 }
 
-export function Field({ label, value, onChangeText, placeholder, keyboardType = 'default', secureTextEntry = false, autoCapitalize, multiline = false }) {
+export function Field({ label, value, onChangeText, placeholder, keyboardType = 'default', secureTextEntry = false, autoCapitalize, multiline = false, maxLength }) {
   const { isDark, styles: themeStyles } = useContext(ThemeContext);
   const resolvedAutoCapitalize = autoCapitalize || (secureTextEntry || keyboardType === 'email-address' ? 'none' : 'sentences');
   return (
@@ -26,6 +26,7 @@ export function Field({ label, value, onChangeText, placeholder, keyboardType = 
         autoCapitalize={resolvedAutoCapitalize}
         autoCorrect={false}
         multiline={multiline}
+        maxLength={maxLength}
         textAlignVertical={multiline ? 'top' : 'center'}
         style={[themeStyles.input, multiline && { minHeight: 100 }]}
       />

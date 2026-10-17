@@ -1,8 +1,8 @@
 # Documentação técnica — Synple
 
-Atualizada em 12/10/2026.
+Atualizada em 17/10/2026.
 
-Este documento reúne as mudanças recentes do aplicativo e os procedimentos de execução. Os guias específicos continuam em [COMO_RODAR_DOCKER.md](COMO_RODAR_DOCKER.md) e [LOGIN_COM_GOOGLE.md](LOGIN_COM_GOOGLE.md).
+Este documento reúne as mudanças recentes do aplicativo e os procedimentos de execução. O tutorial de uso e inicialização está em [GUIA_USO_E_INICIALIZACAO.md](GUIA_USO_E_INICIALIZACAO.md); os guias específicos estão em [COMO_RODAR_DOCKER.md](COMO_RODAR_DOCKER.md), [LOGIN_COM_GOOGLE.md](LOGIN_COM_GOOGLE.md) e [backend/EMAIL_RECOVERY_SETUP.md](backend/EMAIL_RECOVERY_SETUP.md).
 
 ## Arquitetura e execução local
 
@@ -16,7 +16,7 @@ Para iniciar banco e API em qualquer computador com Docker Desktop:
 docker compose up -d --build
 ```
 
-A API fica em `http://localhost:3001`. A configuração não mantém mais o IP da casa: navegador e emulador usam `localhost`; o emulador Android resolve esse endereço para `10.0.2.2`. Ao iniciar pelo script `npm --prefix mobile run start` ou `npm --prefix mobile run tunnel`, o projeto detecta o IP atual do notebook e cria `mobile/.env.local` (ignorado pelo Git) para que o Expo Go, na mesma rede Wi-Fi, acesse a API. Para acesso fora da rede, configure uma URL pública em `EXPO_PUBLIC_API_URL`.
+A API fica em `http://localhost:3001`. A configuração não mantém mais o IP da casa: navegador e emulador usam `localhost`; o emulador Android resolve esse endereço para `10.0.2.2`. Para celular na mesma rede Wi-Fi, `npm --prefix mobile run start:dev-client` ou `npm --prefix mobile run start:go` detecta o IP atual do notebook e grava `mobile/.env.local` (ignorado pelo Git). O primeiro inicia o development build; o segundo inicia o Expo Go. Para acesso fora da rede, rode `npm run dev:tunnel` na raiz (ou `npm --prefix mobile run tunnel`): esse comando expõe a API e inicia o Metro pelo túnel do Expo. Rodar apenas `npx expo start --tunnel` expõe o Metro, não a API.
 
 Para iniciar o aplicativo:
 
@@ -68,10 +68,16 @@ Referências de política e custos: [verificação e limite para apps OAuth não
 - Em produção, use HTTPS, uma URL pública para a API e a política de privacidade solicitada na tela de consentimento Google.
 - Antes de liberar a aplicação externamente, preencha página inicial, política de privacidade e dados de suporte no consentimento OAuth; se necessário, envie a aplicação para verificação do Google.
 
-## Verificações executadas
+## Recuperação de senha por e-mail
 
-- Testes do aplicativo mobile: aprovados.
-- Exportação web do Expo: concluída.
-- Sintaxe da rota de autenticação do backend: validada.
-- Configuração do Docker Compose: validada.
+O app solicita um código de seis dígitos enviado pelo backend via Gmail SMTP. O código expira em 15 minutos e é guardado no banco como hash. Configure `SMTP_SERVICE`, `SMTP_USER`, `SMTP_PASS` (Senha de app, não a senha normal do Gmail) e `EMAIL_FROM` somente em `backend/.env` ou no ambiente do backend hospedado. A chamada do app espera até 45 segundos pela resposta do provedor. Veja [backend/EMAIL_RECOVERY_SETUP.md](backend/EMAIL_RECOVERY_SETUP.md).
+
+A redefinição atualiza a senha do login por e-mail e não remove `google_id`. O usuário continua podendo escolher **Continuar com Google** usando a mesma conta Google; a senha nova não é usada na tela de login do Google.
+
+## Guias de operação
+
+- [GUIA_USO_E_INICIALIZACAO.md](GUIA_USO_E_INICIALIZACAO.md): preparação em outro computador, modos LAN/túnel, abertura do app e uso dos fluxos principais.
+- [LOGIN_COM_GOOGLE.md](LOGIN_COM_GOOGLE.md): OAuth Android/iOS/Web e build compatível.
+- [backend/EMAIL_RECOVERY_SETUP.md](backend/EMAIL_RECOVERY_SETUP.md): credenciais Gmail SMTP para recuperação.
+- [COMO_RODAR_DOCKER.md](COMO_RODAR_DOCKER.md): inicialização e operação com Docker Compose.
 
