@@ -1,8 +1,8 @@
 # Synple — guia de uso e inicialização
 
-Atualizado em 17/10/2026.
+Atualizado em 22/10/2026.
 
-Este guia explica como preparar o projeto, iniciar a API e abrir o app no celular. Para login Google, consulte também [LOGIN_COM_GOOGLE.md](LOGIN_COM_GOOGLE.md). Para configurar o envio de códigos de recuperação, consulte [backend/EMAIL_RECOVERY_SETUP.md](backend/EMAIL_RECOVERY_SETUP.md).
+Este guia explica como preparar o projeto, iniciar a API e abrir o app no celular. Para login Google, consulte também [LOGIN_COM_GOOGLE.md](LOGIN_COM_GOOGLE.md). Para configurar o envio de códigos de recuperação, consulte [backend/EMAIL_RECOVERY_SETUP.md](backend/EMAIL_RECOVERY_SETUP.md). Os requisitos, diagramas e roteiro de avaliação do módulo de reuniões estão em [docs/INCREMENTO_2.md](docs/INCREMENTO_2.md).
 
 ## 1. O que instalar
 
@@ -44,6 +44,8 @@ npm install
 Set-Location ..
 ```
 
+Para atualizar uma instalação local do backend, execute também `npm --prefix backend install` na raiz. A geração de atas em PDF usa `pdfkit` no servidor; o Docker instala essa dependência ao reconstruir a imagem com o comando abaixo.
+
 Com Docker Desktop aberto, inicie o PostgreSQL e a API:
 
 ```powershell
@@ -57,7 +59,13 @@ docker compose ps
 Invoke-RestMethod http://localhost:3001/api/health
 ```
 
-O health deve informar API `OK` (ou `DEGRADED`) e banco `ONLINE`. Se estiver usando PostgreSQL instalado diretamente no computador, instale também as dependências do backend (`npm --prefix backend install`), configure `DB_HOST`, `DB_PORT`, `DB_NAME`, `DB_USER` e `DB_PASSWORD` em `backend/.env`, inicialize o schema uma vez (`npm --prefix backend run init-db`) e então inicie backend e app com `npm run dev` na raiz.
+O health deve informar API `OK` (ou `DEGRADED`) e banco `ONLINE`. O backend aplica o esquema do banco na inicialização, incluindo as tabelas de atas do incremento 2. Para aplicar somente a atualização do esquema, com PostgreSQL acessível e as dependências do backend instaladas, execute na raiz:
+
+```powershell
+npm run migrate
+```
+
+Esse comando preserva os dados e as senhas. Em um banco do Docker, confirme que as variáveis de conexão do comando apontam para a porta publicada do PostgreSQL; a API dentro do Compose já usa a configuração do container. Se estiver usando PostgreSQL instalado diretamente no computador, instale também as dependências do backend (`npm --prefix backend install`), configure `DB_HOST`, `DB_PORT`, `DB_NAME`, `DB_USER` e `DB_PASSWORD` em `backend/.env` e prepare um banco vazio. `npm --prefix backend run init-db` pode criar o banco e os dados de demonstração na primeira instalação; para atualizações posteriores use `npm run migrate`, pois `init-db` também prepara/redefine credenciais de demonstração. Depois inicie backend e app com `npm run dev` na raiz.
 
 ## 4. Abrir o app na mesma rede Wi-Fi
 
@@ -109,9 +117,40 @@ Baixe e instale o APK indicado pelo EAS. Depois, na raiz, inicie `npm run dev:tu
 3. **Google após recuperar senha:** recuperar senha altera a senha usada no login por e-mail e não remove o vínculo Google. Para entrar com Google, escolha a conta Google vinculada; não use a senha nova nessa tela.
 4. **Organizações:** procure uma organização aprovada e solicite acesso, ou registre uma organização. O registro aguarda aprovação do administrador do sistema.
 5. **Administrar organização:** depois de aprovada, o proprietário pode gerenciar solicitações, membros, cargos, equipes e comissões conforme as permissões da conta.
-6. **Perfil e saída:** use a área de perfil para ver/editar os dados disponíveis e **Sair** para encerrar a sessão no dispositivo.
+6. **Reuniões:** depois de ingressar em uma comissão, abra **Reuniões**. O presidente da comissão ou proprietário da organização pode agendar; os convidados aceitam/recusam e registram sua própria entrada/saída. O passo a passo está abaixo.
+7. **Perfil e saída:** use a área de perfil para ver/editar os dados disponíveis e **Sair** para encerrar a sessão no dispositivo.
 
 Os dados de organizações, solicitações e comissões são sincronizados com o backend/PostgreSQL quando a API está acessível.
+
+### Reuniões, presença e atas
+
+Prepare primeiro os vínculos: o proprietário aprova o acesso à organização, adiciona as pessoas à comissão e atribui o cargo de presidente a quem vai conduzir as reuniões. Essas alterações precisam estar confirmadas no servidor. O papel técnico do presidente é `COORDINATOR`; integrante comum usa `MEMBER`.
+
+1. **Agendar:** como presidente ou proprietário, abra **Reuniões** e selecione a comissão. Informe título e pauta. Nos grupos **Início** e **Término**, preencha **Data** em **DD/MM/AAAA** e **Horário** em **HH:mm**; os separadores são inseridos automaticamente e os horários seguem o fuso local do dispositivo. O término deve ser posterior ao início. Selecione **Membros convidados** e toque em **Agendar e convidar**. O organizador fica com convite aceito automaticamente; a entrada continua sendo registrada separadamente.
+2. **Responder:** como integrante convidado, abra a reunião e toque em **Aceitar convite** ou **Recusar**. O convite aparece no app depois da sincronização; não é um e-mail. Só o aceite permite registrar entrada.
+3. **Marcar presença:** cada participante, incluindo o presidente, toca em **Registrar entrada** e, ao terminar, em **Registrar saída**. Os horários vêm do servidor. A saída não apaga a participação; há um único registro de entrada/saída por pessoa nesta versão.
+4. **Gerar lista:** confira a lista de convidados e a quantidade de pessoas com entrada. Toque em **Gerar / compartilhar lista de presença** para obter e compartilhar a lista atualizada; pessoas sem entrada são identificadas como ausentes.
+5. **Escrever ata:** como gestor, preencha **Discussões e decisões** e toque em **Salvar rascunho da ata**. Depois use **Enviar ata para aprovação**. É necessária ao menos uma entrada registrada.
+6. **Aprovar:** cada pessoa que registrou entrada até a submissão lê a versão e usa **Aprovar ata** ou **Rejeitar ata**, com comentário opcional. Todos esses participantes precisam aprovar, inclusive o presidente quando registrou entrada e quem já registrou saída. Pessoas que apenas aceitaram o convite não votam.
+7. **Corrigir:** o gestor pode salvar uma correção antes da aprovação final, inclusive durante a revisão. A correção abre nova versão em rascunho e remove os votos anteriores; é necessário enviar e aprovar novamente. Uma ata aprovada fica bloqueada e pode ser compartilhada por **Compartilhar ata aprovada**.
+8. **Gerar PDF:** depois de salvar a ata, toque em **Gerar ata em PDF**. O arquivo pode ser gerado em qualquer situação da ata; a versão e a situação aparecem no documento. Veja as instruções abaixo para baixar e compartilhar.
+
+Use **Atualizar reuniões e aprovações** para ver respostas de outras contas. Novas entradas ficam bloqueadas enquanto a ata está em aprovação ou aprovada; saídas continuam permitidas. Se a versão mudar enquanto alguém lê, o voto antigo é recusado e a pessoa deve atualizar e ler a versão atual. Em falha de rede, os formulários preservam o texto para tentar novamente; confirme o sucesso antes de sair.
+
+Quem for removido da comissão continua acessando em **Reuniões** os encontros para os quais já tinha convite. Se registrou entrada e integra os aprovadores da ata submetida, ainda precisa decidir sobre essa versão. O acesso histórico não mantém a permissão de agendar/editar atas por um cargo que a pessoa deixou de exercer.
+
+O [documento do incremento 2](docs/INCREMENTO_2.md) inclui o roteiro completo de demonstração, critérios de aceitação e as limitações de autenticação da API antes de uso público em produção.
+
+### Gerar ata em PDF
+
+1. Abra **Reuniões**, selecione a reunião e confira o conteúdo da ata salva. Se estiver editando, toque em **Salvar rascunho da ata** ou **Salvar correção da ata** e aguarde a confirmação. O botão de PDF fica desabilitado enquanto houver alterações não salvas.
+2. Toque em **Gerar ata em PDF**. O app confere no servidor o acesso e a versão da ata; em seguida, abre o navegador do dispositivo para baixar o arquivo.
+3. No Android, confira o download no Chrome ou no navegador escolhido; abra o arquivo em **Downloads** para visualizar e compartilhar. No iPhone/iPad, use **Compartilhar → Salvar em Arquivos** no Safari. No computador, permita a abertura da nova aba; o navegador baixa o arquivo ou abre seu visualizador de PDF, conforme a configuração.
+4. Confira a organização, a comissão, a reunião, a versão, a situação e os dados de presença/aprovação antes de compartilhar. Atas em rascunho, em aprovação ou rejeitadas recebem indicação de **documento não final**. Gerar o PDF não submete nem aprova a ata, e o arquivo não contém assinatura digital.
+
+Se a versão mudar enquanto a tela estiver aberta, toque em **Atualizar reuniões e aprovações**, leia a ata atual e gere novamente. O arquivo representa os dados do servidor no momento da geração; um arquivo já baixado não recebe correções automaticamente. A API precisa estar acessível pelo navegador, inclusive no celular: mantenha o túnel atual aberto ao usar redes diferentes.
+
+Para disponibilizar essa opção depois de atualizar o projeto, instale as dependências do backend e reinicie a API (`npm --prefix backend install` em uma instalação local, ou `docker compose up -d --build` com Docker). Recarregue o JavaScript do app pelo Expo/Metro. Esta opção não exige gerar outro APK ou development build, pois não adiciona um módulo nativo ao aplicativo.
 
 ## 8. Problemas comuns
 
@@ -124,5 +163,10 @@ Os dados de organizações, solicitações e comissões são sincronizados com o
 | O código de recuperação não chega | Confirme SMTP Gmail e a Senha de app no backend, confira se o endereço está cadastrado e veja spam. O código expira após 15 minutos. |
 | Google retorna erro de identidade | Confirme que está escolhendo a mesma conta Google do cadastro, que a conta está incluída como usuário de teste enquanto o OAuth estiver em teste, e que o APK corresponde ao package/SHA-1 cadastrado. Confira os logs do backend. |
 | O terminal de túnel não mostra QR | Aguarde o túnel Cloudflare da API e o Metro terminarem de iniciar. Se o comando encerrar, leia o erro anterior; confira `cloudflared` no PATH e tente novamente. |
+| Reunião/ata não aparece ou tabela não existe | Atualize/reinicie o backend para aplicar o esquema ou rode `npm run migrate` com acesso ao PostgreSQL; depois toque em **Atualizar reuniões e aprovações**. |
+| Não consigo agendar ou convidar alguém | Confirme no servidor o vínculo com a comissão, o cargo de presidente e o acesso aprovado da pessoa à organização. Só integrantes da mesma comissão podem ser selecionados como convidados. |
+| Ata ainda não foi aprovada | Confira a versão atual e as decisões pendentes de todas as pessoas que registraram entrada, incluindo presidente e pessoas que já saíram. Correção exige nova submissão e novos votos. |
+| **Gerar ata em PDF** não aparece ou está desabilitado | A opção aparece após salvar a primeira ata. Salve a ata ou a correção e aguarde a confirmação do servidor; edições pendentes desabilitam o botão. O PDF usa o conteúdo salvo. |
+| O PDF não abre ou o navegador não baixa | Confira API/túnel e conexão do celular; atualize a reunião se a versão mudou. Após atualizar o código, instale as dependências do backend e reinicie/reconstrua a API. Veja [Gerar ata em PDF](#gerar-ata-em-pdf). |
 
 Para encerrar a sessão do Expo/túnel, pressione `Ctrl+C` no terminal. Para parar os containers, na raiz execute `docker compose down`. **Não use `docker compose down -v` se quiser manter os dados**, pois `-v` apaga o volume persistente do banco.

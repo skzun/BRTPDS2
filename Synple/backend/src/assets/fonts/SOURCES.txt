@@ -1,0 +1,11 @@
+Noto Sans Regular and Bold
+Copyright 2018 The Noto Project Authors
+License: SIL Open Font License 1.1 (see OFL.txt).
+
+Unmodified upstream files retrieved on 2026-10-22:
+https://raw.githubusercontent.com/notofonts/noto-fonts/main/hinted/ttf/NotoSans/NotoSans-Regular.ttf
+https://raw.githubusercontent.com/notofonts/noto-fonts/main/hinted/ttf/NotoSans/NotoSans-Bold.ttf
+https://raw.githubusercontent.com/notofonts/noto-fonts/main/LICENSE
+
+The fonts are embedded in generated meeting minutes PDFs so accents are
+rendered without depending on fonts installed on Windows, Linux or a phone.

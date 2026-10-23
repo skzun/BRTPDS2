@@ -71,6 +71,8 @@ export function getThemeStyles(isDark = false) {
     hint: { color: textSecondary, fontSize: 13, lineHeight: 19, marginTop: 5, marginBottom: 10 },
     muted: { color: textSecondary, fontSize: 13, marginTop: 3 },
     field: { marginTop: 10 },
+    dateTimeRow: { flexDirection: 'row', gap: 12 },
+    dateTimeColumn: { flex: 1, minWidth: 0 },
     label: { color: isDark ? '#E2E8F0' : '#334155', fontSize: 13, fontWeight: '700', marginBottom: 6 },
     input: { backgroundColor: inputBg, color: textPrimary, borderWidth: 1, borderColor: inputBorder, paddingHorizontal: 12, paddingVertical: 11, borderRadius: 10, fontSize: 15 },
     primaryButton: { minHeight: 48, backgroundColor: '#4F46E5', borderRadius: 10, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 14, paddingVertical: 12, marginTop: 16 },

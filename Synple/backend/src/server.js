@@ -60,15 +60,21 @@ const { getLocalNetworkIp, updateMobileNetworkConfig } = require('./utils/networ
 
 // Inicialização do servidor
 if (require.main === module) {
-  const localIp = getLocalNetworkIp();
-  updateMobileNetworkConfig(localIp, PORT);
-
-  app.listen(PORT, '0.0.0.0', () => {
-    console.log('----------------------------------------------------');
-    console.log(`🚀 SYNPLE BACKEND ONLINE EM: http://${localIp}:${PORT}`);
-    console.log(`🗄️  CONECTADO AO POSTGRESQL: ${process.env.DB_NAME || 'Banco_synple'}`);
-    console.log(`📱 IP CONFIGURADO AUTOMATICAMENTE: ${localIp}`);
-    console.log('----------------------------------------------------');
+  const { migrateSchema } = require('./db/migrate');
+  migrateSchema().then(() => {
+    const localIp = getLocalNetworkIp();
+    updateMobileNetworkConfig(localIp, PORT);
+    app.listen(PORT, '0.0.0.0', () => {
+      console.log('----------------------------------------------------');
+      console.log(`🚀 SYNPLE BACKEND ONLINE EM: http://${localIp}:${PORT}`);
+      console.log(`🗄️  CONECTADO AO POSTGRESQL: ${process.env.DB_NAME || 'Banco_synple'}`);
+      console.log(`📱 IP CONFIGURADO AUTOMATICAMENTE: ${localIp}`);
+      console.log('----------------------------------------------------');
+    });
+  }).catch(async (error) => {
+    console.error('[Banco] Não foi possível preparar o schema:', error.message);
+    await require('./db/connection').pool.end();
+    process.exitCode = 1;
   });
 }
 

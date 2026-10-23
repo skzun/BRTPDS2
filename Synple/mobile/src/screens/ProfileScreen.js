@@ -12,7 +12,6 @@ export function ProfileScreen({
   passwordForm,
   setPasswordForm,
   onUpdatePassword,
-  onRecoverAccount,
   activeUser,
   onSetTheme,
 }) {
@@ -74,9 +73,6 @@ export function ProfileScreen({
         />
         <Pressable style={styles.primaryButton} onPress={onUpdatePassword}>
           <Text style={styles.primaryButtonText}>Atualizar senha</Text>
-        </Pressable>
-        <Pressable style={styles.resetButton} onPress={onRecoverAccount}>
-          <Text style={styles.resetText}>Recuperar conta por e-mail</Text>
         </Pressable>
       </View>
 

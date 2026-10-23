@@ -16,10 +16,14 @@ import { INITIAL_DATA } from './src/constants/data';
 import { useSynpleData } from './src/hooks/useSynpleData';
 import { saveData } from './src/services/storage';
 import { formatCNPJ, formatPhone } from './src/services/formatters';
+import { getAccessibleMeetingCommissions } from './src/services/meetings';
 import { normalizeEmail, validateCommission, validateLogin, validateOrganization, validatePassword, validatePhone, validateRegistration, validateUser } from './src/services/validation';
 import {
   changePasswordWithApi,
   createCommissionWithApi,
+  addCommissionMemberWithApi,
+  updateCommissionMemberRoleWithApi,
+  removeCommissionMemberWithApi,
   createOrganizationWithApi,
   deleteOrganizationWithApi,
   deleteUserWithApi,
@@ -36,6 +40,10 @@ import {
   scheduleMeetingWithApi,
   respondToMeetingInvitationWithApi,
   recordMeetingAttendanceWithApi,
+  fetchMeetingAttendanceWithApi,
+  saveMeetingMinutesWithApi,
+  submitMeetingMinutesWithApi,
+  approveMeetingMinutesWithApi,
   updateUserWithApi,
 } from './src/services/api';
 import { getThemeStyles, ThemeContext } from './src/styles/theme';
@@ -76,6 +84,7 @@ export default function App() {
   const [organizationForm, setOrganizationForm] = useState({ name: '', document: '' });
   const [isCreatingOrganization, setIsCreatingOrganization] = useState(false);
   const organizationCreationInFlightRef = useRef(false);
+  const commissionMemberOperationsRef = useRef(new Set());
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [organizationSearch, setOrganizationSearch] = useState('');
   const [selectedOrganizationId, setSelectedOrganizationId] = useState('org-aurora');
@@ -120,10 +129,7 @@ export default function App() {
     return user ? { ...user, commissionRole: membership.role || 'MEMBER' } : null;
   }).filter(Boolean);
   const availableOrgMembers = organizationMembers.filter((user) => !commissionMemberships.some((m) => m.userId === user.id));
-  const hasMeetingsAccess = !isSystemAdmin && (
-    data.commissionMembers.some((member) => member.userId === activeUserId)
-    || data.organizations.some((organization) => organization.ownerId === activeUserId)
-  );
+  const hasMeetingsAccess = !isSystemAdmin && getAccessibleMeetingCommissions(data, activeUserId).length > 0;
 
   async function refreshData() {
     if (isRefreshing) return;
@@ -352,12 +358,10 @@ export default function App() {
     Alert.alert('Remover usuário', 'O usuário e todas as suas organizações, acessos e vínculos serão removidos permanentemente.', [
       { text: 'Cancelar', style: 'cancel' },
       { text: 'Remover', style: 'destructive', onPress: async () => {
-        // 1. Exclui no PostgreSQL por ID e por e-mail imediatamente
-        try {
-          if (user.id) await deleteUserWithApi(user.id);
-          if (user.email) await deleteUserWithApi(user.email);
-        } catch (e) {
-          console.warn('Erro ao excluir usuário remotamente:', e);
+        const deletion = await deleteUserWithApi(user.id || user.email);
+        if (!deletion.success) {
+          Alert.alert('Usuário não removido', deletion.error || 'Não foi possível confirmar a exclusão no servidor.');
+          return;
         }
 
         // 2. Atualiza estado e persiste imediatamente no armazenamento local para evitar ressuscitação
@@ -495,26 +499,69 @@ export default function App() {
 
   async function scheduleMeeting(meeting) {
     const result = await scheduleMeetingWithApi({ ...meeting, createdBy: activeUserId });
-    if (!result.success) return Alert.alert('Reunião não agendada', result.error);
+    if (!result.success) { Alert.alert('Reunião não agendada', result.error); return false; }
+    setData((current) => ({ ...current, meetings: [...current.meetings.filter((item) => item.id !== result.meeting.id), result.meeting] }));
     await syncWithRemote();
     Alert.alert('Reunião agendada', 'Os participantes da comissão foram convidados.');
+    return true;
   }
 
   async function respondToMeeting(meetingId, status) {
     const result = await respondToMeetingInvitationWithApi(meetingId, activeUserId, status);
-    if (!result.success) return Alert.alert('Resposta não salva', result.error);
+    if (!result.success) { Alert.alert('Resposta não salva', result.error); return false; }
     setData((current) => ({ ...current, meetingInvitations: current.meetingInvitations.map((invite) => invite.id === result.invitation.id ? result.invitation : invite) }));
+    return true;
   }
 
   async function recordAttendance(meetingId, action) {
     const result = await recordMeetingAttendanceWithApi(meetingId, activeUserId, action);
-    if (!result.success) return Alert.alert('Presença não registrada', result.error);
+    if (!result.success) { Alert.alert('Presença não registrada', result.error); return false; }
     setData((current) => ({
       ...current,
       meetingAttendance: current.meetingAttendance.some((item) => item.id === result.attendance.id)
         ? current.meetingAttendance.map((item) => item.id === result.attendance.id ? result.attendance : item)
         : [...current.meetingAttendance, result.attendance],
     }));
+    return true;
+  }
+
+  function storeMeetingMinutes(minutes) {
+    setData((current) => ({
+      ...current,
+      meetingMinutes: [...(current.meetingMinutes || []).filter((item) => item.meetingId !== minutes.meetingId), minutes],
+    }));
+  }
+
+  async function generateMeetingAttendance(meetingId) {
+    const result = await fetchMeetingAttendanceWithApi(meetingId, activeUserId);
+    if (!result.success) { Alert.alert('Lista não gerada', result.error); return null; }
+    return result.attendance;
+  }
+
+  async function saveMeetingMinutes(meetingId, content) {
+    const result = await saveMeetingMinutesWithApi(meetingId, activeUserId, content);
+    if (!result.success) { Alert.alert('Ata não salva', result.error); return false; }
+    storeMeetingMinutes(result.minutes);
+    return true;
+  }
+
+  async function submitMeetingMinutes(meetingId) {
+    const result = await submitMeetingMinutesWithApi(meetingId, activeUserId);
+    if (!result.success) { Alert.alert('Ata não enviada', result.error); return false; }
+    storeMeetingMinutes(result.minutes);
+    Alert.alert('Ata enviada', 'Todos os participantes com entrada registrada deverão aprovar esta versão.');
+    return true;
+  }
+
+  async function approveMeetingMinutes(meetingId, decision, comment, version) {
+    const result = await approveMeetingMinutesWithApi(meetingId, activeUserId, decision, comment, version);
+    if (!result.success) { Alert.alert('Decisão não registrada', result.error); return false; }
+    setData((current) => ({
+      ...current,
+      meetingMinutes: [...(current.meetingMinutes || []).filter((item) => item.meetingId !== meetingId), result.minutes],
+      meetingMinutesApprovals: [...(current.meetingMinutesApprovals || []).filter((item) => item.id !== result.approval.id), result.approval],
+    }));
+    return true;
   }
 
   async function createCommission() {
@@ -626,35 +673,47 @@ export default function App() {
     ]);
   }
 
+  async function changeCommissionMember(userId, operation, role) {
+    const commissionId = selectedCommission.id;
+    const operationId = `${commissionId}:${userId}`;
+    if (commissionMemberOperationsRef.current.has(operationId)) return;
+    commissionMemberOperationsRef.current.add(operationId);
+    try {
+      const result = operation === 'ADD'
+        ? await addCommissionMemberWithApi(commissionId, activeUserId, userId, role)
+        : operation === 'REMOVE'
+          ? await removeCommissionMemberWithApi(commissionId, activeUserId, userId)
+          : await updateCommissionMemberRoleWithApi(commissionId, activeUserId, userId, role);
+      if (!result.success) return Alert.alert('Equipe não alterada', result.error);
+      setData((current) => ({
+        ...current,
+        commissionMembers: [
+          ...current.commissionMembers.filter((member) => !(member.commissionId === commissionId && member.userId === userId)),
+          ...(operation === 'REMOVE' ? [] : [result.member]),
+        ],
+      }));
+    } finally {
+      commissionMemberOperationsRef.current.delete(operationId);
+    }
+  }
+
   function addCommissionMember(userId, role = 'MEMBER') {
     if (!selectedCommission || selectedOrganization?.ownerId !== activeUserId || selectedOrganization.status !== 'APPROVED') return;
     if (data.commissionMembers.some((member) => member.commissionId === selectedCommission.id && member.userId === userId)) return;
-    setData((current) => ({
-      ...current,
-      commissionMembers: [...current.commissionMembers, { commissionId: selectedCommission.id, userId, role }],
-    }));
+    return changeCommissionMember(userId, 'ADD', role);
   }
 
   function removeCommissionMember(userId) {
     if (selectedOrganization?.ownerId !== activeUserId || selectedOrganization.status !== 'APPROVED' || !selectedCommission) return;
-    setData((current) => ({
-      ...current,
-      commissionMembers: current.commissionMembers.filter((member) => !(member.commissionId === selectedCommissionId && member.userId === userId)),
-    }));
+    return changeCommissionMember(userId, 'REMOVE');
   }
 
   function toggleCommissionMemberRole(userId) {
     if (selectedOrganization?.ownerId !== activeUserId || selectedOrganization.status !== 'APPROVED' || !selectedCommission) return;
-    setData((current) => ({
-      ...current,
-      commissionMembers: current.commissionMembers.map((member) => {
-        if (member.commissionId === selectedCommissionId && member.userId === userId) {
-          const nextRole = (member.role || 'MEMBER') === 'COORDINATOR' ? 'MEMBER' : 'COORDINATOR';
-          return { ...member, role: nextRole };
-        }
-        return member;
-      }),
-    }));
+    const member = data.commissionMembers.find((item) => item.commissionId === selectedCommissionId && item.userId === userId);
+    if (!member) return;
+    const nextRole = (member.role || 'MEMBER') === 'COORDINATOR' ? 'MEMBER' : 'COORDINATOR';
+    return changeCommissionMember(userId, 'ROLE', nextRole);
   }
 
   function openProfile() {
@@ -714,12 +773,6 @@ export default function App() {
     setPasswordForm({ current: '', next: '', confirm: '' });
     Alert.alert('Senha alterada', 'Sua senha foi atualizada com sucesso.');
     });
-  }
-
-  function recoverAccount() {
-    setData((current) => ({ ...current, users: current.users.map((user) => user.id === activeUserId ? { ...user, recoveryRequestedAt: new Date().toISOString() } : user) }));
-    const currentPass = activeUser?.password || 'admin';
-    Alert.alert('Recuperação solicitada', `Instruções simuladas para ${activeUser?.email}. (Senha atual nesta demonstração: "${currentPass}").`);
   }
 
   async function recoverAccountFromLogin(rawEmail) {
@@ -959,6 +1012,12 @@ export default function App() {
               onSchedule={scheduleMeeting}
               onRespond={respondToMeeting}
               onAttendance={recordAttendance}
+              onGenerateAttendance={generateMeetingAttendance}
+              onSaveMinutes={saveMeetingMinutes}
+              onSubmitMinutes={submitMeetingMinutes}
+              onApproveMinutes={approveMeetingMinutes}
+              onRefresh={refreshData}
+              isRefreshing={isRefreshing}
             />
           )}
 
@@ -970,7 +1029,6 @@ export default function App() {
               passwordForm={passwordForm}
               setPasswordForm={setPasswordForm}
               onUpdatePassword={updatePassword}
-              onRecoverAccount={recoverAccount}
               activeUser={activeUser}
               onSetTheme={setTheme}
             />

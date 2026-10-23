@@ -336,10 +336,13 @@ export async function deleteUserWithApi(userIdOrEmail) {
       headers: { 'Content-Type': 'application/json' },
     }, 4000);
 
-    if (!response.ok) return { success: false };
+    if (!response.ok) {
+      const data = await response.json().catch(() => ({}));
+      return { success: false, error: data.error || 'Não foi possível excluir o usuário.' };
+    }
     return await response.json();
   } catch (err) {
-    return { success: false };
+    return { success: false, error: 'Servidor indisponível. O usuário não foi removido.' };
   }
 }
 
@@ -404,6 +407,29 @@ export async function updateOrganizationWithApi(organizationId, { name, document
   }
 }
 
+async function commissionMemberRequest(path, method, payload) {
+  try {
+    const response = await fetchWithTimeout(`${getApiBaseUrl()}/commissions/${path}`, {
+      method, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload),
+    }, 10000);
+    if (!response.ok) return { success: false, error: (await response.json()).error || 'Não foi possível atualizar os membros da comissão.' };
+    const result = await response.json();
+    return { success: true, member: method === 'DELETE' ? null : result };
+  } catch { return { success: false, error: 'Servidor offline. A equipe da comissão não foi alterada.' }; }
+}
+
+export function addCommissionMemberWithApi(commissionId, actorId, userId, role) {
+  return commissionMemberRequest(`${encodeURIComponent(commissionId)}/members`, 'POST', { actorId, userId, role });
+}
+
+export function updateCommissionMemberRoleWithApi(commissionId, actorId, userId, role) {
+  return commissionMemberRequest(`${encodeURIComponent(commissionId)}/members/${encodeURIComponent(userId)}`, 'PATCH', { actorId, role });
+}
+
+export function removeCommissionMemberWithApi(commissionId, actorId, userId) {
+  return commissionMemberRequest(`${encodeURIComponent(commissionId)}/members/${encodeURIComponent(userId)}`, 'DELETE', { actorId });
+}
+
 export async function scheduleMeetingWithApi(meeting) {
   try {
     const response = await fetchWithTimeout(`${getApiBaseUrl()}/meetings`, {
@@ -432,6 +458,45 @@ export async function recordMeetingAttendanceWithApi(meetingId, userId, action) 
     if (!response.ok) return { success: false, error: (await response.json()).error || 'Não foi possível registrar a presença.' };
     return { success: true, attendance: await response.json() };
   } catch { return { success: false, error: 'Servidor offline. A presença não foi salva.' }; }
+}
+
+export async function fetchMeetingAttendanceWithApi(meetingId, userId) {
+  try {
+    const response = await fetchWithTimeout(`${getApiBaseUrl()}/meetings/${encodeURIComponent(meetingId)}/attendance?userId=${encodeURIComponent(userId)}`, { method: 'GET' }, 10000);
+    if (!response.ok) return { success: false, error: (await response.json()).error || 'Não foi possível gerar a lista de presença.' };
+    return { success: true, attendance: await response.json() };
+  } catch { return { success: false, error: 'Servidor offline. A lista de presença não foi atualizada.' }; }
+}
+
+export async function saveMeetingMinutesWithApi(meetingId, userId, content) {
+  try {
+    const response = await fetchWithTimeout(`${getApiBaseUrl()}/meetings/${encodeURIComponent(meetingId)}/minutes`, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ userId, content }),
+    }, 10000);
+    if (!response.ok) return { success: false, error: (await response.json()).error || 'Não foi possível salvar a ata.' };
+    return { success: true, minutes: await response.json() };
+  } catch { return { success: false, error: 'Servidor offline. O texto da ata foi preservado para tentar novamente.' }; }
+}
+
+export async function submitMeetingMinutesWithApi(meetingId, userId) {
+  try {
+    const response = await fetchWithTimeout(`${getApiBaseUrl()}/meetings/${encodeURIComponent(meetingId)}/minutes/submit`, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ userId }),
+    }, 10000);
+    if (!response.ok) return { success: false, error: (await response.json()).error || 'Não foi possível enviar a ata para aprovação.' };
+    return { success: true, minutes: await response.json() };
+  } catch { return { success: false, error: 'Servidor offline. Confira a situação da ata ao reconectar antes de tentar novamente.' }; }
+}
+
+export async function approveMeetingMinutesWithApi(meetingId, userId, decision, comment = '', version) {
+  try {
+    const response = await fetchWithTimeout(`${getApiBaseUrl()}/meetings/${encodeURIComponent(meetingId)}/minutes/approval`, {
+      method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ userId, decision, comment, version }),
+    }, 10000);
+    if (!response.ok) return { success: false, error: (await response.json()).error || 'Não foi possível registrar sua decisão.' };
+    const result = await response.json();
+    return { success: true, minutes: result.minutes, approval: result.approval };
+  } catch { return { success: false, error: 'Servidor offline. Sua decisão não foi confirmada; atualize a ata ao reconectar.' }; }
 }
 
 /**

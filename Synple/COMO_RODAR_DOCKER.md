@@ -2,7 +2,7 @@
 
 Este guia contém **todos os comandos e passos necessários** para rodar o Banco de Dados (PostgreSQL) e o Backend (API Node.js) em qualquer computador utilizando Docker via CMD (Prompt de Comando).
 
-Para o passo a passo completo de instalação, uso do app, login Google e recuperação de senha, consulte [GUIA_USO_E_INICIALIZACAO.md](GUIA_USO_E_INICIALIZACAO.md).
+Para o passo a passo completo de instalação, uso do app, login Google e recuperação de senha, consulte [GUIA_USO_E_INICIALIZACAO.md](GUIA_USO_E_INICIALIZACAO.md). O mesmo guia explica como [gerar, salvar e compartilhar a ata em PDF](GUIA_USO_E_INICIALIZACAO.md#gerar-ata-em-pdf).
 
 ---
 
@@ -39,6 +39,8 @@ Execute o comando de build e inicialização em segundo plano:
 ```cmd
 docker compose up -d --build
 ```
+
+Use esse comando também depois de atualizar o projeto: ele reconstrói a API e instala `pdfkit`, usado para gerar atas em PDF. Recarregue o JavaScript do app no Expo/Metro depois de atualizar o código. A opção de PDF não exige outro APK ou development build. Um backend antigo, iniciado sem reconstruir a imagem, não disponibiliza a nova rota de PDF.
 
 > **O que esse comando faz sozinho:**
 > 1. Baixa o PostgreSQL 16 oficial.
@@ -112,3 +114,7 @@ net stop postgresql-x64-18
 
 ### 2. Erro: *"error during connect: ... docker daemon is not running"*
 O Docker Desktop está fechado. Abra o **Docker Desktop** no menu Iniciar do Windows e aguarde 15 segundos antes de rodar o comando novamente.
+
+### 3. A ata não gera PDF
+
+Reconstrua a API com `docker compose up -d --build`, recarregue o app e salve a ata antes de gerar o arquivo. Mantenha a API ou o túnel acessível ao navegador do celular. Para baixar no Android/iOS, siga [Gerar ata em PDF](GUIA_USO_E_INICIALIZACAO.md#gerar-ata-em-pdf).

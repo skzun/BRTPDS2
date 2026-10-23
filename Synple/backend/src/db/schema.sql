@@ -102,6 +102,38 @@ CREATE TABLE IF NOT EXISTS meeting_attendance (
     CONSTRAINT uq_meeting_attendance UNIQUE (meeting_id, user_id)
 );
 
+-- 7. Atas com lista de aprovadores congelada no envio para revisão.
+CREATE TABLE IF NOT EXISTS meeting_minutes (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    meeting_id UUID NOT NULL UNIQUE REFERENCES meetings(id) ON DELETE CASCADE,
+    content TEXT NOT NULL CHECK (LENGTH(TRIM(content)) > 0),
+    status VARCHAR(20) NOT NULL DEFAULT 'DRAFT' CHECK (status IN ('DRAFT', 'IN_REVIEW', 'APPROVED', 'REJECTED')),
+    version INTEGER NOT NULL DEFAULT 1 CHECK (version > 0),
+    required_approver_ids UUID[] NOT NULL DEFAULT '{}',
+    created_by UUID NOT NULL REFERENCES users(id),
+    updated_by UUID NOT NULL REFERENCES users(id),
+    submitted_at TIMESTAMPTZ,
+    approved_at TIMESTAMPTZ,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    CONSTRAINT uq_meeting_minutes_id_meeting UNIQUE (id, meeting_id),
+    CONSTRAINT chk_minutes_reviewers CHECK (status = 'DRAFT' OR CARDINALITY(required_approver_ids) > 0)
+);
+
+CREATE TABLE IF NOT EXISTS meeting_minutes_approvals (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    minutes_id UUID NOT NULL,
+    meeting_id UUID NOT NULL,
+    user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    version INTEGER NOT NULL CHECK (version > 0),
+    decision VARCHAR(20) NOT NULL CHECK (decision IN ('APPROVED', 'REJECTED')),
+    comment VARCHAR(2000) NOT NULL DEFAULT '',
+    decided_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    CONSTRAINT fk_minutes_approval_meeting FOREIGN KEY (minutes_id, meeting_id)
+      REFERENCES meeting_minutes(id, meeting_id) ON DELETE CASCADE,
+    CONSTRAINT uq_minutes_approval_user UNIQUE (minutes_id, user_id)
+);
+
 -- 9. Tabela: system_subsystems (Monitoramento de Subsistemas Operacionais)
 CREATE TABLE IF NOT EXISTS system_subsystems (
     id VARCHAR(50) PRIMARY KEY,
@@ -120,3 +152,4 @@ CREATE INDEX IF NOT EXISTS idx_comm_members_user ON commission_members(user_id);
 CREATE INDEX IF NOT EXISTS idx_meetings_commission ON meetings(commission_id, starts_at);
 CREATE INDEX IF NOT EXISTS idx_meeting_invitations_user ON meeting_invitations(user_id, status);
 CREATE INDEX IF NOT EXISTS idx_meeting_attendance_meeting ON meeting_attendance(meeting_id);
+CREATE INDEX IF NOT EXISTS idx_minutes_approvals_meeting ON meeting_minutes_approvals(meeting_id);

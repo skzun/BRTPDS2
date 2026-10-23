@@ -2,6 +2,8 @@
 
 Este documento descreve a arquitetura em containers e todas as formas para o professor avaliar e rodar o projeto **Synple** utilizando **Docker**.
 
+Atualizado em 22/10/2026. O tutorial de uso está em [GUIA_USO_E_INICIALIZACAO.md](GUIA_USO_E_INICIALIZACAO.md); a demonstração do incremento 2 está em [docs/INCREMENTO_2.md](docs/INCREMENTO_2.md).
+
 ---
 
 ## 🏛️ 1. Arquitetura da Solução em Containers
@@ -51,6 +53,8 @@ docker compose up -d --build
 ```
 > O Docker baixará o PostgreSQL, construirá a imagem da API, criará o banco `Banco_synple` e aplicará as migrações e seeds automaticamente.
 
+Para avaliar a geração de atas em PDF, use o código atual e esse comando com `--build`: a imagem precisa incluir a dependência `pdfkit` e a rota de exportação. Depois recarregue o app no Expo/Metro. A função de PDF não exige outro APK ou development build.
+
 ---
 
 ### Opção B — Carregando a Imagem `.tar` Exportada
@@ -63,6 +67,8 @@ docker load -i synple-backend.tar
 # 2. Sobe os containers usando a imagem carregada
 docker compose up -d
 ```
+
+O arquivo `.tar` representa o código da data em que foi exportado. Se ele for anterior à opção de PDF, use a opção A para reconstruir com o código atual. Alterar os fontes não atualiza uma imagem já exportada.
 
 ---
 
@@ -95,6 +101,12 @@ Acesse no seu navegador:
 ### Login com Google (opcional para a avaliação)
 
 O login/cadastro Google já está implementado, mas precisa que o avaliador crie seus próprios Client IDs OAuth e preencha `mobile/.env` e `backend/.env`; nenhum segredo ou credencial pessoal é entregue no repositório. Ele não depende de IP fixo, e a API local fica em `localhost:3001`. O guia completo está em [LOGIN_COM_GOOGLE.md](LOGIN_COM_GOOGLE.md).
+
+### Reuniões, aprovação e PDF da ata
+
+Prepare organização/comissão e os vínculos dos participantes conforme o [roteiro do incremento 2](docs/INCREMENTO_2.md#13-preparar-e-demonstrar-o-incremento). Salve uma ata e toque em **Gerar ata em PDF**. O navegador do dispositivo recebe o arquivo para baixar ou compartilhar; o [tutorial de PDF](GUIA_USO_E_INICIALIZACAO.md#gerar-ata-em-pdf) descreve Android, iOS e computador.
+
+O PDF mostra versão e situação. Rascunho, revisão e rejeição são identificados como documento não final; gerar o arquivo não aprova a ata. Para demonstrar o resultado final, registre entrada com todas as contas participantes, envie a ata e aprove com cada presente, incluindo o presidente quando presente. Gere o PDF novamente após a última aprovação.
 
 ---
 

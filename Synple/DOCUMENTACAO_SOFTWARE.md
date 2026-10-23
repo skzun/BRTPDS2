@@ -1,8 +1,10 @@
 # Documentação técnica — Synple
 
-Atualizada em 17/10/2026.
+Atualizada em 22/10/2026.
 
 Este documento reúne as mudanças recentes do aplicativo e os procedimentos de execução. O tutorial de uso e inicialização está em [GUIA_USO_E_INICIALIZACAO.md](GUIA_USO_E_INICIALIZACAO.md); os guias específicos estão em [COMO_RODAR_DOCKER.md](COMO_RODAR_DOCKER.md), [LOGIN_COM_GOOGLE.md](LOGIN_COM_GOOGLE.md) e [backend/EMAIL_RECOVERY_SETUP.md](backend/EMAIL_RECOVERY_SETUP.md).
+
+O [Incremento 2 — reuniões](docs/INCREMENTO_2.md) contém casos de uso, fichas de requisitos funcionais, regras, classes e dicionário, modelo relacional e dicionário, requisitos não funcionais, sequências para todos os casos de uso, rastreabilidade e roteiro de aceitação/demonstração.
 
 ## Arquitetura e execução local
 
@@ -74,10 +76,35 @@ O app solicita um código de seis dígitos enviado pelo backend via Gmail SMTP. 
 
 A redefinição atualiza a senha do login por e-mail e não remove `google_id`. O usuário continua podendo escolher **Continuar com Google** usando a mesma conta Google; a senha nova não é usada na tela de login do Google.
 
+## Incremento 2 — reuniões das comissões
+
+O módulo relaciona a reunião à comissão e permite ao presidente (`COORDINATOR`) ou proprietário da organização agendar com título, início, término e pauta. Os convidados selecionados pertencem à comissão; recebem um convite interno no app, que podem aceitar ou recusar. O organizador é incluído com aceite automático. Entrada e saída são ações separadas, feitas por cada participante e registradas pelo relógio do servidor.
+
+A lista de presença identifica convidados, ausências e horários; sua contagem de presentes usa somente entradas efetivamente registradas. O app pode gerar/compartilhar o texto da lista. A ata é salva em rascunho, submetida e aprovada por **todos que registraram entrada até a submissão**, incluindo o presidente presente e quem já saiu. O conjunto de aprovadores é fixado na submissão. Novas entradas ficam bloqueadas durante a revisão e depois da aprovação; saídas continuam disponíveis.
+
+Uma reprovação devolve a ata para correção. Antes da aprovação final, o gestor também pode corrigir uma revisão em andamento: o sistema cria outra versão em rascunho, remove os votos e exige nova submissão. A decisão informa a versão lida; se ela mudou, o servidor retorna conflito e o usuário precisa ler novamente. A aprovação final bloqueia alterações e libera o compartilhamento da ata. O banco mantém o texto e as decisões atuais, sem histórico completo dos conteúdos/votos substituídos.
+
+### Exportação da ata em PDF
+
+Em **Reuniões**, **Gerar ata em PDF** exporta a ata já salva em qualquer situação. O botão fica desabilitado durante alterações locais não salvas. O PDF identifica organização, comissão, reunião, versão, situação, presença e aprovações; rascunho, revisão e rejeição recebem aviso de documento não final. O arquivo é uma representação dos dados atuais do servidor e não contém assinatura digital. Sua geração não altera a ata nem seus votos.
+
+A API disponibiliza `HEAD` e `GET /api/meetings/:meetingId/minutes/pdf?userId=...&version=...&timeZone=...`. A primeira chamada confere acesso e versão antes de o app abrir o download no navegador externo. O backend permite ao gestor atual ou a um convidado, inclusive histórico, consultar a reunião e exige a versão atual. Uma versão antiga recebe HTTP 409; é necessário atualizar a reunião e gerar novamente. O fuso enviado é um identificador IANA, como `America/Sao_Paulo`; sem ele, o servidor usa esse fuso padrão. A limitação de identificação do ator descrita abaixo também se aplica à exportação.
+
+O servidor gera o arquivo com `pdfkit` e responde como `application/pdf`, com disposição de download. Não há nova biblioteca nativa mobile, tabela ou armazenamento permanente do PDF. Para atualizar uma instalação local, execute `npm --prefix backend install` e reinicie a API; no Docker, execute `docker compose up -d --build`. Recarregue o JavaScript no Expo/Metro; não é necessário outro APK/development build por causa desta opção. O procedimento para salvar/compartilhar em Android, iOS e computador está em [Gerar ata em PDF](GUIA_USO_E_INICIALIZACAO.md#gerar-ata-em-pdf).
+
+Os dados são persistidos em `meetings`, `meeting_invitations`, `meeting_attendance`, `meeting_minutes` e `meeting_minutes_approvals`. Os vínculos e cargos de `commission_members`, pré-requisito para agendamento/convites, também são gravados no servidor. O contrato HTTP e cada coluna estão descritos no [documento do incremento](docs/INCREMENTO_2.md).
+
+A remoção de um vínculo com a comissão preserva convites e registros históricos da reunião. A pessoa mantém a consulta das reuniões já convidadas e o direito/dever de decidir quando integra o conjunto de aprovadores da versão submetida. A gestão depende do vínculo/cargo atual ou da propriedade da organização; um convite histórico não conserva o cargo anterior.
+
+O backend aplica o esquema idempotente ao iniciar. Para aplicar somente o esquema com o PostgreSQL disponível, execute `npm run migrate` na raiz, ou `npm --prefix backend run migrate`. O comando usa `backend/.env`, não executa seeds e preserva senhas. Use `init-db` somente para a preparação inicial consciente dos dados de demonstração, pois ele também prepara essas contas. Com Docker Compose, reconstrua/reinicie a API após atualizar o código (`docker compose up -d --build`).
+
+As regras de papel/vínculo/estado são verificadas no backend, mas a identidade atual é informada pelo cliente. Antes de exposição pública em produção, os recursos precisam de sessão/token validado no servidor e a sincronização deve ser filtrada por usuário autorizado. Os testes do módulo e o roteiro documental não substituem a validação em dispositivos físicos Android e iOS solicitada na apresentação. O formulário institucional e o levantamento de itens adicionais com a comunidade permanecem dependências documentais externas, identificadas no documento do incremento.
+
 ## Guias de operação
 
 - [GUIA_USO_E_INICIALIZACAO.md](GUIA_USO_E_INICIALIZACAO.md): preparação em outro computador, modos LAN/túnel, abertura do app e uso dos fluxos principais.
 - [LOGIN_COM_GOOGLE.md](LOGIN_COM_GOOGLE.md): OAuth Android/iOS/Web e build compatível.
 - [backend/EMAIL_RECOVERY_SETUP.md](backend/EMAIL_RECOVERY_SETUP.md): credenciais Gmail SMTP para recuperação.
 - [COMO_RODAR_DOCKER.md](COMO_RODAR_DOCKER.md): inicialização e operação com Docker Compose.
+- [docs/INCREMENTO_2.md](docs/INCREMENTO_2.md): especificação e demonstração de reuniões, convites, presença, ata e aprovação unânime.
 
