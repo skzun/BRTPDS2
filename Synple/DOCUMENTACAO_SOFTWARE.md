@@ -1,12 +1,22 @@
 # Documentação técnica — Synple
 
-Atualizada em 22/10/2026.
+Atualizada em 23/10/2026.
 
 Este documento reúne as mudanças recentes do aplicativo e os procedimentos de execução. O tutorial de uso e inicialização está em [GUIA_USO_E_INICIALIZACAO.md](GUIA_USO_E_INICIALIZACAO.md); os guias específicos estão em [COMO_RODAR_DOCKER.md](COMO_RODAR_DOCKER.md), [LOGIN_COM_GOOGLE.md](LOGIN_COM_GOOGLE.md) e [backend/EMAIL_RECOVERY_SETUP.md](backend/EMAIL_RECOVERY_SETUP.md).
 
 O [Incremento 2 — reuniões](docs/INCREMENTO_2.md) contém casos de uso, fichas de requisitos funcionais, regras, classes e dicionário, modelo relacional e dicionário, requisitos não funcionais, sequências para todos os casos de uso, rastreabilidade e roteiro de aceitação/demonstração.
 
 ## Arquitetura e execução local
+
+### Monitoramento administrativo e diagramas
+
+Os diagramas dos [incrementos 1](../docs/Diagramas/Incremento_1.md) e [2](../docs/Diagramas/Incremento_2.md) estão em `docs/Diagramas` na raiz do repositório. O [README principal](../README.md) apresenta o estado atual do projeto e encaminha aos manuais.
+
+`GET /api/system` fornece métricas reais do processo Node e do PostgreSQL para a aba **Sistema**: nome, versão do pacote backend, PID, host, plataforma, ambiente, porta, tempo online, memória RSS/heap e total/livre do ambiente, sockets TCP, requisições em andamento, pool PostgreSQL e tamanho/versão/conexões do banco. Não existe serviço de uploads; o endpoint informa essa indisponibilidade explicitamente.
+
+A rota exige `Authorization: Bearer <systemToken>`. O backend emite uma sessão assinada de oito horas ao validar a senha cadastrada de um administrador ou sua identidade Google; a API confirma o cargo atual no banco a cada consulta. O token fica em memória no app, e reiniciar a API invalida as sessões. A autenticação administrativa por senha não aceita os atalhos de senha da demonstração. Esse controle protege a nova rota; não substitui a revisão de autorização das demais rotas apontada no incremento 2.
+
+O painel atualiza a cada 15 segundos, permite atualização manual e identifica dados anteriores quando a coleta falha. Os contadores incluem conexões keep-alive e o próprio monitoramento; não medem usuários autenticados. Em Docker, host/PID são do container e a memória representa o ambiente observado pelo processo. As operações antigas de setup, reinício de subsistemas e reset continuam sendo operações locais da demonstração.
 
 - `mobile/`: aplicativo Expo/React Native.
 - `backend/`: API Express/Node.js.

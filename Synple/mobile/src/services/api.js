@@ -60,6 +60,15 @@ export function getApiBaseUrl() {
 
 export const API_BASE_URL = getApiBaseUrl();
 
+export async function fetchSystemInformation(token, signal) {
+  const response = await fetch(`${getApiBaseUrl()}/system`, {
+    headers: { Authorization: `Bearer ${token || ''}` }, signal,
+  });
+  const data = await response.json();
+  if (!response.ok) throw new Error(data.error || 'Não foi possível consultar o servidor.');
+  return data;
+}
+
 /**
  * Wrapper de fetch com timeout padrão para evitar travamento em redes externas sem rota para IP privado
  */

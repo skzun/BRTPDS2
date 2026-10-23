@@ -1,6 +1,6 @@
 # Especificação de Engenharia de Software — Incremento 2: Reuniões
 
-Este documento detalha a etapa de reuniões do Synple. O escopo cobre agendamento pela presidência da comissão, convite e resposta dos participantes, registro de entrada/saída e consulta da lista de presença. **Atas, criação de atas e aprovação de atas estão fora do escopo deste incremento e não foram implementadas.**
+Este documento preserva a especificação inicial da etapa de reuniões. A versão atual inclui atas, aprovação unânime pelos presentes e exportação PDF: consulte a [especificação atualizada](../Synple/docs/INCREMENTO_2.md) e os [diagramas completos do incremento 2](Diagramas/Incremento_2.md). As seções abaixo documentam o escopo inicial e não representam toda a implementação atual.
 
 ## 1. Requisitos funcionais
 

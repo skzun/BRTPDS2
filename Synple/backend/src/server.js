@@ -14,9 +14,16 @@ const meetingsRoutes = require('./routes/meetings');
 
 const app = express();
 const PORT = process.env.PORT || 3001;
+app.locals.sockets = new Set();
+app.locals.activeRequests = 0;
 
 // Middlewares
 app.use(cors());
+app.use((req, res, next) => {
+  app.locals.activeRequests += 1;
+  res.once('close', () => { app.locals.activeRequests -= 1; });
+  next();
+});
 app.use(express.json());
 app.use((req, res, next) => {
   const start = Date.now();
@@ -28,6 +35,7 @@ app.use((req, res, next) => {
 
 // Registro dos endpoints da API
 app.use('/api/health', healthRoutes);
+app.use('/api/system', require('./routes/system'));
 app.use('/api/auth', authRoutes);
 app.use('/api/sync', syncRoutes);
 app.use('/api/users', usersRoutes);
@@ -64,12 +72,16 @@ if (require.main === module) {
   migrateSchema().then(() => {
     const localIp = getLocalNetworkIp();
     updateMobileNetworkConfig(localIp, PORT);
-    app.listen(PORT, '0.0.0.0', () => {
+    const server = app.listen(PORT, '0.0.0.0', () => {
       console.log('----------------------------------------------------');
       console.log(`🚀 SYNPLE BACKEND ONLINE EM: http://${localIp}:${PORT}`);
       console.log(`🗄️  CONECTADO AO POSTGRESQL: ${process.env.DB_NAME || 'Banco_synple'}`);
       console.log(`📱 IP CONFIGURADO AUTOMATICAMENTE: ${localIp}`);
       console.log('----------------------------------------------------');
+    });
+    server.on('connection', socket => {
+      app.locals.sockets.add(socket);
+      socket.once('close', () => app.locals.sockets.delete(socket));
     });
   }).catch(async (error) => {
     console.error('[Banco] Não foi possível preparar o schema:', error.message);

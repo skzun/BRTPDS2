@@ -29,6 +29,7 @@ import {
   deleteUserWithApi,
   getApiBaseUrl,
   loginWithGoogleApi,
+  loginWithApi,
   registerWithApi,
   requestAccessWithApi,
   requestPasswordResetWithApi,
@@ -78,6 +79,7 @@ export default function App() {
   const { data, isReady, setData, storageError, dbStatus, syncWithRemote } = useSynpleData();
   const [showSplash, setShowSplash] = useState(true);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [systemToken, setSystemToken] = useState(null);
   const [screen, setScreen] = useState('organizations');
   const [role, setRole] = useState('USER');
   const [activeUserId, setActiveUserId] = useState('user-visitante');
@@ -200,7 +202,7 @@ export default function App() {
     });
   }
 
-  function login({ email, password, mode }) {
+  async function login({ email, password, mode }) {
     const trimmedEmail = (email || '').trim().toLowerCase();
     const trimmedPassword = (password || '').trim();
 
@@ -215,6 +217,19 @@ export default function App() {
     const isMarina = user.email === 'marina@synple.app' || user.id === 'user-admin';
     const isAdmin = user.systemRole === 'SYSTEM_ADMIN' || user.email === 'admin@synple.app';
     const isJoao = user.email === 'joao@email.com' || user.id === 'user-visitante';
+
+    if (isAdmin) {
+      const result = await loginWithApi(trimmedEmail.replace(/@synple\.app$/, '@synple.com'), trimmedPassword);
+      if (!result.success || !result.user?.systemToken) {
+        return Alert.alert('Acesso administrativo', result.error || 'Entre com a senha cadastrada no servidor.');
+      }
+      setSystemToken(result.user.systemToken);
+      setActiveUserId(result.user.id);
+      setRole('SYSTEM_ADMIN');
+      setScreen('admin-management');
+      setIsAuthenticated(true);
+      return;
+    }
 
     const validPasswords = [];
     if (user.password) validPasswords.push(user.password.trim());
@@ -245,7 +260,8 @@ export default function App() {
       return false;
     }
 
-    const user = result.user;
+    const { systemToken: token, ...user } = result.user;
+    setSystemToken(token || null);
     setData((current) => ({
       ...current,
       users: current.users.some((item) => normalizeEmail(item.email) === normalizeEmail(user.email))
@@ -311,6 +327,7 @@ export default function App() {
   }
 
   function logout() {
+    setSystemToken(null);
     setPasswordForm({ current: '', next: '', confirm: '' });
     setIsAuthenticated(false);
   }
@@ -1036,6 +1053,7 @@ export default function App() {
 
           {isSystemAdmin && screen === 'system' && (
             <SystemScreen
+              systemToken={systemToken}
               system={data.system}
               usersCount={data.users.length}
               organizationsCount={data.organizations.length}

@@ -1,6 +1,6 @@
 # Synple — guia de uso e inicialização
 
-Atualizado em 22/10/2026.
+Atualizado em 23/10/2026.
 
 Este guia explica como preparar o projeto, iniciar a API e abrir o app no celular. Para login Google, consulte também [LOGIN_COM_GOOGLE.md](LOGIN_COM_GOOGLE.md). Para configurar o envio de códigos de recuperação, consulte [backend/EMAIL_RECOVERY_SETUP.md](backend/EMAIL_RECOVERY_SETUP.md). Os requisitos, diagramas e roteiro de avaliação do módulo de reuniões estão em [docs/INCREMENTO_2.md](docs/INCREMENTO_2.md).
 
@@ -13,6 +13,41 @@ Este guia explica como preparar o projeto, iniciar a API e abrir o app no celula
 - Para login Google no Android: o development build do Synple instalado no celular. O Expo Go não inclui o módulo nativo do Google.
 
 Em outro computador, clone ou copie o repositório e use o diretório onde ele foi salvo. Os arquivos `backend/.env` e `mobile/.env` são locais e não são compartilhados pelo Git; precisam ser configurados em cada máquina/servidor.
+
+### Checklist para executar em outro computador
+
+Clonar o projeto é apenas o primeiro passo. Na primeira execução:
+
+1. Instale Node.js/npm, Docker Desktop e Cloudflared (instruções abaixo).
+2. Abra o terminal na pasta principal `Synple`, onde está o `package.json` do workspace.
+3. Configure `backend/.env` e `mobile/.env` a partir dos modelos, conforme a seção 2. O envio de recuperação de senha também exige configurar o SMTP nesse backend.
+4. Instale as dependências do mobile e inicie o banco/API conforme a seção 3. Se executar o backend diretamente pelo Node, instale também suas dependências.
+5. Para login Google no Android, instale no celular o development build configurado para o Synple, conforme a seção 6. Confira os Client IDs e o certificado de assinatura em [LOGIN_COM_GOOGLE.md](LOGIN_COM_GOOGLE.md).
+6. Na raiz `Synple`, execute `npm run dev:tunnel` e abra o QR atual pelo development build no celular.
+
+Depois dessa preparação, mantenha Docker Desktop e banco/API disponíveis e execute `npm run dev:tunnel` nas próximas sessões. O script cria os túneis, atualiza o endereço da API usado pelo mobile e inicia o Metro automaticamente. Mantenha o computador e o terminal em execução durante o uso.
+
+### Banco próprio ou dados compartilhados
+
+Se cada computador iniciar seu próprio PostgreSQL, cada instalação terá seus próprios dados. Clonar o código não copia contas, organizações, reuniões ou atas do banco de outra pessoa. Mesmo usando a mesma conta Google, os dados do Synple pertencem ao backend/banco acessado.
+
+Para várias pessoas acessarem os mesmos dados, todos precisam usar a mesma API e o mesmo banco. Em uma demonstração, uma pessoa pode executar `npm run dev:tunnel` e compartilhar o QR atual com os celulares dos participantes que têm o development build compatível instalado; todos usarão a API dessa sessão. Os participantes não precisam iniciar outro backend no próprio computador para participar dessa demonstração. Para uso permanente, hospede a API e o banco em um servidor compartilhado e configure a URL HTTPS estável no app.
+
+### Instalar o Cloudflared no Windows
+
+Em cada computador que for executar `npm run dev:tunnel`, instale o Cloudflared pelo PowerShell:
+
+```powershell
+winget install --id Cloudflare.cloudflared --exact
+```
+
+Feche e abra novamente o terminal para carregar o `PATH` atualizado. Confirme a instalação:
+
+```powershell
+cloudflared --version
+```
+
+Depois, na pasta principal `Synple`, execute `npm run dev:tunnel`. O executável instalado em um computador não é compartilhado pelo Git; clonar o projeto ou rodar `npm install` não instala o Cloudflared. Se o Windows não tiver `winget`, use o download para Windows na [documentação oficial da Cloudflare](https://developers.cloudflare.com/cloudflare-one/networks/connectors/cloudflare-tunnel/downloads/) e disponibilize o executável como `cloudflared.exe` no `PATH` ou em `%LOCALAPPDATA%\Synple\cloudflared.exe`.
 
 ## 2. Preparar as variáveis de ambiente
 
@@ -154,9 +189,31 @@ Para disponibilizar essa opção depois de atualizar o projeto, instale as depen
 
 ## 8. Problemas comuns
 
+### Consultar as informações do servidor
+
+Entre como **Administrador do sistema** e abra a aba **Sistema**. O painel consulta a API a cada 15 segundos e também permite usar **Atualizar informações**. Ele mostra:
+
+- Nome e versão da API, ID do processo (PID), Node.js, sistema operacional, ambiente de execução, endereço da API e nome do host.
+- Tempo online e horário de início do processo da API.
+- Memória total/livre do ambiente e memória usada pelo processo (RSS e heap).
+- Conexões TCP abertas, requisições HTTP em andamento e conexões totais/ociosas/em espera no pool PostgreSQL.
+- Situação, nome, versão, tamanho, latência, conexões e consultas ativas do banco de dados.
+- Uploads: **não implementados**, pois o backend não possui serviço de armazenamento de arquivos enviados. Gerar PDF é uma operação de download.
+
+Esses dados pertencem ao servidor, não ao celular. Em Docker, PID e nome do host pertencem ao container; a memória é a que o sistema operacional disponibiliza ao processo. Conexões TCP incluem keep-alive, e consultas/requisições ativas incluem o próprio monitoramento; não representam uma contagem de pessoas conectadas. O tempo online é atualizado em cada coleta e volta a zero ao reiniciar a API.
+
+A consulta exige uma sessão administrativa validada pelo backend e a senha cadastrada no banco (ou login Google da conta administrativa). A sessão expira após oito horas e é invalidada quando a API reinicia; nesse caso, saia e entre novamente. O token fica apenas na memória do app. Se uma consulta falhar, o painel indica o erro e identifica os valores antigos como a última coleta bem-sucedida.
+
+Após atualizar o projeto, reinicie a API local ou reconstrua o container com `docker compose up -d --build` e recarregue o aplicativo. Não é necessário um novo APK, pois o painel não adiciona módulos nativos. Os controles antigos de setup, reinício de subsistemas e reset continuam sendo operações locais da demonstração; não reiniciam o servidor real.
+
+Os diagramas estão organizados por [incremento 1](../docs/Diagramas/Incremento_1.md) e [incremento 2](../docs/Diagramas/Incremento_2.md) na pasta `docs/Diagramas` da raiz do repositório.
+
+### Solução de problemas
+
 | Sintoma | O que conferir |
 | --- | --- |
 | `EADDRINUSE` na porta 3001 | Já existe um backend ativo. Com Docker Compose, mantenha o backend do Compose e rode somente `npm --prefix mobile run start:dev-client` ou `npm --prefix mobile run start:go`, ou use `npm run dev:tunnel`, que detecta uma API Synple já ativa. |
+| `spawn cloudflared.exe ENOENT` | O executável do Cloudflared não foi encontrado nesse computador. Siga [Instalar o Cloudflared no Windows](#instalar-o-cloudflared-no-windows), reabra o terminal, confirme `cloudflared --version` e execute `npm run dev:tunnel` na raiz. |
 | O QR abre Expo Go, mas o Google não funciona | Instale/abra o development build do Synple. Expo Go não contém o módulo nativo do Google. |
 | “Falha na comunicação com o servidor” | Confirme que o terminal/túnel atual continua aberto e que `/api/health` responde. No túnel, use o QR gerado pela mesma sessão em execução. |
 | O pedido do código de recuperação demora | O backend aguarda o provedor de e-mail aceitar a mensagem. Aguarde até 45 segundos; confira `backend/.env`, logs do backend e spam/lixo eletrônico. |

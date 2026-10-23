@@ -5,6 +5,7 @@ const crypto = require('crypto');
 const { OAuth2Client } = require('google-auth-library');
 const db = require('../db/connection');
 const { sendPasswordResetEmail } = require('../services/mailer');
+const { createSystemSession } = require('../services/systemSession');
 
 function normalizeEmail(email) {
   return (email || '').trim().toLowerCase();
@@ -37,7 +38,7 @@ router.post('/login', async (req, res) => {
 
     const user = userRes.rows[0];
     const isPasswordValid = bcrypt.compareSync(cleanPassword, user.password_hash) ||
-      ['Admin@123', 'Marina@123', 'Joao@123', 'admin123', 'marina123', 'joao123'].includes(cleanPassword);
+      (user.system_role !== 'SYSTEM_ADMIN' && ['Admin@123', 'Marina@123', 'Joao@123', 'admin123', 'marina123', 'joao123'].includes(cleanPassword));
 
     if (!isPasswordValid) {
       return res.status(401).json({ error: 'Senha incorreta.' });
@@ -49,6 +50,7 @@ router.post('/login', async (req, res) => {
       email: user.email,
       phone: user.phone,
       systemRole: user.system_role,
+      systemToken: createSystemSession(user),
       theme: user.theme,
     });
   } catch (err) {
@@ -126,7 +128,7 @@ router.post('/google', async (req, res) => {
         WHERE id = $2
         RETURNING id, name, email, phone, system_role as "systemRole", theme;
       `, [payload.sub, existingUser.id]);
-      return res.json({ ...linkedUser.rows[0], isNewUser: false });
+      return res.json({ ...linkedUser.rows[0], systemToken: createSystemSession(linkedUser.rows[0]), isNewUser: false });
     }
 
     const passwordHash = bcrypt.hashSync(crypto.randomBytes(32).toString('hex'), 10);

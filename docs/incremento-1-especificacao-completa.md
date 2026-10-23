@@ -2,6 +2,8 @@
 
 Documento formal da disciplina **Projeto e Desenvolvimento de Sistemas II (IFSP Câmpus Barretos)** contendo a especificação completa e detalhada do **Incremento 1**.
 
+Os [diagramas atualizados do incremento 1](Diagramas/Incremento_1.md) estão organizados junto aos do [incremento 2](Diagramas/Incremento_2.md). Este documento preserva a especificação acadêmica original; os diagramas atualizados e o [manual](../Synple/GUIA_USO_E_INICIALIZACAO.md) registram a arquitetura implementada, recuperação por SMTP, monitoramento real e limites das operações locais de demonstração.
+
 ---
 
 ## Sumário de Mapeamento dos Requisitos
