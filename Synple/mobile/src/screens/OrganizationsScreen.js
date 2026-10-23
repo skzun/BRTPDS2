@@ -1,5 +1,6 @@
 import { useContext } from 'react';
-import { Pressable, Text, View } from 'react-native';
+import { Text, View } from 'react-native';
+import { Pressable } from '../components/ActionPressable';
 import { Field, StatusBadge } from '../components/FormControls';
 import { ThemeContext } from '../styles/theme';
 
@@ -66,6 +67,8 @@ export function OrganizationsScreen({
             {!isOwner && !userReq && (
               <Pressable
                 style={styles.smallButton}
+                hitSlop={4}
+                accessibilityRole="button"
                 onPress={() => onRequestAccess(organization.id)}
               >
                 <Text style={styles.smallButtonText}>Solicitar entrada</Text>

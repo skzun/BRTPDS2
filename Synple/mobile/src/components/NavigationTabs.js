@@ -3,7 +3,7 @@ import { View } from 'react-native';
 import { Choice } from './FormControls';
 import { ThemeContext } from '../styles/theme';
 
-export function NavigationTabs({ screen, setScreen, isSystemAdmin, isOrgAdmin, onOpenProfile }) {
+export function NavigationTabs({ screen, setScreen, isSystemAdmin, isOrgAdmin, hasMeetingsAccess, onOpenMeetings, onOpenProfile }) {
   const { styles } = useContext(ThemeContext);
 
   return (
@@ -28,6 +28,9 @@ export function NavigationTabs({ screen, setScreen, isSystemAdmin, isOrgAdmin, o
           active={screen === 'commissions'}
           onPress={() => setScreen('commissions')}
         />
+      )}
+      {hasMeetingsAccess && (
+        <Choice label="Reuniões" active={screen === 'meetings'} onPress={onOpenMeetings} />
       )}
       {isSystemAdmin && (
         <Choice

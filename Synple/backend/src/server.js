@@ -10,6 +10,7 @@ const syncRoutes = require('./routes/sync');
 const usersRoutes = require('./routes/users');
 const organizationsRoutes = require('./routes/organizations');
 const commissionsRoutes = require('./routes/commissions');
+const meetingsRoutes = require('./routes/meetings');
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -32,6 +33,7 @@ app.use('/api/sync', syncRoutes);
 app.use('/api/users', usersRoutes);
 app.use('/api/organizations', organizationsRoutes);
 app.use('/api/commissions', commissionsRoutes);
+app.use('/api/meetings', meetingsRoutes);
 
 // Rota raiz informativa
 app.get('/', (req, res) => {
@@ -48,6 +50,7 @@ app.get('/', (req, res) => {
       '/api/users/:id',
       '/api/organizations',
       '/api/commissions',
+      '/api/meetings',
     ],
   });
 });
@@ -57,15 +60,21 @@ const { getLocalNetworkIp, updateMobileNetworkConfig } = require('./utils/networ
 
 // Inicialização do servidor
 if (require.main === module) {
-  const localIp = getLocalNetworkIp();
-  updateMobileNetworkConfig(localIp, PORT);
-
-  app.listen(PORT, '0.0.0.0', () => {
-    console.log('----------------------------------------------------');
-    console.log(`🚀 SYNPLE BACKEND ONLINE EM: http://${localIp}:${PORT}`);
-    console.log(`🗄️  CONECTADO AO POSTGRESQL: ${process.env.DB_NAME || 'Banco_synple'}`);
-    console.log(`📱 IP CONFIGURADO AUTOMATICAMENTE: ${localIp}`);
-    console.log('----------------------------------------------------');
+  const { migrateSchema } = require('./db/migrate');
+  migrateSchema().then(() => {
+    const localIp = getLocalNetworkIp();
+    updateMobileNetworkConfig(localIp, PORT);
+    app.listen(PORT, '0.0.0.0', () => {
+      console.log('----------------------------------------------------');
+      console.log(`🚀 SYNPLE BACKEND ONLINE EM: http://${localIp}:${PORT}`);
+      console.log(`🗄️  CONECTADO AO POSTGRESQL: ${process.env.DB_NAME || 'Banco_synple'}`);
+      console.log(`📱 IP CONFIGURADO AUTOMATICAMENTE: ${localIp}`);
+      console.log('----------------------------------------------------');
+    });
+  }).catch(async (error) => {
+    console.error('[Banco] Não foi possível preparar o schema:', error.message);
+    await require('./db/connection').pool.end();
+    process.exitCode = 1;
   });
 }
 

@@ -2,6 +2,8 @@
 
 Este guia contém **todos os comandos e passos necessários** para rodar o Banco de Dados (PostgreSQL) e o Backend (API Node.js) em qualquer computador utilizando Docker via CMD (Prompt de Comando).
 
+Para o passo a passo completo de instalação, uso do app, login Google e recuperação de senha, consulte [GUIA_USO_E_INICIALIZACAO.md](GUIA_USO_E_INICIALIZACAO.md). O mesmo guia explica como [gerar, salvar e compartilhar a ata em PDF](GUIA_USO_E_INICIALIZACAO.md#gerar-ata-em-pdf).
+
 ---
 
 ## ⚡ Opção Rápida (1 Clique)
@@ -38,6 +40,8 @@ Execute o comando de build e inicialização em segundo plano:
 docker compose up -d --build
 ```
 
+Use esse comando também depois de atualizar o projeto: ele reconstrói a API e instala `pdfkit`, usado para gerar atas em PDF. Recarregue o JavaScript do app no Expo/Metro depois de atualizar o código. A opção de PDF não exige outro APK ou development build. Um backend antigo, iniciado sem reconstruir a imagem, não disponibiliza a nova rota de PDF.
+
 > **O que esse comando faz sozinho:**
 > 1. Baixa o PostgreSQL 16 oficial.
 > 2. Cria o banco `Banco_synple`.
@@ -70,9 +74,19 @@ docker compose logs -f backend
 Abra uma **nova janela do CMD** e execute:
 ```cmd
 cd /d C:\Users\Conra\OneDrive\Documentos\GitHub\BRTPDS2\Synple\mobile
-npm start
+npm run start:go
 ```
-Aponte a câmera do seu celular no aplicativo **Expo Go** para escanear o QR Code e usar o app!
+Esse comando inicia o Expo Go e detecta o IP atual do notebook automaticamente. Para usar o development build do Synple (necessário ao Google Login), execute `npm run start:dev-client`. O celular físico precisa estar na mesma rede Wi-Fi; navegador e emulador Android usam `http://localhost:3001`, e no emulador Android `10.0.2.2` aponta para o computador hospedeiro.
+
+Para testar em outra rede, inicie backend, túnel da API e Metro com `npm run dev:tunnel` na raiz do projeto (ou `npm --prefix mobile run tunnel`). O `npx expo start --tunnel` sozinho encaminha apenas o Metro; a porta `3001` da API precisa do túnel separado que o script inicia. Para uso somente na rede local, com Docker/API já ativos, rode `npm --prefix mobile run start:go` para Expo Go ou `npm --prefix mobile run start:dev-client` para o development build; os scripts detectam o IP local. O login Google não roda no Expo Go; para ele use development build. Consulte [LOGIN_COM_GOOGLE.md](LOGIN_COM_GOOGLE.md).
+
+Antes de abrir o Expo, confirme que a API (e não apenas o PostgreSQL) responde no notebook:
+
+```cmd
+curl http://localhost:3001/api/health
+```
+
+Se não responder, suba todos os serviços com `docker compose up -d --build` e verifique `docker compose logs backend`.
 
 ---
 
@@ -83,7 +97,9 @@ Aponte a câmera do seu celular no aplicativo **Expo Go** para escanear o QR Cod
 | **Parar tudo** | `docker compose down` |
 | **Ligar novamente** | `docker compose up -d` |
 | **Ver logs do backend** | `docker compose logs backend` |
-| **Resetar banco do zero** | `docker compose down -v && docker compose up -d --build` |
+| **Apagar o banco e recriar do zero (destrutivo)** | `docker compose down -v && docker compose up -d --build` |
+
+> O comando com `down -v` apaga permanentemente o volume do PostgreSQL, incluindo usuários e dados cadastrados. Para apenas parar e iniciar os serviços preservando os dados, use `docker compose down` e depois `docker compose up -d`.
 
 ---
 
@@ -98,3 +114,7 @@ net stop postgresql-x64-18
 
 ### 2. Erro: *"error during connect: ... docker daemon is not running"*
 O Docker Desktop está fechado. Abra o **Docker Desktop** no menu Iniciar do Windows e aguarde 15 segundos antes de rodar o comando novamente.
+
+### 3. A ata não gera PDF
+
+Reconstrua a API com `docker compose up -d --build`, recarregue o app e salve a ata antes de gerar o arquivo. Mantenha a API ou o túnel acessível ao navegador do celular. Para baixar no Android/iOS, siga [Gerar ata em PDF](GUIA_USO_E_INICIALIZACAO.md#gerar-ata-em-pdf).

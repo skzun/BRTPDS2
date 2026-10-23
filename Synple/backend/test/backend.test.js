@@ -10,7 +10,7 @@ test('conecta com sucesso ao PostgreSQL Banco_synple', async () => {
   assert.ok(res.rows[0].version.includes('PostgreSQL'));
 });
 
-test('verifica existência de todas as 6 tabelas oficiais do DER', async () => {
+test('verifica existência das tabelas oficiais, incluindo reuniões e atas do incremento 2', async () => {
   const res = await db.query(`
     SELECT table_name
     FROM information_schema.tables
@@ -22,6 +22,11 @@ test('verifica existência de todas as 6 tabelas oficiais do DER', async () => {
     'access_requests',
     'commission_members',
     'commissions',
+    'meetings',
+    'meeting_invitations',
+    'meeting_attendance',
+    'meeting_minutes',
+    'meeting_minutes_approvals',
     'organizations',
     'system_subsystems',
     'users'

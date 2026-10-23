@@ -1,11 +1,22 @@
 const express = require('express');
 const router = express.Router();
 const bcrypt = require('bcryptjs');
+const crypto = require('crypto');
+const { OAuth2Client } = require('google-auth-library');
 const db = require('../db/connection');
 const { sendPasswordResetEmail } = require('../services/mailer');
 
 function normalizeEmail(email) {
   return (email || '').trim().toLowerCase();
+}
+
+const googleOAuthClient = new OAuth2Client();
+
+function getGoogleClientIds() {
+  return (process.env.GOOGLE_OAUTH_CLIENT_IDS || '')
+    .split(',')
+    .map((clientId) => clientId.trim())
+    .filter(Boolean);
 }
 
 // POST /api/auth/login - Autenticação com PostgreSQL
@@ -76,6 +87,63 @@ router.post('/register', async (req, res) => {
   }
 });
 
+// POST /api/auth/google - Login ou cadastro com um ID token validado pelo Google
+router.post('/google', async (req, res) => {
+  const { idToken } = req.body;
+  const clientIds = getGoogleClientIds();
+
+  if (!idToken) {
+    return res.status(400).json({ error: 'O token de identidade do Google é obrigatório.' });
+  }
+  if (clientIds.length === 0) {
+    return res.status(503).json({ error: 'O login com Google ainda não foi configurado no servidor.' });
+  }
+
+  try {
+    const ticket = await googleOAuthClient.verifyIdToken({ idToken, audience: clientIds });
+    const payload = ticket.getPayload();
+    const email = normalizeEmail(payload?.email);
+    const isEmailVerified = payload?.email_verified === true || payload?.email_verified === 'true';
+
+    if (!payload?.sub || !email || !isEmailVerified) {
+      return res.status(401).json({ error: 'A conta Google não forneceu um e-mail verificado.' });
+    }
+
+    const existingRes = await db.query(
+      'SELECT id, name, email, phone, system_role as "systemRole", theme, google_id FROM users WHERE LOWER(email) = $1;',
+      [email]
+    );
+
+    if (existingRes.rowCount > 0) {
+      const existingUser = existingRes.rows[0];
+      if (existingUser.google_id && existingUser.google_id !== payload.sub) {
+        return res.status(409).json({ error: 'Este e-mail já está associado a outra conta Google.' });
+      }
+
+      const linkedUser = await db.query(`
+        UPDATE users
+        SET google_id = COALESCE(google_id, $1), updated_at = NOW()
+        WHERE id = $2
+        RETURNING id, name, email, phone, system_role as "systemRole", theme;
+      `, [payload.sub, existingUser.id]);
+      return res.json({ ...linkedUser.rows[0], isNewUser: false });
+    }
+
+    const passwordHash = bcrypt.hashSync(crypto.randomBytes(32).toString('hex'), 10);
+    const displayName = String(payload.name || email.split('@')[0]).trim().slice(0, 120);
+    const createdUser = await db.query(`
+      INSERT INTO users (name, email, password_hash, google_id, system_role, theme)
+      VALUES ($1, $2, $3, $4, 'USER', 'LIGHT')
+      RETURNING id, name, email, phone, system_role as "systemRole", theme;
+    `, [displayName, email, passwordHash, payload.sub]);
+
+    return res.status(201).json({ ...createdUser.rows[0], isNewUser: true });
+  } catch (err) {
+    console.error('Erro no login Google:', err.message);
+    return res.status(401).json({ error: 'Não foi possível validar a identidade da conta Google.' });
+  }
+});
+
 // POST /api/auth/change-password - Troca de senha segura
 router.post('/change-password', async (req, res) => {
   const { userId, currentPassword, nextPassword } = req.body;
@@ -104,60 +172,7 @@ router.post('/change-password', async (req, res) => {
   }
 });
 
-// POST /api/auth/verify-phone-reset - Validação por telefone cadastrado (Custo Zero e 100% Open Source)
-router.post('/verify-phone-reset', async (req, res) => {
-  const { email, phone } = req.body;
-  const cleanEmail = normalizeEmail(email);
-  const cleanPhone = (phone || '').replace(/\D/g, '');
-
-  if (!cleanEmail || !cleanPhone) {
-    return res.status(400).json({ error: 'E-mail e telefone cadastrado são obrigatórios.' });
-  }
-
-  try {
-    const userRes = await db.query('SELECT id, name, email, phone FROM users WHERE LOWER(email) = $1;', [cleanEmail]);
-    if (userRes.rowCount === 0) {
-      return res.status(404).json({ error: 'Nenhum usuário cadastrado com este e-mail.' });
-    }
-
-    const user = userRes.rows[0];
-    const userPhoneDigits = (user.phone || '').replace(/\D/g, '');
-
-    // Verifica se os dígitos coincidem (número completo ou últimos 8/9 dígitos)
-    const isMatch = Boolean(
-      (userPhoneDigits && userPhoneDigits === cleanPhone) ||
-      (userPhoneDigits.length >= 8 && cleanPhone.length >= 8 && (
-        userPhoneDigits.endsWith(cleanPhone) || cleanPhone.endsWith(userPhoneDigits)
-      ))
-    );
-
-    if (!isMatch) {
-      return res.status(400).json({ error: 'O telefone informado não confere com o cadastrado nesta conta.' });
-    }
-
-    // Gera token de redefinição de 6 dígitos válido por 15 minutos
-    const resetToken = Math.floor(100000 + Math.random() * 900000).toString();
-
-    await db.query(`
-      UPDATE users 
-      SET reset_token = $1, 
-          reset_token_expires = NOW() + INTERVAL '15 minutes', 
-          updated_at = NOW() 
-      WHERE id = $2;
-    `, [resetToken, user.id]);
-
-    console.log(`🔐 [Recuperação por Telefone] Identidade validada para ${user.email} (${user.phone}). Token: ${resetToken}`);
-
-    return res.json({
-      success: true,
-      message: 'Identidade confirmada com sucesso!',
-      resetToken,
-    });
-  } catch (err) {
-    console.error('Erro em verify-phone-reset:', err);
-    return res.status(500).json({ error: 'Erro ao validar dados no banco de dados.' });
-  }
-});
+// POST /api/auth/forgot-password - Envia código de redefinição ao e-mail cadastrado
 router.post('/forgot-password', async (req, res) => {
   const { email } = req.body;
   const cleanEmail = normalizeEmail(email);
@@ -166,35 +181,47 @@ router.post('/forgot-password', async (req, res) => {
     return res.status(400).json({ error: 'O e-mail é obrigatório.' });
   }
 
+  const isGmail = process.env.SMTP_SERVICE === 'gmail' ||
+    (process.env.SMTP_USER || '').toLowerCase().endsWith('@gmail.com') ||
+    (process.env.SMTP_HOST || '').toLowerCase().includes('gmail');
+  const mailIsConfigured = Boolean(process.env.SMTP_USER && process.env.SMTP_PASS && (isGmail || process.env.SMTP_HOST));
+  if (!mailIsConfigured) {
+    return res.status(503).json({ error: 'O envio de e-mail ainda não foi configurado no servidor.' });
+  }
+
   try {
     const userRes = await db.query('SELECT id, name, email FROM users WHERE LOWER(email) = $1;', [cleanEmail]);
     if (userRes.rowCount === 0) {
-      return res.status(404).json({ error: 'Nenhum usuário cadastrado com este e-mail.' });
+      return res.json({ success: true, message: 'Se houver uma conta para este e-mail, enviaremos um código de recuperação.' });
     }
 
     const user = userRes.rows[0];
 
     // Gera código numérico aleatório de 6 dígitos
-    const code = Math.floor(100000 + Math.random() * 900000).toString();
+    const code = crypto.randomInt(100000, 1000000).toString();
+    const tokenHash = crypto.createHash('sha256').update(code).digest('hex');
 
-    // Salva código e validade de 15 minutos no PostgreSQL
+    // Salva apenas o hash do código; o código em texto simples só vai por e-mail.
     await db.query(`
       UPDATE users 
       SET reset_token = $1, 
           reset_token_expires = NOW() + INTERVAL '15 minutes', 
           updated_at = NOW() 
       WHERE id = $2;
-    `, [code, user.id]);
+    `, [tokenHash, user.id]);
 
-    // Envia o e-mail real com o código
     const mailResult = await sendPasswordResetEmail(user.email, code);
-    const isSmtpConfigured = Boolean(process.env.SMTP_USER && process.env.SMTP_PASS);
+    if (!mailResult.success) {
+      await db.query(`
+        UPDATE users SET reset_token = NULL, reset_token_expires = NULL, updated_at = NOW()
+        WHERE id = $1 AND reset_token = $2;
+      `, [user.id, tokenHash]);
+      return res.status(502).json({ error: 'Não foi possível enviar o e-mail de recuperação. Tente novamente mais tarde.' });
+    }
 
     return res.json({
       success: true,
-      message: `Código de verificação enviado para ${user.email}.`,
-      previewUrl: mailResult.previewUrl || null,
-      debugCode: (!isSmtpConfigured || Boolean(mailResult.previewUrl)) ? code : undefined,
+      message: 'Se houver uma conta para este e-mail, enviaremos um código de recuperação.',
     });
   } catch (err) {
     console.error('Erro em forgot-password:', err);
@@ -225,13 +252,14 @@ router.post('/reset-password', async (req, res) => {
     `, [cleanEmail]);
 
     if (userRes.rowCount === 0) {
-      return res.status(404).json({ error: 'Usuário não encontrado.' });
+      return res.status(400).json({ error: 'Código incorreto ou expirado. Solicite outro código.' });
     }
 
     const user = userRes.rows[0];
+    const tokenHash = crypto.createHash('sha256').update(cleanCode).digest('hex');
 
-    if (!user.reset_token || user.reset_token !== cleanCode) {
-      return res.status(400).json({ error: 'Código de verificação incorreto.' });
+    if (!user.reset_token || user.reset_token !== tokenHash) {
+      return res.status(400).json({ error: 'Código incorreto ou expirado. Solicite outro código.' });
     }
 
     if (new Date(user.reset_token_expires) < new Date()) {

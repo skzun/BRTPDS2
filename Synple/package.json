@@ -6,12 +6,14 @@
   "scripts": {
     "dev": "node scripts/dev.js",
     "dev:tunnel": "node scripts/dev-tunnel.js",
+    "dev:tunnel:go": "node scripts/dev-tunnel.js --go",
     "start": "npm --prefix mobile run start",
     "tunnel": "node scripts/dev-tunnel.js",
     "mobile": "npm --prefix mobile run start",
     "backend": "npm --prefix backend run start",
     "detect-ip": "npm --prefix mobile run detect-ip",
     "init-db": "npm --prefix backend run init-db",
+    "migrate": "npm --prefix backend run migrate",
     "test": "npm --prefix mobile test && npm --prefix backend test"
   }
 }

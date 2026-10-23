@@ -1,5 +1,6 @@
 import { useContext } from 'react';
-import { Pressable, Text, View } from 'react-native';
+import { Text, View } from 'react-native';
+import { Pressable } from '../components/ActionPressable';
 import { Choice, Field } from '../components/FormControls';
 import { formatPhone } from '../services/formatters';
 import { ThemeContext } from '../styles/theme';
@@ -11,7 +12,6 @@ export function ProfileScreen({
   passwordForm,
   setPasswordForm,
   onUpdatePassword,
-  onRecoverAccount,
   activeUser,
   onSetTheme,
 }) {
@@ -73,9 +73,6 @@ export function ProfileScreen({
         />
         <Pressable style={styles.primaryButton} onPress={onUpdatePassword}>
           <Text style={styles.primaryButtonText}>Atualizar senha</Text>
-        </Pressable>
-        <Pressable style={styles.resetButton} onPress={onRecoverAccount}>
-          <Text style={styles.resetText}>Recuperar conta por e-mail</Text>
         </Pressable>
       </View>
 

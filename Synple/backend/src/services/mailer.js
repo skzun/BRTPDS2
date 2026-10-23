@@ -3,7 +3,6 @@ const path = require('path');
 require('dotenv').config({ path: path.join(__dirname, '../../.env') });
 
 let transporter = null;
-let etherealAccount = null;
 
 async function getTransporter() {
   if (transporter) return transporter;
@@ -23,7 +22,6 @@ async function getTransporter() {
           pass: process.env.SMTP_PASS.replace(/\s+/g, ''),
         },
       });
-      console.log(`📧 [Mailer] Serviço Gmail SMTP configurado para ${process.env.SMTP_USER}`);
       return transporter;
     }
 
@@ -37,30 +35,10 @@ async function getTransporter() {
         pass: process.env.SMTP_PASS.trim(),
       },
     });
-    console.log(`📧 [Mailer] Serviço SMTP configurado com ${process.env.SMTP_HOST} (${process.env.SMTP_USER})`);
     return transporter;
   }
 
-  // Modo Desenvolvimento / Teste: usa Ethereal Email para gerar preview real na web
-  try {
-    if (!etherealAccount) {
-      etherealAccount = await nodemailer.createTestAccount();
-    }
-    transporter = nodemailer.createTransport({
-      host: 'smtp.ethereal.email',
-      port: 587,
-      secure: false,
-      auth: {
-        user: etherealAccount.user,
-        pass: etherealAccount.pass,
-      },
-    });
-    console.log('📧 [Mailer] SMTP não configurado no .env. Utilizando conta de teste Ethereal.');
-    return transporter;
-  } catch (err) {
-    console.warn('⚠️ [Mailer] Não foi possível criar conta Ethereal, usando fallback de console:', err.message);
-    return null;
-  }
+  return null;
 }
 
 /**
@@ -102,14 +80,10 @@ async function sendPasswordResetEmail(toEmail, code) {
 
   const textContent = `Synple - Recuperação de Senha\n\nSeu código de verificação é: ${code}\n\nEste código é válido por 15 minutos.\nSe você não solicitou, ignore esta mensagem.`;
 
-  console.log(`\n======================================================`);
-  console.log(`🔑 [Recuperação de Senha] Código para ${toEmail}: ${code}`);
-  console.log(`======================================================`);
-
   try {
     const activeTransporter = await getTransporter();
     if (!activeTransporter) {
-      return { success: true, simulated: true, code };
+      return { success: false, error: 'SMTP_USER e SMTP_PASS precisam estar configurados.' };
     }
 
     const info = await activeTransporter.sendMail({
@@ -120,20 +94,13 @@ async function sendPasswordResetEmail(toEmail, code) {
       html: htmlContent,
     });
 
-    const previewUrl = nodemailer.getTestMessageUrl(info);
-    if (previewUrl) {
-      console.log(`🌐 [Ethereal Preview] Visualize o e-mail enviado: ${previewUrl}`);
-    }
-
     return {
       success: true,
       messageId: info.messageId,
-      previewUrl: previewUrl || null,
     };
   } catch (err) {
     console.error('❌ [Mailer] Erro ao disparar e-mail:', err.message);
-    // Em caso de falha no envio SMTP externo, não quebra a requisição do usuário, registra no log
-    return { success: false, error: err.message, fallbackCode: code };
+    return { success: false, error: err.message };
   }
 }
 

@@ -1,9 +1,11 @@
 import { StatusBar } from 'expo-status-bar';
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import {
   Alert,
   Image,
-  Pressable,
+  KeyboardAvoidingView,
+  Platform,
+  RefreshControl,
   ScrollView,
   Text,
   View,
@@ -14,27 +16,41 @@ import { INITIAL_DATA } from './src/constants/data';
 import { useSynpleData } from './src/hooks/useSynpleData';
 import { saveData } from './src/services/storage';
 import { formatCNPJ, formatPhone } from './src/services/formatters';
+import { getAccessibleMeetingCommissions } from './src/services/meetings';
 import { normalizeEmail, validateCommission, validateLogin, validateOrganization, validatePassword, validatePhone, validateRegistration, validateUser } from './src/services/validation';
 import {
   changePasswordWithApi,
   createCommissionWithApi,
+  addCommissionMemberWithApi,
+  updateCommissionMemberRoleWithApi,
+  removeCommissionMemberWithApi,
   createOrganizationWithApi,
   deleteOrganizationWithApi,
   deleteUserWithApi,
   getApiBaseUrl,
+  loginWithGoogleApi,
   registerWithApi,
   requestAccessWithApi,
   requestPasswordResetWithApi,
   resetPasswordWithApi,
-  verifyPhoneResetWithApi,
   updateAccessRequestStatusWithApi,
   updateOrganizationStatusWithApi,
+  transferOrganizationOwnershipWithApi,
+  updateOrganizationWithApi,
+  scheduleMeetingWithApi,
+  respondToMeetingInvitationWithApi,
+  recordMeetingAttendanceWithApi,
+  fetchMeetingAttendanceWithApi,
+  saveMeetingMinutesWithApi,
+  submitMeetingMinutesWithApi,
+  approveMeetingMinutesWithApi,
   updateUserWithApi,
 } from './src/services/api';
 import { getThemeStyles, ThemeContext } from './src/styles/theme';
 
 // Componentes modulares
 import { AppHeader } from './src/components/AppHeader';
+import { Pressable } from './src/components/ActionPressable';
 import { NavigationTabs } from './src/components/NavigationTabs';
 
 // Telas modulares
@@ -45,6 +61,7 @@ import { CommissionsScreen } from './src/screens/CommissionsScreen';
 import { AdminManagementScreen } from './src/screens/AdminManagementScreen';
 import { SystemScreen } from './src/screens/SystemScreen';
 import { ProfileScreen } from './src/screens/ProfileScreen';
+import { MeetingsScreen } from './src/screens/MeetingsScreen';
 
 const createId = (prefix) => `${prefix}-${Date.now()}`;
 
@@ -65,6 +82,10 @@ export default function App() {
   const [role, setRole] = useState('USER');
   const [activeUserId, setActiveUserId] = useState('user-visitante');
   const [organizationForm, setOrganizationForm] = useState({ name: '', document: '' });
+  const [isCreatingOrganization, setIsCreatingOrganization] = useState(false);
+  const organizationCreationInFlightRef = useRef(false);
+  const commissionMemberOperationsRef = useRef(new Set());
+  const [isRefreshing, setIsRefreshing] = useState(false);
   const [organizationSearch, setOrganizationSearch] = useState('');
   const [selectedOrganizationId, setSelectedOrganizationId] = useState('org-aurora');
   const [commissionForm, setCommissionForm] = useState({ name: '', type: 'Comissão', description: '' });
@@ -108,6 +129,20 @@ export default function App() {
     return user ? { ...user, commissionRole: membership.role || 'MEMBER' } : null;
   }).filter(Boolean);
   const availableOrgMembers = organizationMembers.filter((user) => !commissionMemberships.some((m) => m.userId === user.id));
+  const hasMeetingsAccess = !isSystemAdmin && getAccessibleMeetingCommissions(data, activeUserId).length > 0;
+
+  async function refreshData() {
+    if (isRefreshing) return;
+    setIsRefreshing(true);
+    try { await syncWithRemote(); } finally { setIsRefreshing(false); }
+  }
+
+  function confirmAction(title, message, action, destructive = false) {
+    Alert.alert(title, message, [
+      { text: 'Cancelar', style: 'cancel' },
+      { text: 'Confirmar', style: destructive ? 'destructive' : 'default', onPress: action },
+    ]);
+  }
 
   useEffect(() => {
     if (isOrgAdmin && (!selectedOrganizationId || !approvedOwnedOrganizations.some((org) => org.id === selectedOrganizationId))) {
@@ -118,6 +153,8 @@ export default function App() {
   }, [isOrgAdmin, approvedOwnedOrganizations, selectedOrganizationId]);
 
   async function createOrganization() {
+    if (organizationCreationInFlightRef.current) return;
+
     const validationError = validateOrganization(organizationForm);
     if (validationError) {
       Alert.alert('Campos obrigatórios', validationError);
@@ -130,29 +167,37 @@ export default function App() {
       return;
     }
 
-    let orgId = createId('org');
-    let pendingSync = true;
+    confirmAction('Confirmar cadastro', `Criar a organização "${name}" com o CNPJ ${document}?`, async () => {
+    organizationCreationInFlightRef.current = true;
+    setIsCreatingOrganization(true);
 
     try {
       const apiRes = await createOrganizationWithApi({ name, document, ownerId: activeUserId, status: 'PENDING' });
-      if (apiRes && apiRes.success && apiRes.organization?.id) {
-        orgId = apiRes.organization.id;
-        pendingSync = false;
+      if (!apiRes?.success || !apiRes.organization?.id) {
+        Alert.alert('Cadastro não confirmado', apiRes?.error || 'Não foi possível confirmar o cadastro no servidor. Tente novamente.');
+        return;
       }
-    } catch (err) {
-      console.warn('Organização mantida localmente para sincronização:', err);
-    }
 
-    const organization = { id: orgId, name, document, ownerId: activeUserId, status: 'PENDING', pendingSync };
-    setData((current) => ({
-      ...current,
-      organizations: [...current.organizations, organization],
-    }));
-    setSelectedOrganizationId(organization.id);
-    setRole('USER');
-    setScreen('management');
-    setOrganizationForm({ name: '', document: '' });
-    Alert.alert('Cadastro enviado', 'Sua organização aguarda aprovação do administrador do sistema. Após a aprovação, você será o administrador da organização e poderá gerenciar acessos e comissões.');
+      const organization = { ...apiRes.organization, pendingSync: false };
+      setData((current) => ({
+        ...current,
+        organizations: current.organizations.some((item) => item.document === organization.document)
+          ? current.organizations
+          : [...current.organizations, organization],
+      }));
+      setSelectedOrganizationId(organization.id);
+      setRole('USER');
+      setScreen('management');
+      setOrganizationForm({ name: '', document: '' });
+      Alert.alert('Cadastro confirmado', 'A organização foi registrada no servidor e aguarda aprovação do administrador do sistema.');
+    } catch (err) {
+      console.warn('Falha ao confirmar organização no servidor:', err);
+      Alert.alert('Cadastro não confirmado', 'Não foi possível confirmar o cadastro no servidor. Tente novamente.');
+    } finally {
+      organizationCreationInFlightRef.current = false;
+      setIsCreatingOrganization(false);
+    }
+    });
   }
 
   function login({ email, password, mode }) {
@@ -193,6 +238,27 @@ export default function App() {
     setIsAuthenticated(true);
   }
 
+  async function loginWithGoogle(idToken) {
+    const result = await loginWithGoogleApi(idToken);
+    if (!result.success || !result.user) {
+      Alert.alert('Login com Google', result.error || 'Não foi possível entrar com Google.');
+      return false;
+    }
+
+    const user = result.user;
+    setData((current) => ({
+      ...current,
+      users: current.users.some((item) => normalizeEmail(item.email) === normalizeEmail(user.email))
+        ? current.users.map((item) => normalizeEmail(item.email) === normalizeEmail(user.email) ? { ...item, ...user, pendingSync: false } : item)
+        : [...current.users, { ...user, pendingSync: false }],
+    }));
+    setActiveUserId(user.id);
+    setRole(user.systemRole === 'SYSTEM_ADMIN' ? 'SYSTEM_ADMIN' : 'USER');
+    setScreen(user.systemRole === 'SYSTEM_ADMIN' ? 'admin-management' : 'organizations');
+    setIsAuthenticated(true);
+    return true;
+  }
+
   async function registerUser({ name, email, phone, password, confirmPassword }) {
     const validationError = validateRegistration({ name, email, phone, password, confirmPassword });
     if (validationError) return Alert.alert('Dados inválidos', validationError);
@@ -218,6 +284,14 @@ export default function App() {
         user.id = apiRes.user.id;
         user.pendingSync = false;
         newUserId = apiRes.user.id;
+        console.log('✅ Usuário salvo com sucesso no PostgreSQL:', apiRes.user.email);
+      } else {
+        const errorMsg = apiRes?.error || 'Servidor indisponível';
+        console.warn('⚠️ Não foi possível salvar no PostgreSQL:', errorMsg);
+        Alert.alert(
+          'Aviso de Conexão',
+          `Não foi possível salvar diretamente no PostgreSQL (${errorMsg}). O usuário foi salvo temporariamente no celular e será sincronizado quando o servidor conectar.`
+        );
       }
     } catch (err) {
       console.warn('Registro mantido localmente:', err);
@@ -243,6 +317,9 @@ export default function App() {
 
   function changeOrganizationStatus(organizationId, status) {
     if (!isSystemAdmin) return;
+    const organization = data.organizations.find((item) => item.id === organizationId);
+    if (!organization) return;
+    confirmAction('Confirmar alteração', `Alterar a situação de "${organization.name}" para ${status === 'APPROVED' ? 'aprovada' : status === 'REJECTED' ? 'rejeitada' : 'pendente'}?`, () => {
     updateOrganizationStatusWithApi(organizationId, status).catch(() => {});
     setData((current) => ({
       ...current,
@@ -250,6 +327,7 @@ export default function App() {
         organization.id === organizationId ? { ...organization, status } : organization
       )),
     }));
+    });
   }
 
   function removeOrganization(organizationId) {
@@ -280,12 +358,10 @@ export default function App() {
     Alert.alert('Remover usuário', 'O usuário e todas as suas organizações, acessos e vínculos serão removidos permanentemente.', [
       { text: 'Cancelar', style: 'cancel' },
       { text: 'Remover', style: 'destructive', onPress: async () => {
-        // 1. Exclui no PostgreSQL por ID e por e-mail imediatamente
-        try {
-          if (user.id) await deleteUserWithApi(user.id);
-          if (user.email) await deleteUserWithApi(user.email);
-        } catch (e) {
-          console.warn('Erro ao excluir usuário remotamente:', e);
+        const deletion = await deleteUserWithApi(user.id || user.email);
+        if (!deletion.success) {
+          Alert.alert('Usuário não removido', deletion.error || 'Não foi possível confirmar a exclusão no servidor.');
+          return;
         }
 
         // 2. Atualiza estado e persiste imediatamente no armazenamento local para evitar ressuscitação
@@ -325,6 +401,7 @@ export default function App() {
         : `Você já possui uma solicitação de acesso pendente para a organização "${organization.name}".`;
       return Alert.alert('Solicitação existente', msg);
     }
+    confirmAction('Confirmar solicitação', `Enviar pedido para participar de "${organization.name}"?`, () => {
     setData((current) => ({
       ...current,
       accessRequests: [...current.accessRequests, {
@@ -333,6 +410,7 @@ export default function App() {
     }));
     requestAccessWithApi(organization.id, activeUserId).catch(() => {});
     Alert.alert('Solicitação enviada', `Sua solicitação de entrada na organização "${organization.name}" foi enviada com sucesso e aguarda aprovação.`);
+    });
   }
 
   function changeAccessStatus(requestId, status) {
@@ -352,10 +430,11 @@ export default function App() {
     const request = data.accessRequests.find((item) => item.id === requestId);
     const organization = data.organizations.find((item) => item.id === request?.organizationId);
     if (!isOrgAdmin || organization?.ownerId !== activeUserId || organization.status !== 'APPROVED' || request.status !== 'APPROVED') return;
-    setData((current) => ({
+    const member = data.users.find((user) => user.id === request.userId);
+    confirmAction('Confirmar alteração de cargo', `Alterar o cargo de ${member?.name || 'participante'} para ${organizationRole === 'COORDINATOR' ? 'coordenador' : 'membro'}?`, () => setData((current) => ({
       ...current,
       accessRequests: current.accessRequests.map((item) => (item.id === requestId ? { ...item, organizationRole } : item)),
-    }));
+    })));
   }
 
   function removeOrganizationMember(requestId) {
@@ -370,6 +449,119 @@ export default function App() {
         commissionMembers: current.commissionMembers.filter((member) => member.userId !== request.userId || !current.commissions.some((commission) => commission.id === member.commissionId && commission.organizationId === request.organizationId)),
       })) },
     ]);
+  }
+
+  function transferOrganizationOwnership(userId) {
+    const member = data.users.find((user) => user.id === userId);
+    if (!member || !selectedOrganization || selectedOrganization.ownerId !== activeUserId) return;
+    confirmAction('Transferir propriedade', `Transferir o cargo de dono de "${selectedOrganization.name}" para ${member.name}? Você permanecerá como membro.`, async () => {
+      const result = await transferOrganizationOwnershipWithApi(selectedOrganization.id, activeUserId, userId);
+      if (!result.success) return Alert.alert('Transferência não realizada', result.error);
+      setData((current) => ({
+        ...current,
+        organizations: current.organizations.map((org) => org.id === selectedOrganization.id ? { ...org, ownerId: userId } : org),
+        accessRequests: current.accessRequests.map((request) => request.organizationId === selectedOrganization.id && request.userId === activeUserId
+          ? { ...request, status: 'APPROVED', organizationRole: 'MEMBER' } : request),
+      }));
+      Alert.alert('Propriedade transferida', `${member.name} agora é o proprietário da organização.`);
+    });
+  }
+
+  function inviteOrganizationMember(email) {
+    const invitedUser = data.users.find((user) => normalizeEmail(user.email) === normalizeEmail(email));
+    if (!selectedOrganization || selectedOrganization.ownerId !== activeUserId) return;
+    if (!invitedUser) return Alert.alert('Usuário não encontrado', 'O convite precisa usar o e-mail de uma conta já cadastrada.');
+    if (invitedUser.id === activeUserId) return Alert.alert('Convite inválido', 'Você já é o proprietário da organização.');
+    const existing = data.accessRequests.find((request) => request.organizationId === selectedOrganization.id && request.userId === invitedUser.id && ['PENDING', 'APPROVED'].includes(request.status));
+    if (existing) return Alert.alert('Participação existente', existing.status === 'APPROVED' ? 'Esse usuário já participa da organização.' : 'Esse usuário já tem um pedido pendente.');
+    confirmAction('Confirmar convite', `Convidar ${invitedUser.name} (${invitedUser.email}) para "${selectedOrganization.name}"?`, () => {
+      requestAccessWithApi(selectedOrganization.id, invitedUser.id).catch(() => {});
+      setData((current) => ({ ...current, accessRequests: [...current.accessRequests, {
+        id: createId('invite'), organizationId: selectedOrganization.id, userId: invitedUser.id, status: 'PENDING', organizationRole: 'MEMBER', invitedBy: activeUserId,
+      }] }));
+      Alert.alert('Convite enviado', 'O usuário aparecerá nas solicitações pendentes para aprovação.');
+    });
+  }
+
+  function updateOrganization(organizationId, changes) {
+    const organization = data.organizations.find((item) => item.id === organizationId);
+    if (!organization || organization.ownerId !== activeUserId) return;
+    const name = changes.name.trim();
+    const document = changes.document.trim();
+    if (!name || !document) return Alert.alert('Dados obrigatórios', 'Informe o nome e o CNPJ da organização.');
+    confirmAction('Confirmar alterações', `Salvar as informações da organização "${organization.name}"?`, async () => {
+      const result = await updateOrganizationWithApi(organizationId, { name, document, ownerId: activeUserId });
+      if (!result.success) return Alert.alert('Alteração não realizada', result.error);
+      setData((current) => ({ ...current, organizations: current.organizations.map((item) => item.id === organizationId ? { ...item, ...result.organization } : item) }));
+      Alert.alert('Organização atualizada', 'As informações foram salvas.');
+    });
+  }
+
+  async function scheduleMeeting(meeting) {
+    const result = await scheduleMeetingWithApi({ ...meeting, createdBy: activeUserId });
+    if (!result.success) { Alert.alert('Reunião não agendada', result.error); return false; }
+    setData((current) => ({ ...current, meetings: [...current.meetings.filter((item) => item.id !== result.meeting.id), result.meeting] }));
+    await syncWithRemote();
+    Alert.alert('Reunião agendada', 'Os participantes da comissão foram convidados.');
+    return true;
+  }
+
+  async function respondToMeeting(meetingId, status) {
+    const result = await respondToMeetingInvitationWithApi(meetingId, activeUserId, status);
+    if (!result.success) { Alert.alert('Resposta não salva', result.error); return false; }
+    setData((current) => ({ ...current, meetingInvitations: current.meetingInvitations.map((invite) => invite.id === result.invitation.id ? result.invitation : invite) }));
+    return true;
+  }
+
+  async function recordAttendance(meetingId, action) {
+    const result = await recordMeetingAttendanceWithApi(meetingId, activeUserId, action);
+    if (!result.success) { Alert.alert('Presença não registrada', result.error); return false; }
+    setData((current) => ({
+      ...current,
+      meetingAttendance: current.meetingAttendance.some((item) => item.id === result.attendance.id)
+        ? current.meetingAttendance.map((item) => item.id === result.attendance.id ? result.attendance : item)
+        : [...current.meetingAttendance, result.attendance],
+    }));
+    return true;
+  }
+
+  function storeMeetingMinutes(minutes) {
+    setData((current) => ({
+      ...current,
+      meetingMinutes: [...(current.meetingMinutes || []).filter((item) => item.meetingId !== minutes.meetingId), minutes],
+    }));
+  }
+
+  async function generateMeetingAttendance(meetingId) {
+    const result = await fetchMeetingAttendanceWithApi(meetingId, activeUserId);
+    if (!result.success) { Alert.alert('Lista não gerada', result.error); return null; }
+    return result.attendance;
+  }
+
+  async function saveMeetingMinutes(meetingId, content) {
+    const result = await saveMeetingMinutesWithApi(meetingId, activeUserId, content);
+    if (!result.success) { Alert.alert('Ata não salva', result.error); return false; }
+    storeMeetingMinutes(result.minutes);
+    return true;
+  }
+
+  async function submitMeetingMinutes(meetingId) {
+    const result = await submitMeetingMinutesWithApi(meetingId, activeUserId);
+    if (!result.success) { Alert.alert('Ata não enviada', result.error); return false; }
+    storeMeetingMinutes(result.minutes);
+    Alert.alert('Ata enviada', 'Todos os participantes com entrada registrada deverão aprovar esta versão.');
+    return true;
+  }
+
+  async function approveMeetingMinutes(meetingId, decision, comment, version) {
+    const result = await approveMeetingMinutesWithApi(meetingId, activeUserId, decision, comment, version);
+    if (!result.success) { Alert.alert('Decisão não registrada', result.error); return false; }
+    setData((current) => ({
+      ...current,
+      meetingMinutes: [...(current.meetingMinutes || []).filter((item) => item.meetingId !== meetingId), result.minutes],
+      meetingMinutesApprovals: [...(current.meetingMinutesApprovals || []).filter((item) => item.id !== result.approval.id), result.approval],
+    }));
+    return true;
   }
 
   async function createCommission() {
@@ -481,35 +673,47 @@ export default function App() {
     ]);
   }
 
+  async function changeCommissionMember(userId, operation, role) {
+    const commissionId = selectedCommission.id;
+    const operationId = `${commissionId}:${userId}`;
+    if (commissionMemberOperationsRef.current.has(operationId)) return;
+    commissionMemberOperationsRef.current.add(operationId);
+    try {
+      const result = operation === 'ADD'
+        ? await addCommissionMemberWithApi(commissionId, activeUserId, userId, role)
+        : operation === 'REMOVE'
+          ? await removeCommissionMemberWithApi(commissionId, activeUserId, userId)
+          : await updateCommissionMemberRoleWithApi(commissionId, activeUserId, userId, role);
+      if (!result.success) return Alert.alert('Equipe não alterada', result.error);
+      setData((current) => ({
+        ...current,
+        commissionMembers: [
+          ...current.commissionMembers.filter((member) => !(member.commissionId === commissionId && member.userId === userId)),
+          ...(operation === 'REMOVE' ? [] : [result.member]),
+        ],
+      }));
+    } finally {
+      commissionMemberOperationsRef.current.delete(operationId);
+    }
+  }
+
   function addCommissionMember(userId, role = 'MEMBER') {
     if (!selectedCommission || selectedOrganization?.ownerId !== activeUserId || selectedOrganization.status !== 'APPROVED') return;
     if (data.commissionMembers.some((member) => member.commissionId === selectedCommission.id && member.userId === userId)) return;
-    setData((current) => ({
-      ...current,
-      commissionMembers: [...current.commissionMembers, { commissionId: selectedCommission.id, userId, role }],
-    }));
+    return changeCommissionMember(userId, 'ADD', role);
   }
 
   function removeCommissionMember(userId) {
     if (selectedOrganization?.ownerId !== activeUserId || selectedOrganization.status !== 'APPROVED' || !selectedCommission) return;
-    setData((current) => ({
-      ...current,
-      commissionMembers: current.commissionMembers.filter((member) => !(member.commissionId === selectedCommissionId && member.userId === userId)),
-    }));
+    return changeCommissionMember(userId, 'REMOVE');
   }
 
   function toggleCommissionMemberRole(userId) {
     if (selectedOrganization?.ownerId !== activeUserId || selectedOrganization.status !== 'APPROVED' || !selectedCommission) return;
-    setData((current) => ({
-      ...current,
-      commissionMembers: current.commissionMembers.map((member) => {
-        if (member.commissionId === selectedCommissionId && member.userId === userId) {
-          const nextRole = (member.role || 'MEMBER') === 'COORDINATOR' ? 'MEMBER' : 'COORDINATOR';
-          return { ...member, role: nextRole };
-        }
-        return member;
-      }),
-    }));
+    const member = data.commissionMembers.find((item) => item.commissionId === selectedCommissionId && item.userId === userId);
+    if (!member) return;
+    const nextRole = (member.role || 'MEMBER') === 'COORDINATOR' ? 'MEMBER' : 'COORDINATOR';
+    return changeCommissionMember(userId, 'ROLE', nextRole);
   }
 
   function openProfile() {
@@ -528,6 +732,7 @@ export default function App() {
     const email = normalizeEmail(profileForm.email);
     if (data.users.some((user) => user.id !== activeUserId && user.email === email)) return Alert.alert('E-mail já utilizado', 'Escolha outro e-mail.');
 
+    confirmAction('Confirmar alterações', 'Salvar as alterações dos seus dados pessoais?', () => {
     updateUserWithApi(activeUserId, { name, email, phone: formatPhone(profileForm.phone) }).catch(() => {});
 
     setData((current) => ({
@@ -539,6 +744,7 @@ export default function App() {
       )),
     }));
     Alert.alert('Dados atualizados', 'Suas informações pessoais foram alteradas.');
+    });
   }
 
   function updatePassword() {
@@ -553,6 +759,7 @@ export default function App() {
       return Alert.alert('Senha atual incorreta', 'A senha atual informada não confere.');
     }
 
+    confirmAction('Confirmar troca de senha', 'Deseja atualizar sua senha agora?', () => {
     changePasswordWithApi(activeUserId, currentInput, passwordForm.next).catch(() => {});
 
     setData((current) => ({
@@ -565,57 +772,7 @@ export default function App() {
     }));
     setPasswordForm({ current: '', next: '', confirm: '' });
     Alert.alert('Senha alterada', 'Sua senha foi atualizada com sucesso.');
-  }
-
-  function recoverAccount() {
-    setData((current) => ({ ...current, users: current.users.map((user) => user.id === activeUserId ? { ...user, recoveryRequestedAt: new Date().toISOString() } : user) }));
-    const currentPass = activeUser?.password || 'admin';
-    Alert.alert('Recuperação solicitada', `Instruções simuladas para ${activeUser?.email}. (Senha atual nesta demonstração: "${currentPass}").`);
-  }
-
-  async function verifyPhoneForReset(rawEmail, rawPhone) {
-    const email = (rawEmail || '').trim().toLowerCase();
-    const phone = (rawPhone || '').trim();
-
-    if (!email || !phone) {
-      Alert.alert('Campos obrigatórios', 'Informe o seu e-mail e telefone celular cadastrados.');
-      return { success: false };
-    }
-
-    try {
-      const apiRes = await verifyPhoneResetWithApi({ email, phone });
-      if (apiRes && apiRes.success && apiRes.resetToken) {
-        Alert.alert(
-          'Identidade Confirmada! ✅',
-          'Dados cadastrais validados com sucesso no banco PostgreSQL. Agora defina sua nova senha.'
-        );
-        return { success: true, token: apiRes.resetToken };
-      }
-
-      // Fallback local se estiver offline
-      const user = data.users.find(
-        (u) => normalizeEmail(u.email) === email || (email.includes('marina') && u.email === 'marina@synple.app') || (email.includes('admin') && u.systemRole === 'SYSTEM_ADMIN') || (email.includes('joao') && u.email === 'joao@email.com')
-      );
-      if (user) {
-        const cleanUserPhone = (user.phone || '').replace(/\D/g, '');
-        const cleanInputPhone = phone.replace(/\D/g, '');
-        if (
-          !cleanUserPhone ||
-          cleanUserPhone === cleanInputPhone ||
-          cleanUserPhone.endsWith(cleanInputPhone) ||
-          cleanInputPhone.endsWith(cleanUserPhone)
-        ) {
-          Alert.alert('Identidade Confirmada! ✅', 'Dados validados com sucesso no cadastro. Agora defina sua nova senha.');
-          return { success: true, token: 'local-token-' + Date.now() };
-        }
-      }
-
-      Alert.alert('Dados incorretos', apiRes?.error || 'O telefone informado não confere com o e-mail cadastrado.');
-      return { success: false };
-    } catch (err) {
-      Alert.alert('Erro', 'Não foi possível validar seus dados de recuperação.');
-      return { success: false };
-    }
+    });
   }
 
   async function recoverAccountFromLogin(rawEmail) {
@@ -628,23 +785,11 @@ export default function App() {
     try {
       const apiRes = await requestPasswordResetWithApi(email);
       if (apiRes && apiRes.success) {
-        let alertMsg = `Enviamos um código de verificação de 6 dígitos para ${email}.\n\nVerifique sua caixa de entrada e spam. O código é válido por 15 minutos.`;
-        if (apiRes.debugCode) {
-          alertMsg += `\n\n(Aviso de Teste: o SMTP do Gmail ainda não foi configurado no .env, seu código é: ${apiRes.debugCode})`;
-        }
+        const alertMsg = `Se houver uma conta vinculada a ${email}, enviaremos um código de 6 dígitos. Verifique sua caixa de entrada e spam. O código vale por 15 minutos.`;
         Alert.alert('Código enviado!', alertMsg);
         return true;
       } else {
-        // Fallback de demonstração caso o backend esteja temporariamente offline
-        const user = data.users.find((u) => normalizeEmail(u.email) === email || (email.includes('marina') && u.email === 'marina@synple.app') || (email.includes('admin') && u.systemRole === 'SYSTEM_ADMIN') || (email.includes('joao') && u.email === 'joao@email.com'));
-        if (user) {
-          Alert.alert(
-            'Código demonstrativo',
-            `Modo de demonstração: Utilize o código 123456 para redefinir a senha de ${user.email}.`
-          );
-          return true;
-        }
-        Alert.alert('E-mail não encontrado', apiRes?.error || 'Não encontramos nenhuma conta vinculada a este e-mail.');
+        Alert.alert('Não foi possível enviar o e-mail', apiRes?.error || 'Confira a configuração de envio de e-mail no servidor e tente novamente.');
         return false;
       }
     } catch (err) {
@@ -669,15 +814,6 @@ export default function App() {
     }
 
     try {
-      if (cleanCode.startsWith('local-token-')) {
-        setData((current) => ({
-          ...current,
-          users: current.users.map((u) => normalizeEmail(u.email) === email ? { ...u, password: next, passwordUpdatedAt: new Date().toISOString() } : u),
-        }));
-        Alert.alert('Senha redefinida com sucesso!', 'Sua nova senha foi atualizada. Faça login para continuar.');
-        return true;
-      }
-
       const apiRes = await resetPasswordWithApi({ email, code: cleanCode, newPassword: next });
       if (apiRes && apiRes.success) {
         setData((current) => ({
@@ -687,14 +823,6 @@ export default function App() {
         Alert.alert('Senha redefinida com sucesso!', 'Sua nova senha foi gravada no banco PostgreSQL. Faça login para continuar.');
         return true;
       } else {
-        if (cleanCode === '123456') {
-          setData((current) => ({
-            ...current,
-            users: current.users.map((u) => normalizeEmail(u.email) === email ? { ...u, password: next, passwordUpdatedAt: new Date().toISOString() } : u),
-          }));
-          Alert.alert('Senha redefinida!', 'Sua nova senha foi atualizada com sucesso. Faça login para continuar.');
-          return true;
-        }
         Alert.alert('Falha na redefinição', apiRes?.error || 'Código incorreto ou expirado.');
         return false;
       }
@@ -705,8 +833,11 @@ export default function App() {
   }
 
   function setTheme(theme) {
+    if (activeUser?.theme === theme) return;
+    confirmAction('Confirmar tema', `Alterar o tema do perfil para ${theme === 'DARK' ? 'escuro' : 'claro'}?`, () => {
     updateUserWithApi(activeUserId, { theme }).catch(() => {});
     setData((current) => ({ ...current, users: current.users.map((user) => user.id === activeUserId ? { ...user, theme } : user) }));
+    });
   }
 
   function restartSubsystem(subsystemId) {
@@ -744,8 +875,8 @@ export default function App() {
       <ThemeContext.Provider value={{ isDark: false, styles: getThemeStyles(false) }}>
         <LoginScreen
           onLogin={login}
+          onGoogleLogin={loginWithGoogle}
           onRegister={registerUser}
-          onVerifyPhone={verifyPhoneForReset}
           onRecoverAccount={recoverAccountFromLogin}
           onResetPassword={resetPasswordFromLogin}
         />
@@ -759,7 +890,17 @@ export default function App() {
         <StatusBar style={isDark ? 'light' : 'dark'} />
         <AppHeader userName={activeUser?.name} />
 
-        <ScrollView contentContainerStyle={styles.content}>
+        <KeyboardAvoidingView
+          style={styles.keyboardAvoidingView}
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        >
+        <ScrollView
+          contentContainerStyle={styles.content}
+          refreshControl={<RefreshControl refreshing={isRefreshing} onRefresh={refreshData} />}
+          keyboardShouldPersistTaps="handled"
+          keyboardDismissMode={Platform.OS === 'ios' ? 'interactive' : 'on-drag'}
+          automaticallyAdjustKeyboardInsets={Platform.OS === 'ios'}
+        >
           <View style={styles.sessionRow}>
             <Text style={styles.sectionTitle}>
               Acesso: {isSystemAdmin ? 'Administrador do sistema' : isOrgAdmin ? 'Administrador da organização' : 'Usuário'}
@@ -774,6 +915,8 @@ export default function App() {
             setScreen={setScreen}
             isSystemAdmin={isSystemAdmin}
             isOrgAdmin={isOrgAdmin}
+            hasMeetingsAccess={hasMeetingsAccess}
+            onOpenMeetings={() => setScreen('meetings')}
             onOpenProfile={openProfile}
           />
 
@@ -808,6 +951,7 @@ export default function App() {
               organizationForm={organizationForm}
               setOrganizationForm={setOrganizationForm}
               onCreateOrganization={createOrganization}
+              isCreatingOrganization={isCreatingOrganization}
               requestableOrganizations={requestableOrganizations}
               selectedOrganizationId={selectedOrganizationId}
               setSelectedOrganizationId={setSelectedOrganizationId}
@@ -822,6 +966,9 @@ export default function App() {
               organizationApprovedRequests={organizationApprovedRequests}
               onUpdateOrganizationRole={updateOrganizationRole}
               onRemoveOrganizationMember={removeOrganizationMember}
+              onTransferOrganizationOwnership={transferOrganizationOwnership}
+              onInviteOrganizationMember={inviteOrganizationMember}
+              onUpdateOrganization={updateOrganization}
               userRequests={userRequests}
             />
           )}
@@ -857,6 +1004,23 @@ export default function App() {
             />
           )}
 
+          {hasMeetingsAccess && screen === 'meetings' && (
+            <MeetingsScreen
+              data={data}
+              activeUser={activeUser}
+              meetings={data.meetings || []}
+              onSchedule={scheduleMeeting}
+              onRespond={respondToMeeting}
+              onAttendance={recordAttendance}
+              onGenerateAttendance={generateMeetingAttendance}
+              onSaveMinutes={saveMeetingMinutes}
+              onSubmitMinutes={submitMeetingMinutes}
+              onApproveMinutes={approveMeetingMinutes}
+              onRefresh={refreshData}
+              isRefreshing={isRefreshing}
+            />
+          )}
+
           {screen === 'profile' && (
             <ProfileScreen
               profileForm={profileForm}
@@ -865,7 +1029,6 @@ export default function App() {
               passwordForm={passwordForm}
               setPasswordForm={setPasswordForm}
               onUpdatePassword={updatePassword}
-              onRecoverAccount={recoverAccount}
               activeUser={activeUser}
               onSetTheme={setTheme}
             />
@@ -890,6 +1053,7 @@ export default function App() {
             </Pressable>
           )}
         </ScrollView>
+        </KeyboardAvoidingView>
       </SafeAreaView>
     </ThemeContext.Provider>
   );
