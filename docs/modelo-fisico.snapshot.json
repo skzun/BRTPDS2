@@ -1,0 +1,1216 @@
+{
+  "generatedFrom": "Synple/backend/src/db/schema.sql",
+  "schemaSha256": "9f658566148954d0b27accc36c2cb66fe86520af3c1799b2a624ae5a94784d1e",
+  "columns": [
+    {
+      "table_name": "access_requests",
+      "column_name": "id",
+      "type": "uuid",
+      "not_null": true,
+      "default_value": "gen_random_uuid()"
+    },
+    {
+      "table_name": "access_requests",
+      "column_name": "organization_id",
+      "type": "uuid",
+      "not_null": true,
+      "default_value": null
+    },
+    {
+      "table_name": "access_requests",
+      "column_name": "user_id",
+      "type": "uuid",
+      "not_null": true,
+      "default_value": null
+    },
+    {
+      "table_name": "access_requests",
+      "column_name": "status",
+      "type": "character varying(20)",
+      "not_null": true,
+      "default_value": "'PENDING'::character varying"
+    },
+    {
+      "table_name": "access_requests",
+      "column_name": "organization_role",
+      "type": "character varying(30)",
+      "not_null": true,
+      "default_value": "'MEMBER'::character varying"
+    },
+    {
+      "table_name": "access_requests",
+      "column_name": "created_at",
+      "type": "timestamp with time zone",
+      "not_null": true,
+      "default_value": "now()"
+    },
+    {
+      "table_name": "access_requests",
+      "column_name": "updated_at",
+      "type": "timestamp with time zone",
+      "not_null": true,
+      "default_value": "now()"
+    },
+    {
+      "table_name": "access_requests",
+      "column_name": "invited_by",
+      "type": "uuid",
+      "not_null": false,
+      "default_value": null
+    },
+    {
+      "table_name": "access_requests",
+      "column_name": "invitation_accepted",
+      "type": "boolean",
+      "not_null": true,
+      "default_value": "true"
+    },
+    {
+      "table_name": "auth_rate_limits",
+      "column_name": "key",
+      "type": "text",
+      "not_null": true,
+      "default_value": null
+    },
+    {
+      "table_name": "auth_rate_limits",
+      "column_name": "attempts",
+      "type": "integer",
+      "not_null": true,
+      "default_value": null
+    },
+    {
+      "table_name": "auth_rate_limits",
+      "column_name": "expires_at",
+      "type": "timestamp with time zone",
+      "not_null": true,
+      "default_value": null
+    },
+    {
+      "table_name": "auth_sessions",
+      "column_name": "token_hash",
+      "type": "text",
+      "not_null": true,
+      "default_value": null
+    },
+    {
+      "table_name": "auth_sessions",
+      "column_name": "user_id",
+      "type": "uuid",
+      "not_null": true,
+      "default_value": null
+    },
+    {
+      "table_name": "auth_sessions",
+      "column_name": "expires_at",
+      "type": "timestamp with time zone",
+      "not_null": true,
+      "default_value": null
+    },
+    {
+      "table_name": "commission_members",
+      "column_name": "commission_id",
+      "type": "uuid",
+      "not_null": true,
+      "default_value": null
+    },
+    {
+      "table_name": "commission_members",
+      "column_name": "user_id",
+      "type": "uuid",
+      "not_null": true,
+      "default_value": null
+    },
+    {
+      "table_name": "commission_members",
+      "column_name": "role",
+      "type": "character varying(20)",
+      "not_null": true,
+      "default_value": "'MEMBER'::character varying"
+    },
+    {
+      "table_name": "commission_members",
+      "column_name": "created_at",
+      "type": "timestamp with time zone",
+      "not_null": true,
+      "default_value": "now()"
+    },
+    {
+      "table_name": "commissions",
+      "column_name": "id",
+      "type": "uuid",
+      "not_null": true,
+      "default_value": "gen_random_uuid()"
+    },
+    {
+      "table_name": "commissions",
+      "column_name": "organization_id",
+      "type": "uuid",
+      "not_null": true,
+      "default_value": null
+    },
+    {
+      "table_name": "commissions",
+      "column_name": "name",
+      "type": "character varying(120)",
+      "not_null": true,
+      "default_value": null
+    },
+    {
+      "table_name": "commissions",
+      "column_name": "type",
+      "type": "character varying(50)",
+      "not_null": true,
+      "default_value": "'Comissão'::character varying"
+    },
+    {
+      "table_name": "commissions",
+      "column_name": "description",
+      "type": "text",
+      "not_null": false,
+      "default_value": null
+    },
+    {
+      "table_name": "commissions",
+      "column_name": "status",
+      "type": "character varying(20)",
+      "not_null": true,
+      "default_value": "'ACTIVE'::character varying"
+    },
+    {
+      "table_name": "commissions",
+      "column_name": "created_at",
+      "type": "timestamp with time zone",
+      "not_null": true,
+      "default_value": "now()"
+    },
+    {
+      "table_name": "commissions",
+      "column_name": "updated_at",
+      "type": "timestamp with time zone",
+      "not_null": true,
+      "default_value": "now()"
+    },
+    {
+      "table_name": "download_tickets",
+      "column_name": "token_hash",
+      "type": "text",
+      "not_null": true,
+      "default_value": null
+    },
+    {
+      "table_name": "download_tickets",
+      "column_name": "session_hash",
+      "type": "text",
+      "not_null": true,
+      "default_value": null
+    },
+    {
+      "table_name": "download_tickets",
+      "column_name": "path",
+      "type": "text",
+      "not_null": true,
+      "default_value": null
+    },
+    {
+      "table_name": "download_tickets",
+      "column_name": "expires_at",
+      "type": "timestamp with time zone",
+      "not_null": true,
+      "default_value": null
+    },
+    {
+      "table_name": "meeting_attendance",
+      "column_name": "id",
+      "type": "uuid",
+      "not_null": true,
+      "default_value": "gen_random_uuid()"
+    },
+    {
+      "table_name": "meeting_attendance",
+      "column_name": "meeting_id",
+      "type": "uuid",
+      "not_null": true,
+      "default_value": null
+    },
+    {
+      "table_name": "meeting_attendance",
+      "column_name": "user_id",
+      "type": "uuid",
+      "not_null": true,
+      "default_value": null
+    },
+    {
+      "table_name": "meeting_attendance",
+      "column_name": "entered_at",
+      "type": "timestamp with time zone",
+      "not_null": false,
+      "default_value": null
+    },
+    {
+      "table_name": "meeting_attendance",
+      "column_name": "left_at",
+      "type": "timestamp with time zone",
+      "not_null": false,
+      "default_value": null
+    },
+    {
+      "table_name": "meeting_invitations",
+      "column_name": "id",
+      "type": "uuid",
+      "not_null": true,
+      "default_value": "gen_random_uuid()"
+    },
+    {
+      "table_name": "meeting_invitations",
+      "column_name": "meeting_id",
+      "type": "uuid",
+      "not_null": true,
+      "default_value": null
+    },
+    {
+      "table_name": "meeting_invitations",
+      "column_name": "user_id",
+      "type": "uuid",
+      "not_null": true,
+      "default_value": null
+    },
+    {
+      "table_name": "meeting_invitations",
+      "column_name": "status",
+      "type": "character varying(20)",
+      "not_null": true,
+      "default_value": "'INVITED'::character varying"
+    },
+    {
+      "table_name": "meeting_invitations",
+      "column_name": "responded_at",
+      "type": "timestamp with time zone",
+      "not_null": false,
+      "default_value": null
+    },
+    {
+      "table_name": "meeting_invitations",
+      "column_name": "created_at",
+      "type": "timestamp with time zone",
+      "not_null": true,
+      "default_value": "now()"
+    },
+    {
+      "table_name": "meeting_minutes",
+      "column_name": "id",
+      "type": "uuid",
+      "not_null": true,
+      "default_value": "gen_random_uuid()"
+    },
+    {
+      "table_name": "meeting_minutes",
+      "column_name": "meeting_id",
+      "type": "uuid",
+      "not_null": true,
+      "default_value": null
+    },
+    {
+      "table_name": "meeting_minutes",
+      "column_name": "content",
+      "type": "text",
+      "not_null": true,
+      "default_value": null
+    },
+    {
+      "table_name": "meeting_minutes",
+      "column_name": "status",
+      "type": "character varying(20)",
+      "not_null": true,
+      "default_value": "'DRAFT'::character varying"
+    },
+    {
+      "table_name": "meeting_minutes",
+      "column_name": "version",
+      "type": "integer",
+      "not_null": true,
+      "default_value": "1"
+    },
+    {
+      "table_name": "meeting_minutes",
+      "column_name": "required_approver_ids",
+      "type": "uuid[]",
+      "not_null": true,
+      "default_value": "'{}'::uuid[]"
+    },
+    {
+      "table_name": "meeting_minutes",
+      "column_name": "created_by",
+      "type": "uuid",
+      "not_null": true,
+      "default_value": null
+    },
+    {
+      "table_name": "meeting_minutes",
+      "column_name": "updated_by",
+      "type": "uuid",
+      "not_null": true,
+      "default_value": null
+    },
+    {
+      "table_name": "meeting_minutes",
+      "column_name": "submitted_at",
+      "type": "timestamp with time zone",
+      "not_null": false,
+      "default_value": null
+    },
+    {
+      "table_name": "meeting_minutes",
+      "column_name": "approved_at",
+      "type": "timestamp with time zone",
+      "not_null": false,
+      "default_value": null
+    },
+    {
+      "table_name": "meeting_minutes",
+      "column_name": "created_at",
+      "type": "timestamp with time zone",
+      "not_null": true,
+      "default_value": "now()"
+    },
+    {
+      "table_name": "meeting_minutes",
+      "column_name": "updated_at",
+      "type": "timestamp with time zone",
+      "not_null": true,
+      "default_value": "now()"
+    },
+    {
+      "table_name": "meeting_minutes_approvals",
+      "column_name": "id",
+      "type": "uuid",
+      "not_null": true,
+      "default_value": "gen_random_uuid()"
+    },
+    {
+      "table_name": "meeting_minutes_approvals",
+      "column_name": "minutes_id",
+      "type": "uuid",
+      "not_null": true,
+      "default_value": null
+    },
+    {
+      "table_name": "meeting_minutes_approvals",
+      "column_name": "meeting_id",
+      "type": "uuid",
+      "not_null": true,
+      "default_value": null
+    },
+    {
+      "table_name": "meeting_minutes_approvals",
+      "column_name": "user_id",
+      "type": "uuid",
+      "not_null": true,
+      "default_value": null
+    },
+    {
+      "table_name": "meeting_minutes_approvals",
+      "column_name": "version",
+      "type": "integer",
+      "not_null": true,
+      "default_value": null
+    },
+    {
+      "table_name": "meeting_minutes_approvals",
+      "column_name": "decision",
+      "type": "character varying(20)",
+      "not_null": true,
+      "default_value": null
+    },
+    {
+      "table_name": "meeting_minutes_approvals",
+      "column_name": "comment",
+      "type": "character varying(2000)",
+      "not_null": true,
+      "default_value": "''::character varying"
+    },
+    {
+      "table_name": "meeting_minutes_approvals",
+      "column_name": "decided_at",
+      "type": "timestamp with time zone",
+      "not_null": true,
+      "default_value": "now()"
+    },
+    {
+      "table_name": "meetings",
+      "column_name": "id",
+      "type": "uuid",
+      "not_null": true,
+      "default_value": "gen_random_uuid()"
+    },
+    {
+      "table_name": "meetings",
+      "column_name": "commission_id",
+      "type": "uuid",
+      "not_null": true,
+      "default_value": null
+    },
+    {
+      "table_name": "meetings",
+      "column_name": "title",
+      "type": "character varying(160)",
+      "not_null": true,
+      "default_value": null
+    },
+    {
+      "table_name": "meetings",
+      "column_name": "starts_at",
+      "type": "timestamp with time zone",
+      "not_null": true,
+      "default_value": null
+    },
+    {
+      "table_name": "meetings",
+      "column_name": "ends_at",
+      "type": "timestamp with time zone",
+      "not_null": true,
+      "default_value": null
+    },
+    {
+      "table_name": "meetings",
+      "column_name": "agenda",
+      "type": "text",
+      "not_null": true,
+      "default_value": null
+    },
+    {
+      "table_name": "meetings",
+      "column_name": "created_by",
+      "type": "uuid",
+      "not_null": true,
+      "default_value": null
+    },
+    {
+      "table_name": "meetings",
+      "column_name": "created_at",
+      "type": "timestamp with time zone",
+      "not_null": true,
+      "default_value": "now()"
+    },
+    {
+      "table_name": "meetings",
+      "column_name": "updated_at",
+      "type": "timestamp with time zone",
+      "not_null": true,
+      "default_value": "now()"
+    },
+    {
+      "table_name": "organizations",
+      "column_name": "id",
+      "type": "uuid",
+      "not_null": true,
+      "default_value": "gen_random_uuid()"
+    },
+    {
+      "table_name": "organizations",
+      "column_name": "name",
+      "type": "character varying(150)",
+      "not_null": true,
+      "default_value": null
+    },
+    {
+      "table_name": "organizations",
+      "column_name": "document",
+      "type": "character varying(18)",
+      "not_null": true,
+      "default_value": null
+    },
+    {
+      "table_name": "organizations",
+      "column_name": "owner_id",
+      "type": "uuid",
+      "not_null": true,
+      "default_value": null
+    },
+    {
+      "table_name": "organizations",
+      "column_name": "status",
+      "type": "character varying(20)",
+      "not_null": true,
+      "default_value": "'PENDING'::character varying"
+    },
+    {
+      "table_name": "organizations",
+      "column_name": "created_at",
+      "type": "timestamp with time zone",
+      "not_null": true,
+      "default_value": "now()"
+    },
+    {
+      "table_name": "organizations",
+      "column_name": "updated_at",
+      "type": "timestamp with time zone",
+      "not_null": true,
+      "default_value": "now()"
+    },
+    {
+      "table_name": "system_metadata",
+      "column_name": "id",
+      "type": "boolean",
+      "not_null": true,
+      "default_value": "true"
+    },
+    {
+      "table_name": "system_metadata",
+      "column_name": "initialized_at",
+      "type": "timestamp with time zone",
+      "not_null": true,
+      "default_value": "now()"
+    },
+    {
+      "table_name": "system_subsystems",
+      "column_name": "id",
+      "type": "character varying(50)",
+      "not_null": true,
+      "default_value": null
+    },
+    {
+      "table_name": "system_subsystems",
+      "column_name": "name",
+      "type": "character varying(100)",
+      "not_null": true,
+      "default_value": null
+    },
+    {
+      "table_name": "system_subsystems",
+      "column_name": "status",
+      "type": "character varying(20)",
+      "not_null": true,
+      "default_value": "'ONLINE'::character varying"
+    },
+    {
+      "table_name": "system_subsystems",
+      "column_name": "last_check",
+      "type": "timestamp with time zone",
+      "not_null": true,
+      "default_value": "now()"
+    },
+    {
+      "table_name": "users",
+      "column_name": "id",
+      "type": "uuid",
+      "not_null": true,
+      "default_value": "gen_random_uuid()"
+    },
+    {
+      "table_name": "users",
+      "column_name": "name",
+      "type": "character varying(120)",
+      "not_null": true,
+      "default_value": null
+    },
+    {
+      "table_name": "users",
+      "column_name": "email",
+      "type": "character varying(150)",
+      "not_null": true,
+      "default_value": null
+    },
+    {
+      "table_name": "users",
+      "column_name": "phone",
+      "type": "character varying(20)",
+      "not_null": false,
+      "default_value": null
+    },
+    {
+      "table_name": "users",
+      "column_name": "password_hash",
+      "type": "character varying(255)",
+      "not_null": true,
+      "default_value": null
+    },
+    {
+      "table_name": "users",
+      "column_name": "google_id",
+      "type": "character varying(255)",
+      "not_null": false,
+      "default_value": null
+    },
+    {
+      "table_name": "users",
+      "column_name": "system_role",
+      "type": "character varying(30)",
+      "not_null": true,
+      "default_value": "'USER'::character varying"
+    },
+    {
+      "table_name": "users",
+      "column_name": "theme",
+      "type": "character varying(10)",
+      "not_null": true,
+      "default_value": "'LIGHT'::character varying"
+    },
+    {
+      "table_name": "users",
+      "column_name": "reset_token",
+      "type": "character varying(255)",
+      "not_null": false,
+      "default_value": null
+    },
+    {
+      "table_name": "users",
+      "column_name": "reset_token_expires",
+      "type": "timestamp with time zone",
+      "not_null": false,
+      "default_value": null
+    },
+    {
+      "table_name": "users",
+      "column_name": "created_at",
+      "type": "timestamp with time zone",
+      "not_null": true,
+      "default_value": "now()"
+    },
+    {
+      "table_name": "users",
+      "column_name": "updated_at",
+      "type": "timestamp with time zone",
+      "not_null": true,
+      "default_value": "now()"
+    },
+    {
+      "table_name": "users",
+      "column_name": "email_verified",
+      "type": "boolean",
+      "not_null": true,
+      "default_value": "false"
+    },
+    {
+      "table_name": "users",
+      "column_name": "activation_hash",
+      "type": "text",
+      "not_null": false,
+      "default_value": null
+    },
+    {
+      "table_name": "users",
+      "column_name": "activation_expires",
+      "type": "timestamp with time zone",
+      "not_null": false,
+      "default_value": null
+    }
+  ],
+  "constraints": [
+    {
+      "table_name": "access_requests",
+      "name": "access_requests_invited_by_fkey",
+      "kind": "f",
+      "definition": "FOREIGN KEY (invited_by) REFERENCES users(id) ON DELETE SET NULL"
+    },
+    {
+      "table_name": "access_requests",
+      "name": "access_requests_organization_id_fkey",
+      "kind": "f",
+      "definition": "FOREIGN KEY (organization_id) REFERENCES organizations(id) ON DELETE CASCADE"
+    },
+    {
+      "table_name": "access_requests",
+      "name": "access_requests_pkey",
+      "kind": "p",
+      "definition": "PRIMARY KEY (id)"
+    },
+    {
+      "table_name": "access_requests",
+      "name": "access_requests_user_id_fkey",
+      "kind": "f",
+      "definition": "FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE"
+    },
+    {
+      "table_name": "access_requests",
+      "name": "uq_access_request_org_user",
+      "kind": "u",
+      "definition": "UNIQUE (organization_id, user_id)"
+    },
+    {
+      "table_name": "auth_rate_limits",
+      "name": "auth_rate_limits_pkey",
+      "kind": "p",
+      "definition": "PRIMARY KEY (key)"
+    },
+    {
+      "table_name": "auth_sessions",
+      "name": "auth_sessions_pkey",
+      "kind": "p",
+      "definition": "PRIMARY KEY (token_hash)"
+    },
+    {
+      "table_name": "auth_sessions",
+      "name": "auth_sessions_user_id_fkey",
+      "kind": "f",
+      "definition": "FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE"
+    },
+    {
+      "table_name": "commission_members",
+      "name": "commission_members_commission_id_fkey",
+      "kind": "f",
+      "definition": "FOREIGN KEY (commission_id) REFERENCES commissions(id) ON DELETE CASCADE"
+    },
+    {
+      "table_name": "commission_members",
+      "name": "commission_members_pkey",
+      "kind": "p",
+      "definition": "PRIMARY KEY (commission_id, user_id)"
+    },
+    {
+      "table_name": "commission_members",
+      "name": "commission_members_user_id_fkey",
+      "kind": "f",
+      "definition": "FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE"
+    },
+    {
+      "table_name": "commissions",
+      "name": "commissions_organization_id_fkey",
+      "kind": "f",
+      "definition": "FOREIGN KEY (organization_id) REFERENCES organizations(id) ON DELETE CASCADE"
+    },
+    {
+      "table_name": "commissions",
+      "name": "commissions_pkey",
+      "kind": "p",
+      "definition": "PRIMARY KEY (id)"
+    },
+    {
+      "table_name": "download_tickets",
+      "name": "download_tickets_pkey",
+      "kind": "p",
+      "definition": "PRIMARY KEY (token_hash)"
+    },
+    {
+      "table_name": "download_tickets",
+      "name": "download_tickets_session_hash_fkey",
+      "kind": "f",
+      "definition": "FOREIGN KEY (session_hash) REFERENCES auth_sessions(token_hash) ON DELETE CASCADE"
+    },
+    {
+      "table_name": "meeting_attendance",
+      "name": "meeting_attendance_meeting_id_fkey",
+      "kind": "f",
+      "definition": "FOREIGN KEY (meeting_id) REFERENCES meetings(id) ON DELETE CASCADE"
+    },
+    {
+      "table_name": "meeting_attendance",
+      "name": "meeting_attendance_pkey",
+      "kind": "p",
+      "definition": "PRIMARY KEY (id)"
+    },
+    {
+      "table_name": "meeting_attendance",
+      "name": "meeting_attendance_user_id_fkey",
+      "kind": "f",
+      "definition": "FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE"
+    },
+    {
+      "table_name": "meeting_attendance",
+      "name": "uq_meeting_attendance",
+      "kind": "u",
+      "definition": "UNIQUE (meeting_id, user_id)"
+    },
+    {
+      "table_name": "meeting_invitations",
+      "name": "meeting_invitations_meeting_id_fkey",
+      "kind": "f",
+      "definition": "FOREIGN KEY (meeting_id) REFERENCES meetings(id) ON DELETE CASCADE"
+    },
+    {
+      "table_name": "meeting_invitations",
+      "name": "meeting_invitations_pkey",
+      "kind": "p",
+      "definition": "PRIMARY KEY (id)"
+    },
+    {
+      "table_name": "meeting_invitations",
+      "name": "meeting_invitations_status_check",
+      "kind": "c",
+      "definition": "CHECK (((status)::text = ANY ((ARRAY['INVITED'::character varying, 'ACCEPTED'::character varying, 'DECLINED'::character varying])::text[])))"
+    },
+    {
+      "table_name": "meeting_invitations",
+      "name": "meeting_invitations_user_id_fkey",
+      "kind": "f",
+      "definition": "FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE"
+    },
+    {
+      "table_name": "meeting_invitations",
+      "name": "uq_meeting_invitation",
+      "kind": "u",
+      "definition": "UNIQUE (meeting_id, user_id)"
+    },
+    {
+      "table_name": "meeting_minutes",
+      "name": "chk_minutes_reviewers",
+      "kind": "c",
+      "definition": "CHECK ((((status)::text = 'DRAFT'::text) OR (cardinality(required_approver_ids) > 0)))"
+    },
+    {
+      "table_name": "meeting_minutes",
+      "name": "meeting_minutes_content_check",
+      "kind": "c",
+      "definition": "CHECK ((length(TRIM(BOTH FROM content)) > 0))"
+    },
+    {
+      "table_name": "meeting_minutes",
+      "name": "meeting_minutes_created_by_fkey",
+      "kind": "f",
+      "definition": "FOREIGN KEY (created_by) REFERENCES users(id)"
+    },
+    {
+      "table_name": "meeting_minutes",
+      "name": "meeting_minutes_meeting_id_fkey",
+      "kind": "f",
+      "definition": "FOREIGN KEY (meeting_id) REFERENCES meetings(id) ON DELETE CASCADE"
+    },
+    {
+      "table_name": "meeting_minutes",
+      "name": "meeting_minutes_meeting_id_key",
+      "kind": "u",
+      "definition": "UNIQUE (meeting_id)"
+    },
+    {
+      "table_name": "meeting_minutes",
+      "name": "meeting_minutes_pkey",
+      "kind": "p",
+      "definition": "PRIMARY KEY (id)"
+    },
+    {
+      "table_name": "meeting_minutes",
+      "name": "meeting_minutes_status_check",
+      "kind": "c",
+      "definition": "CHECK (((status)::text = ANY ((ARRAY['DRAFT'::character varying, 'IN_REVIEW'::character varying, 'APPROVED'::character varying, 'REJECTED'::character varying])::text[])))"
+    },
+    {
+      "table_name": "meeting_minutes",
+      "name": "meeting_minutes_updated_by_fkey",
+      "kind": "f",
+      "definition": "FOREIGN KEY (updated_by) REFERENCES users(id)"
+    },
+    {
+      "table_name": "meeting_minutes",
+      "name": "meeting_minutes_version_check",
+      "kind": "c",
+      "definition": "CHECK ((version > 0))"
+    },
+    {
+      "table_name": "meeting_minutes",
+      "name": "uq_meeting_minutes_id_meeting",
+      "kind": "u",
+      "definition": "UNIQUE (id, meeting_id)"
+    },
+    {
+      "table_name": "meeting_minutes_approvals",
+      "name": "fk_minutes_approval_meeting",
+      "kind": "f",
+      "definition": "FOREIGN KEY (minutes_id, meeting_id) REFERENCES meeting_minutes(id, meeting_id) ON DELETE CASCADE"
+    },
+    {
+      "table_name": "meeting_minutes_approvals",
+      "name": "meeting_minutes_approvals_decision_check",
+      "kind": "c",
+      "definition": "CHECK (((decision)::text = ANY ((ARRAY['APPROVED'::character varying, 'REJECTED'::character varying])::text[])))"
+    },
+    {
+      "table_name": "meeting_minutes_approvals",
+      "name": "meeting_minutes_approvals_pkey",
+      "kind": "p",
+      "definition": "PRIMARY KEY (id)"
+    },
+    {
+      "table_name": "meeting_minutes_approvals",
+      "name": "meeting_minutes_approvals_user_id_fkey",
+      "kind": "f",
+      "definition": "FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE"
+    },
+    {
+      "table_name": "meeting_minutes_approvals",
+      "name": "meeting_minutes_approvals_version_check",
+      "kind": "c",
+      "definition": "CHECK ((version > 0))"
+    },
+    {
+      "table_name": "meeting_minutes_approvals",
+      "name": "uq_minutes_approval_user",
+      "kind": "u",
+      "definition": "UNIQUE (minutes_id, user_id)"
+    },
+    {
+      "table_name": "meetings",
+      "name": "chk_meeting_time",
+      "kind": "c",
+      "definition": "CHECK ((ends_at > starts_at))"
+    },
+    {
+      "table_name": "meetings",
+      "name": "meetings_commission_id_fkey",
+      "kind": "f",
+      "definition": "FOREIGN KEY (commission_id) REFERENCES commissions(id) ON DELETE CASCADE"
+    },
+    {
+      "table_name": "meetings",
+      "name": "meetings_created_by_fkey",
+      "kind": "f",
+      "definition": "FOREIGN KEY (created_by) REFERENCES users(id)"
+    },
+    {
+      "table_name": "meetings",
+      "name": "meetings_pkey",
+      "kind": "p",
+      "definition": "PRIMARY KEY (id)"
+    },
+    {
+      "table_name": "organizations",
+      "name": "organizations_document_key",
+      "kind": "u",
+      "definition": "UNIQUE (document)"
+    },
+    {
+      "table_name": "organizations",
+      "name": "organizations_owner_id_fkey",
+      "kind": "f",
+      "definition": "FOREIGN KEY (owner_id) REFERENCES users(id) ON DELETE CASCADE"
+    },
+    {
+      "table_name": "organizations",
+      "name": "organizations_pkey",
+      "kind": "p",
+      "definition": "PRIMARY KEY (id)"
+    },
+    {
+      "table_name": "system_metadata",
+      "name": "system_metadata_id_check",
+      "kind": "c",
+      "definition": "CHECK (id)"
+    },
+    {
+      "table_name": "system_metadata",
+      "name": "system_metadata_pkey",
+      "kind": "p",
+      "definition": "PRIMARY KEY (id)"
+    },
+    {
+      "table_name": "system_subsystems",
+      "name": "system_subsystems_pkey",
+      "kind": "p",
+      "definition": "PRIMARY KEY (id)"
+    },
+    {
+      "table_name": "users",
+      "name": "users_email_key",
+      "kind": "u",
+      "definition": "UNIQUE (email)"
+    },
+    {
+      "table_name": "users",
+      "name": "users_google_id_key",
+      "kind": "u",
+      "definition": "UNIQUE (google_id)"
+    },
+    {
+      "table_name": "users",
+      "name": "users_pkey",
+      "kind": "p",
+      "definition": "PRIMARY KEY (id)"
+    }
+  ],
+  "indexes": [
+    {
+      "table_name": "access_requests",
+      "name": "access_requests_pkey",
+      "definition": "CREATE UNIQUE INDEX access_requests_pkey ON access_requests USING btree (id)"
+    },
+    {
+      "table_name": "access_requests",
+      "name": "idx_access_requests_org",
+      "definition": "CREATE INDEX idx_access_requests_org ON access_requests USING btree (organization_id)"
+    },
+    {
+      "table_name": "access_requests",
+      "name": "idx_access_requests_user",
+      "definition": "CREATE INDEX idx_access_requests_user ON access_requests USING btree (user_id)"
+    },
+    {
+      "table_name": "access_requests",
+      "name": "uq_access_request_org_user",
+      "definition": "CREATE UNIQUE INDEX uq_access_request_org_user ON access_requests USING btree (organization_id, user_id)"
+    },
+    {
+      "table_name": "auth_rate_limits",
+      "name": "auth_rate_limits_pkey",
+      "definition": "CREATE UNIQUE INDEX auth_rate_limits_pkey ON auth_rate_limits USING btree (key)"
+    },
+    {
+      "table_name": "auth_sessions",
+      "name": "auth_sessions_pkey",
+      "definition": "CREATE UNIQUE INDEX auth_sessions_pkey ON auth_sessions USING btree (token_hash)"
+    },
+    {
+      "table_name": "auth_sessions",
+      "name": "idx_auth_sessions_user",
+      "definition": "CREATE INDEX idx_auth_sessions_user ON auth_sessions USING btree (user_id)"
+    },
+    {
+      "table_name": "commission_members",
+      "name": "commission_members_pkey",
+      "definition": "CREATE UNIQUE INDEX commission_members_pkey ON commission_members USING btree (commission_id, user_id)"
+    },
+    {
+      "table_name": "commission_members",
+      "name": "idx_comm_members_user",
+      "definition": "CREATE INDEX idx_comm_members_user ON commission_members USING btree (user_id)"
+    },
+    {
+      "table_name": "commission_members",
+      "name": "uq_commission_coordinator",
+      "definition": "CREATE UNIQUE INDEX uq_commission_coordinator ON commission_members USING btree (commission_id) WHERE ((role)::text = 'COORDINATOR'::text)"
+    },
+    {
+      "table_name": "commissions",
+      "name": "commissions_pkey",
+      "definition": "CREATE UNIQUE INDEX commissions_pkey ON commissions USING btree (id)"
+    },
+    {
+      "table_name": "commissions",
+      "name": "idx_commissions_org",
+      "definition": "CREATE INDEX idx_commissions_org ON commissions USING btree (organization_id)"
+    },
+    {
+      "table_name": "download_tickets",
+      "name": "download_tickets_pkey",
+      "definition": "CREATE UNIQUE INDEX download_tickets_pkey ON download_tickets USING btree (token_hash)"
+    },
+    {
+      "table_name": "meeting_attendance",
+      "name": "idx_meeting_attendance_meeting",
+      "definition": "CREATE INDEX idx_meeting_attendance_meeting ON meeting_attendance USING btree (meeting_id)"
+    },
+    {
+      "table_name": "meeting_attendance",
+      "name": "meeting_attendance_pkey",
+      "definition": "CREATE UNIQUE INDEX meeting_attendance_pkey ON meeting_attendance USING btree (id)"
+    },
+    {
+      "table_name": "meeting_attendance",
+      "name": "uq_meeting_attendance",
+      "definition": "CREATE UNIQUE INDEX uq_meeting_attendance ON meeting_attendance USING btree (meeting_id, user_id)"
+    },
+    {
+      "table_name": "meeting_invitations",
+      "name": "idx_meeting_invitations_user",
+      "definition": "CREATE INDEX idx_meeting_invitations_user ON meeting_invitations USING btree (user_id, status)"
+    },
+    {
+      "table_name": "meeting_invitations",
+      "name": "meeting_invitations_pkey",
+      "definition": "CREATE UNIQUE INDEX meeting_invitations_pkey ON meeting_invitations USING btree (id)"
+    },
+    {
+      "table_name": "meeting_invitations",
+      "name": "uq_meeting_invitation",
+      "definition": "CREATE UNIQUE INDEX uq_meeting_invitation ON meeting_invitations USING btree (meeting_id, user_id)"
+    },
+    {
+      "table_name": "meeting_minutes",
+      "name": "meeting_minutes_meeting_id_key",
+      "definition": "CREATE UNIQUE INDEX meeting_minutes_meeting_id_key ON meeting_minutes USING btree (meeting_id)"
+    },
+    {
+      "table_name": "meeting_minutes",
+      "name": "meeting_minutes_pkey",
+      "definition": "CREATE UNIQUE INDEX meeting_minutes_pkey ON meeting_minutes USING btree (id)"
+    },
+    {
+      "table_name": "meeting_minutes",
+      "name": "uq_meeting_minutes_id_meeting",
+      "definition": "CREATE UNIQUE INDEX uq_meeting_minutes_id_meeting ON meeting_minutes USING btree (id, meeting_id)"
+    },
+    {
+      "table_name": "meeting_minutes_approvals",
+      "name": "idx_minutes_approvals_meeting",
+      "definition": "CREATE INDEX idx_minutes_approvals_meeting ON meeting_minutes_approvals USING btree (meeting_id)"
+    },
+    {
+      "table_name": "meeting_minutes_approvals",
+      "name": "meeting_minutes_approvals_pkey",
+      "definition": "CREATE UNIQUE INDEX meeting_minutes_approvals_pkey ON meeting_minutes_approvals USING btree (id)"
+    },
+    {
+      "table_name": "meeting_minutes_approvals",
+      "name": "uq_minutes_approval_user",
+      "definition": "CREATE UNIQUE INDEX uq_minutes_approval_user ON meeting_minutes_approvals USING btree (minutes_id, user_id)"
+    },
+    {
+      "table_name": "meetings",
+      "name": "idx_meetings_commission",
+      "definition": "CREATE INDEX idx_meetings_commission ON meetings USING btree (commission_id, starts_at)"
+    },
+    {
+      "table_name": "meetings",
+      "name": "meetings_pkey",
+      "definition": "CREATE UNIQUE INDEX meetings_pkey ON meetings USING btree (id)"
+    },
+    {
+      "table_name": "organizations",
+      "name": "idx_organizations_owner",
+      "definition": "CREATE INDEX idx_organizations_owner ON organizations USING btree (owner_id)"
+    },
+    {
+      "table_name": "organizations",
+      "name": "organizations_document_key",
+      "definition": "CREATE UNIQUE INDEX organizations_document_key ON organizations USING btree (document)"
+    },
+    {
+      "table_name": "organizations",
+      "name": "organizations_pkey",
+      "definition": "CREATE UNIQUE INDEX organizations_pkey ON organizations USING btree (id)"
+    },
+    {
+      "table_name": "organizations",
+      "name": "uq_org_normalized_document",
+      "definition": "CREATE UNIQUE INDEX uq_org_normalized_document ON organizations USING btree (regexp_replace((document)::text, '[^0-9]'::text, ''::text, 'g'::text))"
+    },
+    {
+      "table_name": "organizations",
+      "name": "uq_org_normalized_name",
+      "definition": "CREATE UNIQUE INDEX uq_org_normalized_name ON organizations USING btree (lower(TRIM(BOTH FROM name)))"
+    },
+    {
+      "table_name": "system_metadata",
+      "name": "system_metadata_pkey",
+      "definition": "CREATE UNIQUE INDEX system_metadata_pkey ON system_metadata USING btree (id)"
+    },
+    {
+      "table_name": "system_subsystems",
+      "name": "system_subsystems_pkey",
+      "definition": "CREATE UNIQUE INDEX system_subsystems_pkey ON system_subsystems USING btree (id)"
+    },
+    {
+      "table_name": "users",
+      "name": "idx_users_email",
+      "definition": "CREATE INDEX idx_users_email ON users USING btree (email)"
+    },
+    {
+      "table_name": "users",
+      "name": "idx_users_google_id",
+      "definition": "CREATE UNIQUE INDEX idx_users_google_id ON users USING btree (google_id) WHERE (google_id IS NOT NULL)"
+    },
+    {
+      "table_name": "users",
+      "name": "users_email_key",
+      "definition": "CREATE UNIQUE INDEX users_email_key ON users USING btree (email)"
+    },
+    {
+      "table_name": "users",
+      "name": "users_google_id_key",
+      "definition": "CREATE UNIQUE INDEX users_google_id_key ON users USING btree (google_id)"
+    },
+    {
+      "table_name": "users",
+      "name": "users_pkey",
+      "definition": "CREATE UNIQUE INDEX users_pkey ON users USING btree (id)"
+    }
+  ]
+}

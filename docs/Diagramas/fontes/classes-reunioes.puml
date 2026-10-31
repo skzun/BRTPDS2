@@ -1,0 +1,68 @@
+@startuml
+!pragma layout smetana
+skinparam backgroundColor white
+skinparam shadowing false
+skinparam defaultFontName SansSerif
+skinparam defaultFontSize 13
+skinparam ArrowColor #334155
+skinparam packageStyle rectangle
+skinparam classAttributeIconSize 0
+skinparam roundcorner 5
+skinparam dpi 130
+title Classes de domínio — reuniões e atas (modelo de análise)
+class Usuario {
+ +id: UUID
+}
+class Comissao {
+ +id: UUID
+}
+class Reuniao {
+ +id: UUID
+ +title: String {maxLength=160}
+ +startsAt: DateTime
+ +endsAt: DateTime
+ +agenda: String
+}
+class ConviteReuniao {
+ +id: UUID
+ +status: String
+ +respondedAt: DateTime[0..1]
+}
+class Presenca {
+ +id: UUID
+ +enteredAt: DateTime[0..1]
+ +leftAt: DateTime[0..1]
+}
+class Ata {
+ +id: UUID
+ +content: String
+ +status: String
+ +version: Integer
+ +requiredApproverIds: UUID[*]
+ +submittedAt: DateTime[0..1]
+ +approvedAt: DateTime[0..1]
+}
+class DecisaoAta {
+ +id: UUID
+ +version: Integer
+ +decision: String
+ +comment: String {maxLength=2000}
+ +decidedAt: DateTime
+}
+Comissao "1" -- "0..*" Reuniao
+Usuario "1" -- "0..*" Reuniao : autoria
+Reuniao "1" -- "0..*" ConviteReuniao
+Usuario "1" -- "0..*" ConviteReuniao
+Reuniao "1" -- "0..*" Presenca
+Usuario "1" -- "0..*" Presenca
+Reuniao "1" -- "0..1" Ata
+Ata "1" -- "0..*" DecisaoAta
+Usuario "1" -- "0..*" DecisaoAta
+Usuario "1" -- "0..*" Ata : autoria inicial
+Usuario "1" -- "0..*" Ata : última alteração
+note bottom of Ata
+Conjunto de aprovadores congelado no envio.
+Somente a versão atual é persistida.
+Sem assinatura digital no PDF.
+end note
+@enduml

@@ -1,905 +1,1134 @@
-# Especificação de Engenharia de Software — Incremento 1 (Synple)
-
-Documento formal da disciplina **Projeto e Desenvolvimento de Sistemas II (IFSP Câmpus Barretos)** contendo a especificação completa e detalhada do **Incremento 1**.
-
----
-
-## Sumário de Mapeamento dos Requisitos
-
-| Módulo | ID Requisito | Descrição do Requisito | Ator Principal |
-| :--- | :--- | :--- | :--- |
-| Cadastro de organização | **RF01** | Cadastrar nova organização com CNPJ | Usuário Comum |
-| Cadastro de organização | **RF02** | Autorizar/revogar cadastro da organização | Administrador do Sistema |
-| Cadastro de organização | **RF03** | Gerenciar organizações (listagem e remoção) | Administrador do Sistema |
-| Cadastro de comissão | **RF04** | Cadastrar comissão/grupo de trabalho na organização | Administrador da Organização |
-| Cadastro de comissão | **RF05** | Gerenciar comissões (editar, ativar/inativar, excluir) | Administrador da Organização |
-| Cadastro de comissão | **RF06** | Gerenciar equipe da comissão (adicionar, alternar papel, remover) | Administrador da Organização |
-| Cadastro de usuário | **RF07** | Cadastrar usuário na plataforma (autocadastro) | Usuário Comum |
-| Cadastro de usuário | **RF08** | Solicitar e decidir acesso à organização (aprovar/rejeitar) | Usuário Comum / Admin Org |
-| Cadastro de usuário | **RF09** | Gerenciar usuários dentro da organização (papel e revogação) | Administrador da Organização |
-| Configurações de usuário | **RF10** | Trocar senha de usuário | Usuário Autenticado |
-| Configurações de usuário | **RF11** | Recuperar conta de usuário | Usuário Autenticado / Visitante |
-| Configurações de usuário | **RF12** | Alterar dados pessoais (nome, e-mail, telefone formatado) | Usuário Autenticado |
-| Configurações de usuário | **RF13** | Definir tema preferido do aplicativo (Claro / Escuro) | Usuário Autenticado |
-| Informações do sistema | **RF14** | Consultar status do sistema e de seus subsistemas | Administrador do Sistema |
-| Informações do sistema | **RF15** | Consultar relatórios resumidos (contadores em tempo real) | Administrador do Sistema |
-| Informações do sistema | **RF16** | Reinicializar subsistemas operacionais | Administrador do Sistema |
-| Informações do sistema | **RF17** | Executar setup inicial e inicialização do sistema | Administrador do Sistema |
-| Informações do sistema | **RF18** | Executar reset do sistema e restauração de dados de demonstração | Administrador do Sistema |
-
----
-
-## 1. Diagrama de Casos de Uso (Geral do Incremento 1)
-
-```mermaid
-flowchart LR
-  subgraph Atores
-    AdminSys["Administrador do Sistema"]
-    AdminOrg["Administrador da Organização"]
-    User["Usuário Comum"]
-  end
-
-  subgraph Incremento 1 - Cadastro de Organização
-    UC01(["RF01 - Cadastrar Organização"])
-    UC02(["RF02 - Autorizar/Revogar Organização"])
-    UC03(["RF03 - Gerenciar Organizações"])
-  end
-
-  subgraph Incremento 1 - Cadastro de Comissão
-    UC04(["RF04 - Cadastrar Comissão/Grupo"])
-    UC05(["RF05 - Gerenciar Comissões"])
-    UC06(["RF06 - Gerenciar Equipe da Comissão"])
-  end
-
-  subgraph Incremento 1 - Cadastro de Usuário
-    UC07(["RF07 - Cadastrar Usuário"])
-    UC08(["RF08 - Solicitar e Decidir Acesso"])
-    UC09(["RF09 - Gerenciar Usuários da Org"])
-  end
-
-  subgraph Incremento 1 - Configurações de Usuário
-    UC10(["RF10 - Trocar Senha"])
-    UC11(["RF11 - Recuperar Conta"])
-    UC12(["RF12 - Alterar Dados Pessoais"])
-    UC13(["RF13 - Definir Tema Preferido"])
-  end
-
-  subgraph Incremento 1 - Informações do Sistema
-    UC14(["RF14 - Consultar Status e Subsistemas"])
-    UC15(["RF15 - Consultar Relatórios"])
-    UC16(["RF16 - Reinicializar Subsistemas"])
-    UC17(["RF17 - Setup Inicial do Sistema"])
-    UC18(["RF18 - Reset do Sistema"])
-  end
-
-  User --> UC01
-  User --> UC07
-  User --> UC08
-  User --> UC10
-  User --> UC11
-  User --> UC12
-  User --> UC13
-
-  AdminOrg --> UC04
-  AdminOrg --> UC05
-  AdminOrg --> UC06
-  AdminOrg --> UC08
-  AdminOrg --> UC09
-
-  AdminSys --> UC02
-  AdminSys --> UC03
-  AdminSys --> UC14
-  AdminSys --> UC15
-  AdminSys --> UC16
-  AdminSys --> UC17
-  AdminSys --> UC18
-```
-
----
-
-## 2. Descrição de Cada Caso de Uso no Formulário Padrão
-
----
-
-### RF01: Cadastrar Organização
-* **Identificador:** UC01 / RF01
-* **Nome do Caso de Uso:** Cadastrar Nova Organização
-* **Atores:** Usuário Comum
-* **Sumário:** Permite ao usuário submeter o cadastro de uma nova organização no aplicativo, informando Nome e CNPJ.
-* **Pré-condições:** O usuário deve estar autenticado na plataforma.
-* **Pós-condições:** A organização é registrada no sistema com status inicial `PENDING` (Pendente), aguardando aprovação do Administrador do Sistema.
-* **Fluxo Principal:**
-  1. O usuário seleciona a aba "Minha organização".
-  2. O sistema exibe o formulário de criação solicitando "Nome da organização" e "CNPJ".
-  3. O usuário digita o nome e os dígitos do CNPJ.
-  4. O sistema formata automaticamente o CNPJ na máscara `00.000.000/0000-00`.
-  5. O usuário aciona o botão "Enviar cadastro".
-  6. O sistema valida se os campos estão preenchidos e se o CNPJ possui exatamente 14 dígitos.
-  7. O sistema verifica se o CNPJ já está cadastrado no banco de dados.
-  8. O sistema cria a organização associando o `ownerId` ao usuário ativo e define o status como `PENDING`.
-  9. O sistema exibe alerta confirmando o envio da solicitação de cadastro.
-* **Fluxos Alternativos:**
-  * *FA01 - Cadastro de múltiplas organizações:* O usuário pode submeter outras organizações caso necessário, repetindo os passos 2 a 5.
-* **Exceções:**
-  * *EX01 - Campos vazios:* O sistema bloqueia e alerta "Informe o nome e o CNPJ da organização".
-  * *EX02 - CNPJ incompleto:* O sistema bloqueia e alerta "O CNPJ deve conter 14 dígitos (formato 00.000.000/0000-00)".
-  * *EX03 - CNPJ duplicado:* O sistema bloqueia e alerta "Já existe uma organização com este CNPJ".
-
----
-
-### RF02: Autorizar ou Revogar Cadastro da Organização
-* **Identificador:** UC02 / RF02
-* **Nome do Caso de Uso:** Autorizar ou Revogar Organização
-* **Atores:** Administrador do Sistema
-* **Sumário:** O Administrador do Sistema analisa organizações pendentes e decide autorizar (`APPROVED`) ou rejeitar (`REJECTED`) o seu funcionamento.
-* **Pré-condições:** Estar autenticado como Administrador do Sistema.
-* **Pós-condições:** A organização tem seu status atualizado; caso aprovada, o usuário criador torna-se Administrador da Organização.
-* **Fluxo Principal:**
-  1. O Administrador do Sistema acessa a aba "Gestão".
-  2. O sistema lista todas as organizações, exibindo o status de cada uma.
-  3. Para organizações com status `PENDING`, o sistema exibe os botões "Aprovar" e "Recusar".
-  4. O administrador clica em "Aprovar".
-  5. O sistema atualiza o status da organização para `APPROVED`.
-  6. O usuário criador passa a ter privilégios de Administrador da Organização sobre esta entidade.
-* **Fluxos Alternativos:**
-  * *FA01 - Recusar organização:* No passo 4, o administrador clica em "Recusar". O sistema define o status como `REJECTED`.
-* **Exceções:**
-  * Nenhuma.
-
----
-
-### RF03: Gerenciar Organizações (Administrador do Sistema)
-* **Identificador:** UC03 / RF03
-* **Nome do Caso de Uso:** Gerenciar Organizações pelo Administrador
-* **Atores:** Administrador do Sistema
-* **Sumário:** Visualizar a listagem completa de organizações e remover organizações do sistema com exclusão em cascata de vínculos.
-* **Pré-condições:** Estar autenticado como Administrador do Sistema.
-* **Pós-condições:** Organização selecionada e todos os seus vínculos (comissões, membros e solicitações) são removidos.
-* **Fluxo Principal:**
-  1. O Administrador do Sistema acessa a aba "Gestão".
-  2. O sistema exibe o nome, CNPJ, responsável (criador) e badge de status de cada organização.
-  3. O administrador clica no botão "Remover" de uma organização.
-  4. O sistema solicita confirmação: "A organização, suas comissões e seus acessos serão removidos".
-  5. O administrador confirma a operação.
-  6. O sistema apaga a organização e remove em cascata as comissões e solicitações de acesso atreladas.
-* **Exceções:**
-  * *EX01 - Cancelamento:* O administrador clica em "Cancelar" na caixa de diálogo; a operação é abortada sem alterações.
-
----
-
-### RF04: Cadastrar Comissão ou Grupo de Trabalho
-* **Identificador:** UC04 / RF04
-* **Nome do Caso de Uso:** Cadastrar Nova Comissão / Grupo de Trabalho
-* **Atores:** Administrador da Organização
-* **Sumário:** Permite ao criador de uma organização aprovada criar uma nova comissão, comitê ou grupo de trabalho vinculado à sua organização.
-* **Pré-condições:** Estar autenticado como Administrador da Organização (organização com status `APPROVED`).
-* **Pós-condições:** Nova comissão registrada com status operacional `ACTIVE`.
-* **Fluxo Principal:**
-  1. O Administrador da Organização acessa a aba "Comissões" (ou via atalho em "Minha organização").
-  2. O sistema apresenta o formulário: "Nome da comissão", seleção de "Tipo" e "Descrição / Atribuições".
-  3. O administrador digita o nome, escolhe o tipo ("Comissão", "Grupo de Trabalho", "Comitê", "Subcomissão") e informa a descrição.
-  4. O administrador clica em "Criar comissão".
-  5. O sistema valida se o nome foi preenchido e verifica a inexistência de outra comissão com o mesmo nome na organização.
-  6. O sistema grava a nova comissão como `ACTIVE` e a adiciona à listagem.
-  7. O sistema exibe mensagem de sucesso: "Comissão criada com sucesso".
-* **Exceções:**
-  * *EX01 - Nome em branco:* Sistema alerta "Informe o nome da comissão ou grupo de trabalho".
-  * *EX02 - Nome duplicado:* Sistema alerta "Já existe uma comissão ou grupo de trabalho com este nome nesta organização".
-
----
-
-### RF05: Gerenciar Comissões
-* **Identificador:** UC05 / RF05
-* **Nome do Caso de Uso:** Gerenciar Comissões
-* **Atores:** Administrador da Organização
-* **Sumário:** Editar os dados de uma comissão existente, alternar sua situação (Ativa / Inativa) ou excluí-la da organização.
-* **Pré-condições:** Existir ao menos uma comissão cadastrada na organização selecionada.
-* **Pós-condições:** Comissão atualizada, status alternado ou registro excluído.
-* **Fluxo Principal (Edição):**
-  1. O administrador visualiza a lista de comissões e clica no botão "Editar" de uma comissão.
-  2. O sistema abre o formulário de edição pré-preenchido com nome, tipo, descrição e status.
-  3. O administrador altera os dados desejados e clica em "Salvar alterações".
-  4. O sistema valida as informações e salva as modificações.
-* **Fluxos Alternativos:**
-  * *FA01 - Alternar Ativação:* O administrador clica em "Inativar" (ou "Ativar"). O status é alternado para `INACTIVE` ou `ACTIVE`.
-  * *FA02 - Exclusão:* O administrador clica em "Excluir". O sistema exibe confirmação informando que a equipe vinculada também será removida. Ao confirmar, a comissão e seus vínculos são apagados.
-* **Exceções:**
-  * *EX01 - Nome duplicado na edição:* O sistema impede a gravação caso o novo nome coincida com o de outra comissão da organização.
-
----
-
-### RF06: Gerenciar Equipe da Comissão
-* **Identificador:** UC06 / RF06
-* **Nome do Caso de Uso:** Gerenciar Equipe da Comissão
-* **Atores:** Administrador da Organização
-* **Sumário:** Adicionar membros da organização a uma comissão, definir/alternar papéis funcionais (Coordenador ou Membro) e remover participantes da equipe.
-* **Pré-condições:** A comissão deve estar selecionada; existirem membros aprovados na organização.
-* **Pós-condições:** Associação gravada entre usuário e comissão com o respectivo papel funcional.
-* **Fluxo Principal:**
-  1. O administrador clica sobre uma comissão na lista para selecioná-la.
-  2. O sistema exibe a seção "Equipe da comissão" com os membros atuais e a lista "Membros disponíveis na organização".
-  3. O administrador clica em "+ Adicionar" ao lado de um membro disponível.
-  4. O sistema adiciona o usuário à comissão com o papel inicial `MEMBER` (Membro).
-  5. A lista de integrantes da comissão é atualizada imediatamente.
-* **Fluxos Alternativos:**
-  * *FA01 - Alterar Papel (Tornar Coordenador/Membro):* O administrador clica em "Tornar Coordenador". O sistema altera a função para `COORDINATOR`. Clicar em "Tornar Membro" reverte a função para `MEMBER`.
-  * *FA02 - Remover da Equipe:* O administrador clica em "Remover" ao lado do integrante. O sistema remove o vínculo do usuário com esta comissão.
-* **Exceções:**
-  * Nenhuma (usuários já participantes não são repetidos na lista de disponíveis).
-
----
-
-### RF07: Cadastrar Usuário na Plataforma
-* **Identificador:** UC07 / RF07
-* **Nome do Caso de Uso:** Cadastrar Usuário (Autocadastro)
-* **Atores:** Usuário Comum
-* **Sumário:** Permite a qualquer visitante criar sua conta no aplicativo Synple fornecendo nome, e-mail, telefone e senha.
-* **Pré-condições:** Estar na tela de login/cadastro.
-* **Pós-condições:** Usuário registrado com senha persistida e autenticado na plataforma.
-* **Fluxo Principal:**
-  1. O visitante seleciona a opção "Criar conta" na tela inicial.
-  2. O sistema apresenta os campos: Nome completo, E-mail, Telefone, Senha e Confirmar senha.
-  3. O usuário preenche os campos. O telefone é formatado automaticamente (`(00) 00000-0000`).
-  4. O usuário clica em "Criar conta".
-  5. O sistema valida se o nome e o e-mail são válidos, se o telefone tem formato correto e se a senha tem pelo menos 6 caracteres e coincide com a confirmação.
-  6. O sistema verifica a unicidade do e-mail no banco de dados.
-  7. O sistema cadastra o usuário com senha armazenada, define perfil `USER` e autentica a sessão diretamente.
-* **Exceções:**
-  * *EX01 - E-mail inválido:* Sistema alerta "Informe nome e um e-mail válido".
-  * *EX02 - Senhas divergentes ou curtas:* Sistema alerta "A senha deve ter ao menos 6 caracteres e coincidir com a confirmação".
-  * *EX03 - E-mail duplicado:* Sistema alerta "E-mail já cadastrado".
-
----
-
-### RF08: Solicitar e Decidir Acesso em Organização
-* **Identificador:** UC08 / RF08
-* **Nome do Caso de Uso:** Solicitar e Decidir Acesso
-* **Atores:** Usuário Comum, Administrador da Organização
-* **Sumário:** Usuários solicitam participação em organizações aprovadas; o administrador da respectiva organização aprova ou rejeita a entrada.
-* **Pré-condições:** Existir ao menos uma organização com status `APPROVED`.
-* **Pós-condições:** Solicitação criada com status `PENDING` ou atualizada para `APPROVED` / `REJECTED`.
-* **Fluxo Principal:**
-  1. O usuário acessa a aba "Organizações", pesquisa e localiza uma organização aprovada.
-  2. O usuário clica em "Solicitar entrada".
-  3. O sistema verifica se não há pedido prévio e grava a solicitação com status `PENDING`.
-  4. O Administrador da Organização acessa "Minha organização" e visualiza o pedido em "Solicitações pendentes".
-  5. O administrador clica em "Aprovar".
-  6. O sistema altera o status da solicitação para `APPROVED` e adiciona o usuário à lista oficial de membros da organização.
-* **Fluxos Alternativos:**
-  * *FA01 - Recusa da solicitação:* No passo 5, o administrador clica em "Recusar". O status passa a `REJECTED`.
-* **Exceções:**
-  * *EX01 - Solicitação redundante:* Sistema bloqueia caso o usuário já possua pedido ativo ou já seja membro.
-
----
-
-### RF09: Gerenciar Usuários Dentro da Organização
-* **Identificador:** UC09 / RF09
-* **Nome do Caso de Uso:** Gerenciar Usuários da Organização
-* **Atores:** Administrador da Organização
-* **Sumário:** O Administrador da Organização visualiza a lista de membros ativos, altera cargos organizacionais e revoga acessos.
-* **Pré-condições:** Usuário autenticado como Administrador da Organização; existirem membros aprovados.
-* **Pós-condições:** Papel atualizado ou acesso revogado com desvinculação das comissões da entidade.
-* **Fluxo Principal:**
-  1. O administrador acessa a tela "Minha organização".
-  2. Na seção "Membros da organização", o sistema lista os integrantes com seus respectivos papéis.
-  3. O administrador clica no botão de alteração de papel (ex.: "Tornar Gestor" ou "Tornar Membro").
-  4. O sistema atualiza o cargo do integrante na organização.
-* **Fluxos Alternativos:**
-  * *FA01 - Revogação de acesso:* O administrador clica em "Remover membro". O sistema solicita confirmação e, ao aceitar, atualiza a solicitação para `REVOKED` e remove o usuário de todas as comissões daquela organização.
-* **Exceções:**
-  * Nenhuma.
-
----
-
-### RF10: Troca de Senha de Usuário
-* **Identificador:** UC10 / RF10
-* **Nome do Caso de Uso:** Trocar Senha
-* **Atores:** Usuário Autenticado
-* **Sumário:** Permite ao usuário alterar sua credencial de acesso mediante conferência da senha atual.
-* **Pré-condições:** O usuário deve estar autenticado.
-* **Pós-condições:** A nova senha é gravada no cadastro do usuário e a data de atualização é registrada.
-* **Fluxo Principal:**
-  1. O usuário acessa a aba "Perfil".
-  2. Na seção "Trocar senha", o usuário preenche "Senha atual", "Nova senha" e "Confirmar nova senha".
-  3. O usuário clica em "Atualizar senha".
-  4. O sistema valida se a senha atual digitada confere exatamente com a senha registrada.
-  5. O sistema valida se a nova senha possui no mínimo 6 caracteres e coincide com a confirmação.
-  6. O sistema atualiza a senha do usuário e limpa os campos do formulário.
-  7. O sistema emite alerta: "Sua senha foi atualizada com sucesso".
-* **Exceções:**
-  * *EX01 - Senha atual incorreta:* O sistema bloqueia e alerta "Senha atual incorreta: A senha atual informada não confere".
-  * *EX02 - Nova senha curta ou divergente:* O sistema alerta "A nova senha deve ter ao menos 6 caracteres e coincidir com a confirmação".
-
----
-
-### RF11: Recuperação de Conta
-* **Identificador:** UC11 / RF11
-* **Nome do Caso de Uso:** Recuperar Conta e Redefinir Senha
-* **Atores:** Usuário (Visitante ou Autenticado)
-* **Sumário:** Permite ao usuário que esqueceu sua senha solicitar um link de recuperação e cadastrar uma nova senha para restabelecer o acesso à sua conta.
-* **Pré-condições:** O usuário deve possuir uma conta cadastrada no sistema.
-* **Pós-condições:** Nova senha cadastrada e validada no armazenamento local/banco de dados.
-* **Fluxo Principal:**
-  1. Na tela inicial de login, o usuário clica no link "Esqueci minha senha".
-  2. O sistema exibe o formulário de recuperação solicitando o "E-mail cadastrado".
-  3. O usuário digita seu e-mail e clica em "Enviar link de recuperação".
-  4. O sistema valida se o e-mail existe na base de dados.
-  5. O sistema gera um token seguro de recuperação (`recoveryToken`), registra o timestamp da solicitação e simula o link de recuperação (`https://synple.app/redefinir-senha?token=...`).
-  6. O sistema avança imediatamente para o formulário de redefinição de credenciais: "Nova senha" e "Confirmar nova senha".
-  7. O usuário informa a nova senha desejada (mínimo de 6 caracteres) e a confirmação.
-  8. O usuário aciona "Redefinir senha e salvar".
-  9. O sistema valida os requisitos de segurança da senha, atualiza o registro do usuário e exibe mensagem de sucesso.
-  10. O usuário é redirecionado de volta para a tela de login já com o e-mail e nova senha preenchidos.
-* **Fluxos Alternativos:**
-  * *FA01 - Recuperação via Perfil:* O usuário já autenticado pode solicitar instruções de recuperação na aba "Perfil" clicando em "Recuperar conta por e-mail".
-* **Exceções:**
-  * *EX01 - E-mail não cadastrado:* O sistema bloqueia a operação e alerta "E-mail não encontrado: Não encontramos nenhuma conta vinculada a este e-mail".
-  * *EX02 - Nova senha curta ou divergente:* O sistema alerta "A nova senha deve ter no mínimo 6 caracteres e coincidir com a confirmação".
-
----
-
-### RF12: Alteração de Dados Pessoais
-* **Identificador:** UC12 / RF12
-* **Nome do Caso de Uso:** Alterar Dados Pessoais
-* **Atores:** Usuário Autenticado
-* **Sumário:** Permite ao usuário atualizar seu nome, endereço de e-mail e telefone de contato.
-* **Pré-condições:** O usuário deve estar autenticado.
-* **Pós-condições:** Dados pessoais atualizados no armazenamento local/banco.
-* **Fluxo Principal:**
-  1. O usuário acessa a aba "Perfil".
-  2. Na seção "Dados pessoais", o usuário altera Nome, E-mail ou Telefone.
-  3. O sistema formata automaticamente o campo de telefone com máscara conforme a digitação (`(00) 00000-0000`).
-  4. O usuário clica em "Salvar dados".
-  5. O sistema valida o preenchimento dos campos, o formato do e-mail, a validade do telefone (DDD + 8 ou 9 dígitos) e a unicidade do e-mail.
-  6. O sistema atualiza os dados do usuário e exibe alerta de sucesso.
-* **Exceções:**
-  * *EX01 - E-mail já utilizado por outro usuário:* Sistema alerta "E-mail já utilizado: Escolha outro e-mail".
-  * *EX02 - Telefone com quantidade incorreta de dígitos:* Sistema alerta informando o padrão esperado.
-
----
-
-### RF13: Tema Preferido do Aplicativo
-* **Identificador:** UC13 / RF13
-* **Nome do Caso de Uso:** Definir Tema Preferido (Claro / Escuro)
-* **Atores:** Usuário Autenticado
-* **Sumário:** Permite ao usuário alternar a aparência visual completa do aplicativo entre Tema Claro (`LIGHT`) e Tema Escuro (`DARK`).
-* **Pré-condições:** Estar autenticado no aplicativo.
-* **Pós-condições:** A preferência de tema é persistida no perfil do usuário e a interface se adapta dinamicamente via `ThemeContext`.
-* **Fluxo Principal:**
-  1. O usuário acessa a aba "Perfil".
-  2. Na seção "Tema preferido", o usuário clica em "Claro" ou "Escuro".
-  3. O sistema salva a escolha no perfil do usuário no `AsyncStorage`.
-  4. O `ThemeContext` recomputa dinamicamente a paleta de cores:
-     * **Fundo da aplicação:** `#0B0F19` (Escuro) / `#F7F8FC` (Claro);
-     * **Cabeçalho e Cartões:** `#171E2E` e bordas `#283347` (Escuro) / `#FFFFFF` e bordas `#E2E8F0` (Claro);
-     * **Textos e Títulos:** `#F1F5F9` (Escuro) / `#1E293B` (Claro);
-     * **Campos de Formulário (Inputs):** `#0F172A` e bordas `#334155` (Escuro) / `#F8FAFC` e bordas `#CBD5E1` (Claro);
-     * **Seletores e Menus:** `#1E293B` e ativos `#312E81` (Escuro) / `#FFFFFF` e ativos `#EEF2FF` (Claro);
-     * **Barra de Status do Sistema (`StatusBar`):** Ícones brancos (`light`) no tema Escuro e ícones escuros (`dark`) no tema Claro.
-  5. A interface completa é renderizada com a nova aparência imediatamente sem recarregar o app.
-* **Exceções:**
-  * Nenhuma.
-
----
-
-### RF14: Status do Sistema e dos seus Subsistemas
-* **Identificador:** UC14 / RF14
-* **Nome do Caso de Uso:** Consultar Status do Sistema e Subsistemas
-* **Atores:** Administrador do Sistema
-* **Sumário:** Exibir a situação operacional da plataforma e dos subsistemas essenciais (API, Banco de dados e Notificações).
-* **Pré-condições:** Estar autenticado como Administrador do Sistema.
-* **Pós-condições:** Nenhuma (leitura).
-* **Fluxo Principal:**
-  1. O Administrador do Sistema acessa a aba "Sistema".
-  2. O sistema exibe o bloco "Status do sistema", informando se foi inicializado e a data/hora do setup.
-  3. O sistema lista os subsistemas: API, Banco de dados e Notificações, com seus respectivos estados (`ONLINE`, `RESTARTING`).
-* **Exceções:**
-  * Nenhuma.
-
----
-
-### RF15: Relatórios de Usuários, Organizações e Comissões
-* **Identificador:** UC15 / RF15
-* **Nome do Caso de Uso:** Consultar Relatórios do Sistema
-* **Atores:** Administrador do Sistema
-* **Sumário:** Exibir painel com indicadores consolidados e contadores em tempo real de usuários, organizações, comissões e acessos pendentes.
-* **Pré-condições:** Estar autenticado como Administrador do Sistema.
-* **Pós-condições:** Nenhuma (leitura analítica).
-* **Fluxo Principal:**
-  1. O Administrador do Sistema acessa a aba "Sistema".
-  2. Na seção "Relatório resumido", o sistema computa e exibe:
-     * Quantidade total de usuários cadastrados;
-     * Quantidade total de organizações;
-     * Quantidade total de comissões criadas;
-     * Quantidade de solicitações de acesso pendentes.
-* **Exceções:**
-  * Nenhuma.
-
----
-
-### RF16: Reinicialização de Subsistemas
-* **Identificador:** UC16 / RF16
-* **Nome do Caso de Uso:** Reinicializar Subsistema Operacional
-* **Atores:** Administrador do Sistema
-* **Sumário:** Permite disparar o reinício assistido de um subsistema (ex.: Banco de dados, API, Notificações) em caso de manutenção.
-* **Pré-condições:** Estar autenticado como Administrador do Sistema.
-* **Pós-condições:** O subsistema passa temporariamente para `RESTARTING` e retorna automaticamente ao estado `ONLINE`.
-* **Fluxo Principal:**
-  1. O Administrador do Sistema acessa a aba "Sistema".
-  2. Ao lado do subsistema desejado (ex.: "Banco de dados"), o administrador clica em "Reiniciar".
-  3. O sistema altera o status do subsistema para `RESTARTING`.
-  4. Após a rotina simulada de reinicialização (900ms), o subsistema retorna ao status `ONLINE`.
-* **Exceções:**
-  * Nenhuma.
-
----
-
-### RF17: Setup Inicial e Inicialização do Sistema
-* **Identificador:** UC17 / RF17
-* **Nome do Caso de Uso:** Executar Setup Inicial do Sistema
-* **Atores:** Administrador do Sistema
-* **Sumário:** Executar a rotina de provisionamento e configuração inicial dos subsistemas da plataforma.
-* **Pré-condições:** Estar autenticado como Administrador do Sistema.
-* **Pós-condições:** Sistema marcado como `initialized: true` com timestamp registrado.
-* **Fluxo Principal:**
-  1. O Administrador do Sistema acessa a aba "Sistema".
-  2. Na seção "Operações administrativas", clica em "Executar setup inicial".
-  3. O sistema valida os subsistemas e grava `initialized: true` com a data/hora atual.
-  4. O sistema emite alerta: "Sistema inicializado: Os subsistemas estão prontos para operação".
-* **Exceções:**
-  * Nenhuma.
-
----
-
-### RF18: Reset do Sistema e Restauração de Dados
-* **Identificador:** UC18 / RF18
-* **Nome do Caso de Uso:** Resetar Sistema e Restaurar Dados de Demonstração
-* **Atores:** Administrador do Sistema
-* **Sumário:** Limpar dados criados no dispositivo e restabelecer o banco/storage aos valores iniciais de demonstração.
-* **Pré-condições:** Estar autenticado como Administrador do Sistema.
-* **Pós-condições:** Dados locais limpos e substituídos pelo conjunto padrão `INITIAL_DATA`.
-* **Fluxo Principal:**
-  1. O Administrador do Sistema clica no botão "Resetar sistema e dados locais" ou "Restaurar dados de demonstração".
-  2. O sistema exibe diálogo de alerta: "Os dados cadastrados neste dispositivo serão removidos".
-  3. O administrador clica em "Restaurar".
-  4. O sistema substitui os dados pelo conjunto inicial de teste e atualiza a interface.
-* **Exceções:**
-  * *EX01 - Cancelamento:* O administrador clica em "Cancelar"; nenhuma exclusão ocorre.
-
----
-
-## 3. Diagrama de Classes e Dicionário de Dados
-
-### 3.1 Diagrama de Classes UML
-
-```mermaid
-classDiagram
-  class User {
-    +String id
-    +String name
-    +String email
-    +String phone
-    +String password
-    +String systemRole
-    +String theme
-    +DateTime createdAt
-    +login(password) Boolean
-    +updateProfile(name, email, phone) void
-    +updatePassword(currentPass, newPass) Boolean
-  }
-
-  class Organization {
-    +String id
-    +String name
-    +String document
-    +String ownerId
-    +String status
-    +DateTime createdAt
-    +approve() void
-    +reject() void
-  }
-
-  class AccessRequest {
-    +String id
-    +String organizationId
-    +String userId
-    +String status
-    +String organizationRole
-    +DateTime createdAt
-    +approve() void
-    +reject() void
-    +revoke() void
-  }
-
-  class Commission {
-    +String id
-    +String organizationId
-    +String name
-    +String type
-    +String description
-    +String status
-    +DateTime createdAt
-    +activate() void
-    +inactivate() void
-  }
-
-  class CommissionMember {
-    +String commissionId
-    +String userId
-    +String role
-    +DateTime addedAt
-    +setRole(newRole) void
-  }
-
-  class SystemStatus {
-    +Boolean initialized
-    +DateTime initializedAt
-    +List~Subsystem~ subsystems
-    +restartSubsystem(id) void
-    +resetData() void
-  }
-
-  User "1" -- "0..*" Organization : cria / administra
-  Organization "1" -- "0..*" Commission : possui
-  Organization "1" -- "0..*" AccessRequest : recebe
-  User "1" -- "0..*" AccessRequest : solicita
-  Commission "1" -- "0..*" CommissionMember : contém
-  User "1" -- "0..*" CommissionMember : participa
-```
-
-### 3.2 Dicionário de Dados das Classes
-
-| Entidade / Atributo | Tipo | Obrigatório | Descrição |
-| :--- | :--- | :---: | :--- |
-| **User.id** | String (UUID) | Sim | Identificador único do usuário. |
-| **User.name** | String (100) | Sim | Nome completo do usuário. |
-| **User.email** | String (120) | Sim | E-mail normalizado em minúsculas (único no sistema). |
-| **User.phone** | String (20) | Não | Telefone com máscara: `(00) 00000-0000` ou `(00) 0000-0000`. |
-| **User.password** | String (Hash) | Sim | Senha do usuário (mínimo de 6 caracteres). |
-| **User.systemRole** | String (20) | Sim | Papel sistêmico: `SYSTEM_ADMIN` ou `USER`. |
-| **User.theme** | String (10) | Sim | Preferência de interface: `LIGHT` ou `DARK`. |
-| **Organization.id** | String (UUID) | Sim | Identificador único da organização. |
-| **Organization.name**| String (120) | Sim | Razão social ou nome fantasia da organização. |
-| **Organization.document**| String (18) | Sim | CNPJ único com máscara: `00.000.000/0000-00` (14 dígitos numéricos). |
-| **Organization.ownerId**| String (UUID) | Sim | Referência ao usuário criador e administrador da entidade. |
-| **Organization.status** | String (20) | Sim | Estado da organização: `PENDING`, `APPROVED`, `REJECTED`, `REVOKED`. |
-| **Commission.id** | String (UUID) | Sim | Identificador único da comissão/grupo. |
-| **Commission.organizationId**| String (UUID)| Sim | Chave de ligação com a organização proprietária. |
-| **Commission.name** | String (100) | Sim | Nome da comissão ou grupo de trabalho (único por organização). |
-| **Commission.type** | String (50) | Sim | Categoria: `Comissão`, `Grupo de Trabalho`, `Comitê`, `Subcomissão`. |
-| **Commission.description**| String (Text)| Não | Detalhamento dos objetivos da comissão. |
-| **Commission.status**| String (20) | Sim | Estado de operação: `ACTIVE` ou `INACTIVE`. |
-| **CommissionMember.commissionId**| String (UUID)| Sim | Referência à comissão associada. |
-| **CommissionMember.userId** | String (UUID)| Sim | Referência ao usuário participante. |
-| **CommissionMember.role** | String (20) | Sim | Papel funcional do integrante: `COORDINATOR` ou `MEMBER`. |
-
----
-
-## 4. Diagrama Relacional (DER / MER) e Dicionário do Banco de Dados
-
-### 4.1 Diagrama Físico Relacional (PostgreSQL)
-
-O banco de dados relacional oficial do Synple é o **PostgreSQL**, com orquestração em contêineres **Docker** e mapeamento via ORM **Sequelize**:
-
-```mermaid
-erDiagram
-  USERS ||--o{ ORGANIZATIONS : "administra (owner_id)"
-  USERS ||--o{ ACCESS_REQUESTS : "solicita (user_id)"
-  ORGANIZATIONS ||--o{ ACCESS_REQUESTS : "recebe (organization_id)"
-  ORGANIZATIONS ||--o{ COMMISSIONS : "possui (organization_id)"
-  COMMISSIONS ||--o{ COMMISSION_MEMBERS : "possui (commission_id)"
-  USERS ||--o{ COMMISSION_MEMBERS : "integra (user_id)"
-
-  USERS {
-    uuid id PK
-    varchar_120 name
-    varchar_150 email UK
-    varchar_20 phone
-    varchar_255 password_hash
-    varchar_30 system_role
-    varchar_10 theme
-    timestamptz created_at
-    timestamptz updated_at
-  }
-
-  ORGANIZATIONS {
-    uuid id PK
-    varchar_150 name
-    varchar_18 document UK
-    uuid owner_id FK
-    varchar_20 status
-    timestamptz created_at
-    timestamptz updated_at
-  }
-
-  ACCESS_REQUESTS {
-    uuid id PK
-    uuid organization_id FK
-    uuid user_id FK
-    varchar_20 status
-    varchar_30 organization_role
-    timestamptz created_at
-    timestamptz updated_at
-  }
-
-  COMMISSIONS {
-    uuid id PK
-    uuid organization_id FK
-    varchar_120 name
-    varchar_50 type
-    text description
-    varchar_20 status
-    timestamptz created_at
-    timestamptz updated_at
-  }
-
-  COMMISSION_MEMBERS {
-    uuid commission_id PK,FK
-    uuid user_id PK,FK
-    varchar_20 role
-    timestamptz created_at
-  }
-```
-
-### 4.2 Dicionário do Banco de Dados Relacional (PostgreSQL)
-
-#### Tabela `users`
-* `id` (`UUID`, PK, `gen_random_uuid()`): Identificador primário do usuário.
-* `name` (`VARCHAR(120)`, NOT NULL): Nome completo do usuário.
-* `email` (`VARCHAR(150)`, NOT NULL, UNIQUE): E-mail único e normalizado.
-* `phone` (`VARCHAR(20)`, NULL): Telefone formatado: `(00) 00000-0000`.
-* `password_hash` (`VARCHAR(255)`, NOT NULL): Hash Bcrypt da senha.
-* `system_role` (`VARCHAR(30)`, NOT NULL, DEFAULT `'USER'`): Papel sistêmico (`SYSTEM_ADMIN`, `USER`).
-* `theme` (`VARCHAR(10)`, NOT NULL, DEFAULT `'LIGHT'`): Tema (`LIGHT`, `DARK`).
-* `created_at` / `updated_at` (`TIMESTAMPTZ`, NOT NULL): Auditoria temporal.
-
-#### Tabela `organizations`
-* `id` (`UUID`, PK, `gen_random_uuid()`): Identificador primário da organização.
-* `name` (`VARCHAR(150)`, NOT NULL): Razão social ou nome fantasia.
-* `document` (`VARCHAR(18)`, NOT NULL, UNIQUE): CNPJ formatado (14 dígitos numéricos).
-* `owner_id` (`UUID`, NOT NULL, FK -> `users(id)`): Chave estrangeira do criador/admin da organização.
-* `status` (`VARCHAR(20)`, NOT NULL, DEFAULT `'PENDING'`): Estado da organização (`PENDING`, `APPROVED`, `REJECTED`, `REVOKED`).
-* `created_at` / `updated_at` (`TIMESTAMPTZ`, NOT NULL): Auditoria temporal.
-
-#### Tabela `access_requests`
-* `id` (`UUID`, PK, `gen_random_uuid()`): Identificador da solicitação.
-* `organization_id` (`UUID`, NOT NULL, FK -> `organizations(id)` ON DELETE CASCADE): Organização de destino.
-* `user_id` (`UUID`, NOT NULL, FK -> `users(id)` ON DELETE CASCADE): Usuário solicitante.
-* `status` (`VARCHAR(20)`, NOT NULL, DEFAULT `'PENDING'`): Estado (`PENDING`, `APPROVED`, `REJECTED`, `REVOKED`).
-* `organization_role` (`VARCHAR(30)`, NOT NULL, DEFAULT `'MEMBER'`): Cargo organizacional (`MEMBER`, `MANAGER`).
-* `created_at` / `updated_at` (`TIMESTAMPTZ`, NOT NULL): Auditoria temporal.
-* Restrição: `UNIQUE (organization_id, user_id)`.
-
-#### Tabela `commissions`
-* `id` (`UUID`, PK, `gen_random_uuid()`): Identificador primário da comissão.
-* `organization_id` (`UUID`, NOT NULL, FK -> `organizations(id)` ON DELETE CASCADE): Organização mantenedora.
-* `name` (`VARCHAR(120)`, NOT NULL): Nome da comissão/grupo.
-* `type` (`VARCHAR(50)`, NOT NULL, DEFAULT `'Comissão'`): Classificação.
-* `description` (`TEXT`, NULL): Descrição de atribuições.
-* `status` (`VARCHAR(20)`, NOT NULL, DEFAULT `'ACTIVE'`): Situação (`ACTIVE`, `INACTIVE`).
-* `created_at` / `updated_at` (`TIMESTAMPTZ`, NOT NULL): Auditoria temporal.
-* Restrição: `UNIQUE (organization_id, LOWER(name))`.
-
-#### Tabela `commission_members`
-* `commission_id` (`UUID`, NOT NULL, FK -> `commissions(id)` ON DELETE CASCADE): Chave composta.
-* `user_id` (`UUID`, NOT NULL, FK -> `users(id)` ON DELETE CASCADE): Chave composta.
-* `role` (`VARCHAR(20)`, NOT NULL, DEFAULT `'MEMBER'`): Papel na comissão (`COORDINATOR`, `MEMBER`).
-* `created_at` (`TIMESTAMPTZ`, NOT NULL): Data de inclusão na equipe.
-* Chave Primária Composta: `PRIMARY KEY (commission_id, user_id)`.
-
----
-
-## 5. Requisitos Não-Funcionais (RNFs)
-
-* **RNF01 - Usabilidade e Acessibilidade:**
-  * Interface intuitiva com aplicação das diretrizes de Material Design 3.
-  * Máscaras de entrada dinâmicas para CNPJ (`00.000.000/0000-00`) e Telefone (`(00) 00000-0000`).
-  * Suporte nativo a Tema Claro (`LIGHT`) e Tema Escuro (`DARK`) selecionável pelo usuário.
-  * Feedback imediato ao usuário por meio de alertas informativos e badges coloridos com a situação dos registros.
-
-* **RNF02 - Persistência e Tolerância a Falhas (Offline-First):**
-  * Na camada cliente móvel, todas as operações são persistidas localmente via `AsyncStorage` (chave `@synple:incremento-1`), garantindo que a aplicação retenha estado e dados mesmo após o fechamento ou reinicialização do dispositivo.
-
-* **RNF03 - Segurança e Controle de Acesso:**
-  * Controle de acesso baseado em papéis (RBAC): telas e comandos de sistema restritos exclusivamente a usuários com perfil `SYSTEM_ADMIN`.
-  * Proteção do administrador ativo do sistema contra remoção involuntária.
-  * Conferência rigorosa de senhas no login e bloqueio de acessos com credenciais divergentes.
-  * Validação prévia da senha atual antes de autorizar a redefinição de nova senha.
-
-* **RNF04 - Desempenho e Eficiência:**
-  * O tempo de inicialização a frio (cold start) da aplicação deve ser inferior a 2 segundos.
-  * As transições entre telas e operações de filtragem e atualização de listas devem responder em menos de 100ms.
-
-* **RNF05 - Portabilidade e Compatibilidade Multiplataforma:**
-  * O código-fonte cliente é desenvolvido sobre **Expo SDK 54 / React Native**, garantindo execução idêntica em dispositivos **Android** e **iOS**.
-  * A infraestrutura de backend é conteinerizada com **Docker**, assegurando portabilidade entre ambientes de desenvolvimento e produção.
-
----
-
-## 6. Diagramas de Sequência de Todos os Módulos
-
-### 6.1 Módulo 1: Cadastro e Gestão de Organizações (RF01, RF02, RF03)
-
-```mermaid
-sequenceDiagram
-  autonumber
-  actor User as Usuário Comum
-  participant App as Aplicativo Mobile
-  participant Storage as AsyncStorage / PostgreSQL
-  actor AdminSys as Administrador do Sistema
-
-  Note over User,App: RF01 - Cadastrar Organização
-  User->>App: Informa Nome e CNPJ na tela
-  App->>App: Aplica máscara CNPJ e valida 14 dígitos
-  User->>App: Clica em "Enviar cadastro"
-  App->>Storage: Salva organização com status PENDING e ownerId
-  App-->>User: Alerta: "Cadastro enviado, aguarda aprovação"
-
-  Note over AdminSys,App: RF02 - Autorizar / Revogar Organização
-  AdminSys->>App: Acessa aba "Gestão"
-  App->>Storage: Carrega organizações
-  Storage-->>App: Retorna lista de organizações
-  AdminSys->>App: Clica em "Aprovar" na organização
-  App->>Storage: Atualiza status da organização para APPROVED
-  App-->>AdminSys: Organização aprovada
-  Note over User,AdminSys: O criador agora é Administrador da Organização
-
-  Note over AdminSys,App: RF03 - Gerenciar Organizações (Remoção)
-  AdminSys->>App: Clica em "Remover" em uma organização
-  App->>AdminSys: Exibe diálogo de confirmação
-  AdminSys->>App: Confirma remoção
-  App->>Storage: Remove organização e vínculos em cascata
-  App-->>AdminSys: Organização removida com sucesso
-```
-
-### 6.2 Módulo 2: Comissões e Equipe da Comissão (RF04, RF05, RF06)
-
-```mermaid
-sequenceDiagram
-  autonumber
-  actor AdminOrg as Administrador da Organização
-  participant App as Aplicativo Mobile
-  participant Storage as AsyncStorage / PostgreSQL
-
-  Note over AdminOrg,App: RF04 - Cadastrar Comissão/Grupo
-  AdminOrg->>App: Acessa "Comissões" da organização aprovada
-  AdminOrg->>App: Preenche Nome, Tipo e Descrição
-  AdminOrg->>App: Clica em "Criar comissão"
-  App->>App: Valida campos e unicidade de nome na organização
-  App->>Storage: Salva comissão com status ACTIVE
-  App-->>AdminOrg: "Comissão criada com sucesso"
-
-  Note over AdminOrg,App: RF05 - Gerenciar Comissões (Edição/Status)
-  AdminOrg->>App: Clica em "Inativar" (ou "Ativar")
-  App->>Storage: Alterna status para INACTIVE / ACTIVE
-  AdminOrg->>App: Clica em "Editar", altera dados e confirma
-  App->>Storage: Salva alterações da comissão
-
-  Note over AdminOrg,App: RF06 - Gerenciar Equipe da Comissão
-  AdminOrg->>App: Seleciona comissão para montar equipe
-  App->>Storage: Busca membros aprovados da organização
-  Storage-->>App: Lista membros disponíveis
-  AdminOrg->>App: Clica em "+ Adicionar" em um membro
-  App->>Storage: Salva vínculo commissionMembers (role: MEMBER)
-  AdminOrg->>App: Clica em "Tornar Coordenador"
-  App->>Storage: Atualiza role para COORDINATOR
-  AdminOrg->>App: Clica em "Remover" da equipe
-  App->>Storage: Remove vínculo do membro nesta comissão
-  App-->>AdminOrg: Equipe atualizada em tempo real
-```
-
-### 6.3 Módulo 3: Cadastro de Usuário e Acessos à Organização (RF07, RF08, RF09)
-
-```mermaid
-sequenceDiagram
-  autonumber
-  actor User as Usuário Comum
-  participant App as Aplicativo Mobile
-  participant Storage as AsyncStorage / PostgreSQL
-  actor AdminOrg as Administrador da Organização
-
-  Note over User,App: RF07 - Cadastrar Usuário na Plataforma
-  User->>App: Preenche Nome, E-mail, Telefone, Senha e Confirmação
-  App->>App: Aplica máscara no telefone e valida campos
-  User->>App: Clica em "Criar conta"
-  App->>Storage: Salva novo usuário com senha e telefone
-  App-->>User: Usuário cadastrado e autenticado
-
-  Note over User,AdminOrg: RF08 - Solicitar e Decidir Acesso
-  User->>App: Localiza organização aprovada e clica em "Solicitar entrada"
-  App->>Storage: Grava accessRequests com status PENDING
-  App-->>User: Alerta: "Solicitação enviada"
-  AdminOrg->>App: Acessa "Minha organização" -> "Solicitações pendentes"
-  AdminOrg->>App: Clica em "Aprovar"
-  App->>Storage: Atualiza solicitação para APPROVED
-  App-->>AdminOrg: Usuário integrado à organização
-
-  Note over AdminOrg,App: RF09 - Gerenciar Usuários da Organização
-  AdminOrg->>App: Visualiza lista de membros aprovados
-  AdminOrg->>App: Clica em "Tornar Gestor" (ou altera papel)
-  App->>Storage: Atualiza organizationRole
-  AdminOrg->>App: Clica em "Remover membro"
-  App->>Storage: Atualiza solicitação para REVOKED e desvincula de comissões
-  App-->>AdminOrg: Acesso do membro revogado
-```
-
-### 6.4 Módulo 4: Configurações de Usuário e Credenciais (RF10, RF11, RF12, RF13)
-
-```mermaid
-sequenceDiagram
-  autonumber
-  actor User as Usuário Autenticado
-  participant App as Aplicativo Mobile
-  participant Storage as AsyncStorage / PostgreSQL
-
-  Note over User,App: RF10 - Troca de Senha com Verificação Estrita
-  User->>App: Acessa "Perfil" -> informa senha atual errada ("123") e nova senha
-  User->>App: Clica em "Atualizar senha"
-  App->>App: Compara senha atual informada !== senha cadastrada
-  App-->>User: Alerta de Erro: "Senha atual incorreta"
-  User->>App: Informa a senha atual correta e nova senha
-  User->>App: Clica em "Atualizar senha"
-  App->>Storage: Grava nova senha no cadastro do usuário
-  App-->>User: Alerta de Sucesso: "Sua senha foi atualizada com sucesso"
-
-  Note over User,App: RF11 - Recuperação de Conta e Redefinição de Senha
-  User->>App: Na tela de Login, clica em "Esqueci minha senha"
-  User->>App: Digita e-mail cadastrado e clica em "Enviar link de recuperação"
-  App->>Storage: Verifica se o e-mail existe
-  App->>Storage: Registra token de recuperação e timestamp
-  App-->>User: Alerta: "Link gerado: https://synple.app/redefinir-senha?token=..."
-  App->>App: Abre formulário de nova senha
-  User->>App: Informa nova senha e confirmação
-  User->>App: Clica em "Redefinir senha e salvar"
-  App->>Storage: Grava nova senha no cadastro do usuário
-  App-->>User: Alerta: "Senha redefinida com sucesso! Faça login para continuar."
-  App->>App: Retorna ao Login preenchido para entrar
-
-  Note over User,App: RF12 - Alteração de Dados Pessoais
-  User->>App: Altera Nome, E-mail e digita novo Telefone
-  App->>App: Aplica máscara de telefone e valida formato
-  User->>App: Clica em "Salvar dados"
-  App->>Storage: Salva nome, e-mail e telefone formatado
-  App-->>User: Alerta: "Suas informações pessoais foram alteradas"
-
-  Note over User,App: RF13 - Definir Tema Preferido (Claro / Escuro)
-  User->>App: Na aba "Perfil", clica em "Escuro" (ou "Claro")
-  App->>Storage: Persiste a preferência no perfil do usuário
-  App->>App: ThemeContext recalcula e injeta tokens de estilo
-  App-->>User: Fundo, cabeçalho, cartões, menus, inputs e StatusBar adaptam-se instantaneamente
-```
-
-### 6.5 Módulo 5: Informações, Subsistemas e Operações do Sistema (RF14, RF15, RF16, RF17, RF18)
-
-```mermaid
-sequenceDiagram
-  autonumber
-  actor AdminSys as Administrador do Sistema
-  participant App as Aplicativo Mobile
-  participant Storage as AsyncStorage / PostgreSQL
-
-  Note over AdminSys,App: RF14 e RF15 - Status e Relatórios do Sistema
-  AdminSys->>App: Acessa aba "Sistema"
-  App->>Storage: Consulta estado dos subsistemas e coleções
-  Storage-->>App: Retorna status (API, Banco, Notificações) e contadores
-  App-->>AdminSys: Renderiza status operacional e contadores de usuários/organizações/comissões
-
-  Note over AdminSys,App: RF16 - Reinicialização de Subsistema
-  AdminSys->>App: Clica em "Reiniciar" no Banco de dados
-  App->>Storage: Define status do subsistema como RESTARTING
-  App-->>AdminSys: Badge exibe "Reiniciando..."
-  App->>Storage: Após 900ms, redefine status para ONLINE
-  App-->>AdminSys: Badge atualiza para "Online"
-
-  Note over AdminSys,App: RF17 - Setup Inicial do Sistema
-  AdminSys->>App: Clica em "Executar setup inicial"
-  App->>Storage: Grava initialized = true e timestamp
-  App-->>AdminSys: Alerta: "Sistema inicializado"
-
-  Note over AdminSys,App: RF18 - Reset do Sistema
-  AdminSys->>App: Clica em "Resetar sistema e dados locais"
-  App->>AdminSys: Caixa de confirmação de exclusão
-  AdminSys->>App: Confirma "Restaurar"
-  App->>Storage: Restaura INITIAL_DATA padrão
-  App-->>AdminSys: Sistema restaurado com sucesso
-```
+# Especificação principal de engenharia de software — Synple
+
+**Revisão:** 30/10/2026. **Escopo:** cadastro, organizações, comissões, contas, configuração, operação e incremento 2 (reuniões/atas). **Base:** código presente neste checkout, DDL e relatórios de teste identificados; não presume implantação em outro computador.
+
+Esta revisão substitui integralmente a especificação anterior. Não descreve como implementados chat, calendário gráfico, disponibilidade, edição/cancelamento de reunião, restauração de backup ou reinício de processos pelo celular. O levantamento de requisitos com a comunidade e os testes físicos ainda dependem de evidências externas.
+
+## 1. Fontes, convenções e rastreabilidade
+
+| Fonte | Uso nesta especificação |
+| --- | --- |
+| [App.js](../Synple/mobile/App.js), [telas](../Synple/mobile/src/screens) e [API cliente](../Synple/mobile/src/services/api.js) | Nomes de campos/ações, validações locais e tratamento de respostas |
+| [Rotas Express](../Synple/backend/src/routes), [segurança](../Synple/backend/src/services/security.js) e [autorização](../Synple/backend/src/services/authorization.js) | Contrato HTTP, identidade, permissões e regras executadas |
+| [DDL](../Synple/backend/src/db/schema.sql) | Estrutura física e restrições efetivamente existentes |
+| [Versions](tecnologias-versoes.md) | Manifests e versões resolvidas no lockfile, incluindo dependências diretas |
+| [Verificação das correções](../Synple/docs/VERIFICACAO_CORRECOES.md) | Execuções anteriores identificadas: 35 testes backend, 23 mobile e exportações; não são testes novos desta revisão documental |
+| Enunciado do incremento 2, identificado na documentação anterior como slides 4–10 da apresentação f2b56f41bcb6-5d9f38abce32442c931a4ff49a379768.pptx | Origem declarada das funcionalidades de reunião; o arquivo original não está sendo apresentado como revalidado nesta revisão |
+
+IDs RF01–RF18 foram preservados para rastrear a entrega anterior; RF16–RF18 agora descrevem o que existe no aplicativo, sem alegar reinício/setup/reset reais. RF19–RF28 explicitam contas/sessão/convites e gestão antes misturados a outros fluxos. RF02.01–RF02.10 pertencem ao incremento 2: o ponto faz parte do identificador e não os confunde com RF02.
+
+Cada ficha registra ator, gatilho, pré/pós-condições, fluxo, exceções, dados e contrato. RF descreve comportamento; RNF descreve qualidade verificável. Contratos técnicos de serialização/colunas complementam o requisito, sem substituir o objetivo do usuário. Onde a implementação é incompleta, o limite fica escrito como tal, em vez de inventar uma garantia.
+
+## 2. Arquitetura, versões e configurações
+
+Cliente Expo SDK 57/React Native 0.86, JavaScript, componentes próprios; API Express 4/Node 22, SQL parametrizado com pg e PostgreSQL 16. Não há ORM Sequelize nem classes JavaScript de entidade declaradas. O modelo de classes abaixo é de análise/projeto; operações de módulos são identificadas separadamente.
+
+Android mínimo 7/API 24; iOS mínimo 16.4; Node mínimo 22.13. [Tabela completa de tecnologias](tecnologias-versoes.md). Faixa semver do manifest, versão do lockfile e versão do processo/imagem são coisas distintas; tags Docker e CLI latest não fixam patch. A compatibilidade declarada não comprova teste em todos os aparelhos.
+
+![Implantação atual](Diagramas/renderizados/implantacao.svg)
+
+API: EXPO_PUBLIC_API_URL tem precedência; há fallback de endereço por ambiente em api.js/network.json e detecção do IP local. O túnel Expo expõe Metro, não a API. O script tunnel abre também Cloudflare para a API. Em produção exige-se HTTPS e endereço estável; quick tunnel muda ao reiniciar e depende do computador ligado.
+
+| Configuração | Local/representação | Observação |
+| --- | --- | --- |
+| URL API | mobile/.env, EXPO_PUBLIC_API_URL | Pública; sem credencial secreta no cliente |
+| OAuth mobile | EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID e ANDROID/IOS_CLIENT_ID | IDs reais correspondentes ao pacote/assinatura; não são Client Secrets |
+| OAuth backend | GOOGLE_OAUTH_CLIENT_IDS, lista separada por vírgula | Públicos permitidos para validar o ID token |
+| E-mail | backend/.env: SMTP_SERVICE/HOST/PORT/USER/PASS e EMAIL_FROM | Segredo SMTP somente no servidor; entrega real não foi testada aqui |
+| Sessão | Bearer de 64 caracteres hex; banco guarda SHA-256 | Validade de sete dias; revogação por logout/troca/recuperação |
+| Cache | AsyncStorage, chave @synple:incremento-1, JSON sanitizado | Não contém senha/token; não autoriza acesso |
+| Sessão protegida | SecureStore, chave synple.session.v1, requireAuthentication | Condicionada a hardware, biometria cadastrada e módulo nativo; web usa memória |
+
+Exemplo fictício de preferência em snapshot/cache: { "users": [{ "id": "uuid-da-pessoa", "theme": "DARK" }] }. Persistência oficial em users.theme; LIGHT/DARK, não L/D. A gravação usa JSON.stringify(removeCredentials(data)). Cache anterior é sanitizado e não é mesclado de volta como fonte de credenciais.
+
+## 3. Atores e permissões
+
+| Ator | Definição e alcance |
+| --- | --- |
+| Visitante | Pessoa sem sessão válida; pode cadastrar/ativar/recuperar conta ou iniciar login |
+| Usuário autenticado | Identidade obtida da sessão validada; não do seletor de modo nem de userId no JSON |
+| Administrador do sistema | system_role=SYSTEM_ADMIN, para gestão sistêmica e dados operacionais |
+| Proprietário da organização | organizations.owner_id; papel contextual, transferível, não equivale a SYSTEM_ADMIN |
+| Coordenador de comissão | commission_members.role=COORDINATOR; gestor contextual da reunião junto ao proprietário |
+| Convidado de reunião | Pessoa em meeting_invitations; acesso histórico pode permanecer após remoção da comissão |
+| Aprovador da ata | Pessoa com entrada até submissão, fixada em required_approver_ids; cargo não substitui presença/decisão |
+| Google, SMTP e serviço biométrico do SO | Sistemas externos que apoiam autenticação/envio/confirmação local |
+
+API pública: /health e rotas de login/cadastro/Google/recuperação/ativação/reenvio. Demais recursos exigem sessão. PDF em navegador aceita ticket vinculado à sessão e ao caminho. Autenticação é pré-condição de operações privadas, não um include artificial desenhado em cada caso de uso. Regras de situação e associação ainda têm diferenças entre interface e algumas rotas; consultar seção 11.
+
+## 4. Diagramas de casos de uso UML
+
+Os atores ficam fora da fronteira Synple. Linhas representam associações; triângulo vazio indica especialização contextual. Não foram usadas setas de fluxo de processo ou componentes técnicos como atores internos.
+
+![Contas e sessão](Diagramas/renderizados/uc-autenticacao.svg)
+
+![Organizações e comissões](Diagramas/renderizados/uc-organizacoes.svg)
+
+![Reuniões e atas](Diagramas/renderizados/uc-reunioes.svg)
+
+![Consulta e operação](Diagramas/renderizados/uc-operacao.svg)
+
+Fontes editáveis e todas as imagens: [catálogo dos diagramas](Diagramas/Diagramas_Casos_de_Uso.md). Referência normativa: [UML 2.5.1 — OMG](https://www.omg.org/spec/UML/2.5.1/About-UML).
+
+## 5. Requisitos funcionais e fichas de casos de uso
+
+| ID | Objetivo | Ator |
+| --- | --- | --- |
+| [RF01](#rf01) | Cadastrar organização | Usuário autenticado |
+| [RF02](#rf02) | Decidir situação da organização | Administrador do sistema |
+| [RF03](#rf03) | Listar e remover organizações | Administrador do sistema |
+| [RF04](#rf04) | Criar comissão | Proprietário da organização |
+| [RF05](#rf05) | Editar, ativar/inativar e excluir comissão | Proprietário da organização |
+| [RF06](#rf06) | Gerenciar integrantes e transferir coordenação | Proprietário da organização |
+| [RF07](#rf07) | Cadastrar conta local pendente de ativação | Visitante |
+| [RF08](#rf08) | Solicitar e decidir ingresso na organização | Usuário autenticado / proprietário; administrador autorizado na API |
+| [RF09](#rf09) | Alterar cargo e revogar vínculo organizacional | Proprietário da organização |
+| [RF10](#rf10) | Trocar senha autenticada | Usuário autenticado |
+| [RF11](#rf11) | Recuperar senha com código por e-mail | Visitante |
+| [RF12](#rf12) | Alterar nome e telefone com confirmação biométrica local | Usuário autenticado |
+| [RF13](#rf13) | Definir tema do perfil | Usuário autenticado |
+| [RF14](#rf14) | Consultar informação operacional real | Administrador do sistema |
+| [RF15](#rf15) | Consultar contadores administrativos | Administrador do sistema |
+| [RF16](#rf16) | Verificar disponibilidade atual | Administrador do sistema |
+| [RF17](#rf17) | Consultar marcos de inicialização | Administrador do sistema |
+| [RF18](#rf18) | Sair e limpar o cache local | Usuário autenticado |
+| [RF19](#rf19) | Entrar com e-mail e senha | Visitante |
+| [RF20](#rf20) | Entrar/cadastrar com Google | Visitante |
+| [RF21](#rf21) | Ativar conta local e reenviar código | Visitante |
+| [RF22](#rf22) | Transferir propriedade da organização | Proprietário atual |
+| [RF23](#rf23) | Convidar conta existente para organização | Proprietário da organização |
+| [RF24](#rf24) | Aceitar/recusar convite de organização | Destinatário autenticado |
+| [RF25](#rf25) | Sincronizar snapshot autorizado e manter cache sanitizado | Usuário autenticado |
+| [RF26](#rf26) | Reabrir sessão com biometria | Pessoa com sessão previamente guardada |
+| [RF27](#rf27) | Excluir conta administrativamente | Administrador do sistema |
+| [RF28](#rf28) | Alterar nome/CNPJ da organização | Proprietário da organização |
+| [RF02.01](#rf0201) | Agendar reunião da comissão | Coordenador atual ou proprietário |
+| [RF02.02](#rf0202) | Selecionar e convidar integrantes no agendamento | Gestor da reunião |
+| [RF02.03](#rf0203) | Responder convite de reunião | Convidado autenticado |
+| [RF02.04](#rf0204) | Registrar entrada | Convidado com convite aceito |
+| [RF02.05](#rf0205) | Registrar saída | Participante com entrada registrada |
+| [RF02.06](#rf0206) | Consultar e compartilhar lista de presença | Gestor atual ou convidado histórico |
+| [RF02.07](#rf0207) | Criar ou corrigir ata | Gestor atual |
+| [RF02.08](#rf0208) | Submeter ata para aprovação | Gestor atual |
+| [RF02.09](#rf0209) | Aprovar ou solicitar correção da versão da ata | Aprovador fixado na submissão |
+| [RF02.10](#rf0210) | Gerar PDF da ata salva | Gestor atual ou convidado histórico |
+
+<a id="rf01"></a>
+
+### RF01 — Cadastrar organização
+
+| Campo | Especificação |
+| --- | --- |
+| Ator | Usuário autenticado |
+| Tela e gatilho | Minha organização → formulário Nome da organização/CNPJ → botão Enviar cadastro |
+| Pré-condições | Sessão válida. |
+| Entradas e contrato | POST /organizations; prefixo /api em todas as rotas |
+| Dados/pós-condição de sucesso | organizations: name, document, owner_id, status=PENDING. Índices normalizados protegem concorrência. |
+| Sequência UML | [seq-comando](Diagramas/renderizados/seq-comando.svg) |
+
+**Fluxo principal**
+
+1. Preencher nome e CNPJ; a interface aplica máscara e verifica 14 dígitos.
+2. Confirmar o cadastro no diálogo. A interface bloqueia envio repetido durante a operação.
+3. A API usa o proprietário da sessão, remove a pontuação do CNPJ e verifica nome/CNPJ duplicados.
+4. Inserir com status PENDING e retornar a organização; atualizar a lista somente após confirmação.
+
+**Alternativas, exceções e limites:** Campos ausentes/incompletos bloqueiam o envio; conflito de nome/CNPJ retorna 409. Falha/timeout não cria organização local. A validação é de quantidade de dígitos, não de dígitos verificadores do CNPJ.
+
+**Critério de aceite:** executar o fluxo principal com as pré-condições indicadas, conferir os dados/pós-condição no servidor e repetir as exceções descritas. Aprovar somente se a interface e a resposta HTTP coincidirem com os resultados registrados. A existência desta ficha não é evidência de execução.
+
+<a id="rf02"></a>
+
+### RF02 — Decidir situação da organização
+
+| Campo | Especificação |
+| --- | --- |
+| Ator | Administrador do sistema |
+| Tela e gatilho | Gestão → organização → Aprovar/Recusar ou comando de situação |
+| Pré-condições | Sessão SYSTEM_ADMIN e organização existente. |
+| Entradas e contrato | PATCH /organizations/:id/status; prefixo /api em todas as rotas |
+| Dados/pós-condição de sucesso | organizations.status e updated_at. |
+| Sequência UML | [seq-comando](Diagramas/renderizados/seq-comando.svg) |
+
+**Fluxo principal**
+
+1. Selecionar organização e situação.
+2. Confirmar o diálogo.
+3. A API autoriza SYSTEM_ADMIN e aceita APPROVED, PENDING ou REJECTED.
+4. Atualizar status e sincronizar após resposta positiva.
+
+**Alternativas, exceções e limites:** Usuário comum recebe 403; situação inválida recebe 400; organização ausente recebe 404. As permissões de proprietário na interface dependem de organização aprovada; nem toda rota interna repete essa verificação de situação.
+
+**Critério de aceite:** executar o fluxo principal com as pré-condições indicadas, conferir os dados/pós-condição no servidor e repetir as exceções descritas. Aprovar somente se a interface e a resposta HTTP coincidirem com os resultados registrados. A existência desta ficha não é evidência de execução.
+
+<a id="rf03"></a>
+
+### RF03 — Listar e remover organizações
+
+| Campo | Especificação |
+| --- | --- |
+| Ator | Administrador do sistema |
+| Tela e gatilho | Gestão → organização → Remover → confirmação |
+| Pré-condições | Sessão administrativa; organização existente. |
+| Entradas e contrato | GET /organizations; DELETE /organizations/:id; prefixo /api em todas as rotas |
+| Dados/pós-condição de sucesso | DELETE organizations; efeitos das FKs listados no dicionário físico. |
+| Sequência UML | [seq-comando](Diagramas/renderizados/seq-comando.svg) |
+
+**Fluxo principal**
+
+1. Consultar organizações pelo snapshot autorizado ou listagem.
+2. Acionar Remover e confirmar a exclusão.
+3. A API exclui a organização, obedecendo às FKs do DDL.
+4. Confirmar exclusão somente após sucesso e atualizar os dados.
+
+**Alternativas, exceções e limites:** Cancelamento não envia escrita. Existem cascatas para comissões/vínculos e, por consequência, reuniões. FKs sem cascata podem impedir exclusões. Não existe proteção geral de histórico nessa rota; a documentação não promete preservação automática de todas as atas.
+
+**Critério de aceite:** executar o fluxo principal com as pré-condições indicadas, conferir os dados/pós-condição no servidor e repetir as exceções descritas. Aprovar somente se a interface e a resposta HTTP coincidirem com os resultados registrados. A existência desta ficha não é evidência de execução.
+
+<a id="rf04"></a>
+
+### RF04 — Criar comissão
+
+| Campo | Especificação |
+| --- | --- |
+| Ator | Proprietário da organização |
+| Tela e gatilho | Comissões → Nome da comissão ou grupo/Tipo/Descrição / Objetivo → botão Cadastrar comissão |
+| Pré-condições | Organização aprovada; proprietário autenticado. |
+| Entradas e contrato | POST /commissions; prefixo /api em todas as rotas |
+| Dados/pós-condição de sucesso | commissions e commission_members na mesma transação. |
+| Sequência UML | [seq-comando](Diagramas/renderizados/seq-comando.svg) |
+
+**Fluxo principal**
+
+1. Preencher nome, tipo e descrição opcional.
+2. A interface verifica nome vazio e repetição na organização.
+3. A API abre transação, verifica propriedade, cria comissão e valida elegibilidade dos integrantes.
+4. Incluir coordenador: primeiro integrante enviado; na ausência de lista, o próprio ator.
+5. Confirmar transação e sincronizar; selecionar a comissão criada.
+
+**Alternativas, exceções e limites:** Integrante inexistente/sem acesso aprovado aborta a transação. O nome não tem UNIQUE SQL por organização; verificação local não garante concorrência. Erro da API não vira comissão offline.
+
+**Critério de aceite:** executar o fluxo principal com as pré-condições indicadas, conferir os dados/pós-condição no servidor e repetir as exceções descritas. Aprovar somente se a interface e a resposta HTTP coincidirem com os resultados registrados. A existência desta ficha não é evidência de execução.
+
+<a id="rf05"></a>
+
+### RF05 — Editar, ativar/inativar e excluir comissão
+
+| Campo | Especificação |
+| --- | --- |
+| Ator | Proprietário da organização |
+| Tela e gatilho | Comissões → editar dados, alterar situação ou excluir |
+| Pré-condições | Sessão do proprietário; comissão existente. |
+| Entradas e contrato | PATCH /commissions/:commissionId; DELETE /commissions/:commissionId; prefixo /api em todas as rotas |
+| Dados/pós-condição de sucesso | commissions; exclusão remove vínculos por FK, mas a rota bloqueia comissão com reunião. |
+| Sequência UML | [seq-comando](Diagramas/renderizados/seq-comando.svg) |
+
+**Fluxo principal**
+
+1. Editar nome/tipo/descrição/situação no formulário ou selecionar alteração de estado.
+2. Enviar PATCH e aguardar confirmação antes de sincronizar.
+3. Para excluir, confirmar o diálogo e enviar DELETE.
+4. A exclusão só ocorre quando não há reunião vinculada; caso contrário usar inativação.
+
+**Alternativas, exceções e limites:** Nome vazio/situação inválida retorna 400; falta de propriedade, 403; exclusão com reuniões retorna 409. Não há alteração local confirmada em caso de erro.
+
+**Critério de aceite:** executar o fluxo principal com as pré-condições indicadas, conferir os dados/pós-condição no servidor e repetir as exceções descritas. Aprovar somente se a interface e a resposta HTTP coincidirem com os resultados registrados. A existência desta ficha não é evidência de execução.
+
+<a id="rf06"></a>
+
+### RF06 — Gerenciar integrantes e transferir coordenação
+
+| Campo | Especificação |
+| --- | --- |
+| Ator | Proprietário da organização |
+| Tela e gatilho | Comissões → integrantes → + Adicionar/Tornar coord./Tornar membro/Remover |
+| Pré-condições | Integrante elegível: proprietário ou membro APPROVED da organização. |
+| Entradas e contrato | POST /commissions/:commissionId/members; PATCH/DELETE /commissions/:commissionId/members/:userId; prefixo /api em todas as rotas |
+| Dados/pós-condição de sucesso | commission_members; PK (commission_id,user_id) e índice parcial único de COORDINATOR. |
+| Sequência UML | [seq-comando](Diagramas/renderizados/seq-comando.svg) |
+
+**Fluxo principal**
+
+1. Selecionar a comissão e pessoa alvo.
+2. Enviar inclusão, mudança de papel ou remoção; a API obtém actorId da sessão.
+3. A API bloqueia a comissão em transação. Ao promover, rebaixa o coordenador anterior e promove o novo.
+4. Confirmar no servidor e sincronizar a equipe.
+
+**Alternativas, exceções e limites:** Papel deve ser MEMBER/COORDINATOR. Não se remove nem rebaixa o único coordenador antes de escolher sucessor: 409. Inserção duplicada recebe 409. SQL protege no máximo um; mínimo de um depende das rotas/migração. Regra deve ser validada com a comunidade.
+
+**Critério de aceite:** executar o fluxo principal com as pré-condições indicadas, conferir os dados/pós-condição no servidor e repetir as exceções descritas. Aprovar somente se a interface e a resposta HTTP coincidirem com os resultados registrados. A existência desta ficha não é evidência de execução.
+
+<a id="rf07"></a>
+
+### RF07 — Cadastrar conta local pendente de ativação
+
+| Campo | Especificação |
+| --- | --- |
+| Ator | Visitante |
+| Tela e gatilho | Login → Criar conta → Nome completo/E-mail/Telefone/Senha/Confirmar senha → Criar conta |
+| Pré-condições | API e SMTP configurados; e-mail ainda não cadastrado. |
+| Entradas e contrato | POST /auth/register; prefixo /api em todas as rotas |
+| Dados/pós-condição de sucesso | users: email_verified=FALSE, activation_hash=SHA-256(código), activation_expires; password_hash=bcrypt fator 10. |
+| Sequência UML | [seq-cadastro](Diagramas/renderizados/seq-cadastro.svg) |
+
+**Fluxo principal**
+
+1. Digitar os campos; telefone é opcional.
+2. A interface valida nome, e-mail, telefone preenchido, senha de oito caracteres e confirmação igual.
+3. A API valida os campos, normaliza e-mail e consulta duplicidade.
+4. Gerar código numérico de seis dígitos e enviar por SMTP.
+5. Após envio aceito, persistir bcrypt e hash de ativação com prazo de 15 minutos; retornar requiresActivation=true.
+6. Abrir a etapa Ativar conta; limpar as senhas do formulário. O cadastro não autentica automaticamente.
+
+**Alternativas, exceções e limites:** E-mail duplicado: 409. Validação inválida: 400. SMTP indisponível: 503 e nenhuma conta criada. SMTP aceitar mensagem não comprova entrega à caixa de entrada. O envio precede o INSERT: falha de banco posterior pode deixar uma mensagem sem cadastro concluído.
+
+**Critério de aceite:** executar o fluxo principal com as pré-condições indicadas, conferir os dados/pós-condição no servidor e repetir as exceções descritas. Aprovar somente se a interface e a resposta HTTP coincidirem com os resultados registrados. A existência desta ficha não é evidência de execução.
+
+<a id="rf08"></a>
+
+### RF08 — Solicitar e decidir ingresso na organização
+
+| Campo | Especificação |
+| --- | --- |
+| Ator | Usuário autenticado / proprietário; administrador autorizado na API |
+| Tela e gatilho | Organizações → Solicitar entrada; Minha organização → solicitações → Aprovar/Recusar |
+| Pré-condições | Na interface, organização APPROVED e usuário sem vínculo PENDING/APPROVED. |
+| Entradas e contrato | POST /organizations/:id/access-requests; PATCH /organizations/access-requests/:requestId; prefixo /api em todas as rotas |
+| Dados/pós-condição de sucesso | access_requests, UNIQUE(organization_id,user_id). |
+| Sequência UML | [seq-comando](Diagramas/renderizados/seq-comando.svg) |
+
+**Fluxo principal**
+
+1. Usuário solicita entrada na organização escolhida.
+2. A API fixa userId como a pessoa da sessão; devolve vínculo existente ou cria PENDING/MEMBER.
+3. Proprietário consulta as solicitações e decide a situação.
+4. A API verifica proprietário/administrador e atualiza; a interface sincroniza após sucesso.
+
+**Alternativas, exceções e limites:** A rota de solicitação não repete todos os filtros de situação da interface. Convite criado pelo proprietário não pode ser aprovado por esse fluxo sem aceite do destinatário. Um vínculo existente não é recriado nem reaberto automaticamente.
+
+**Critério de aceite:** executar o fluxo principal com as pré-condições indicadas, conferir os dados/pós-condição no servidor e repetir as exceções descritas. Aprovar somente se a interface e a resposta HTTP coincidirem com os resultados registrados. A existência desta ficha não é evidência de execução.
+
+<a id="rf09"></a>
+
+### RF09 — Alterar cargo e revogar vínculo organizacional
+
+| Campo | Especificação |
+| --- | --- |
+| Ator | Proprietário da organização |
+| Tela e gatilho | Minha organização → membro aprovado → cargo ou Remover membro |
+| Pré-condições | Membro e organização selecionados; interface exige proprietário e organização aprovada. |
+| Entradas e contrato | PATCH /organizations/access-requests/:requestId; prefixo /api em todas as rotas |
+| Dados/pós-condição de sucesso | access_requests.organization_role/status/updated_at. |
+| Sequência UML | [seq-comando](Diagramas/renderizados/seq-comando.svg) |
+
+**Fluxo principal**
+
+1. Escolher cargo MEMBER/COORDINATOR ou confirmar remoção.
+2. Enviar PATCH de vínculo; a API verifica proprietário/administrador.
+3. Na revogação, negar se a pessoa coordena alguma comissão dessa organização.
+4. Persistir novo papel/status e sincronizar.
+
+**Alternativas, exceções e limites:** Papel de organização não substitui papel em commission_members. Revogação grava REVOKED, mas a rota atual não apaga automaticamente todos os vínculos de comissão; não prometer remoção em cascata da equipe. Resolver coordenação antes da revogação.
+
+**Critério de aceite:** executar o fluxo principal com as pré-condições indicadas, conferir os dados/pós-condição no servidor e repetir as exceções descritas. Aprovar somente se a interface e a resposta HTTP coincidirem com os resultados registrados. A existência desta ficha não é evidência de execução.
+
+<a id="rf10"></a>
+
+### RF10 — Trocar senha autenticada
+
+| Campo | Especificação |
+| --- | --- |
+| Ator | Usuário autenticado |
+| Tela e gatilho | Perfil → Trocar senha → Senha atual/Nova senha/Confirmar nova senha → Atualizar senha |
+| Pré-condições | Sessão válida; senha atual conhecida. |
+| Entradas e contrato | POST /auth/change-password; prefixo /api em todas as rotas |
+| Dados/pós-condição de sucesso | users.password_hash/updated_at; DELETE auth_sessions por user_id. |
+| Sequência UML | [seq-comando](Diagramas/renderizados/seq-comando.svg) |
+
+**Fluxo principal**
+
+1. Preencher os três campos.
+2. A interface exige atual, nova com oito caracteres e confirmação igual.
+3. A API compara a senha atual com bcrypt e exige nova com pelo menos oito caracteres.
+4. Atualizar hash, revogar todas as sessões da conta e pedir novo login.
+
+**Alternativas, exceções e limites:** Senha atual incorreta: 400; sessão inválida: 401; excesso de tentativas: 429. Conta exclusivamente Google não conhece a senha aleatória inicialmente criada: pode definir uma senha local pelo fluxo de recuperação.
+
+**Critério de aceite:** executar o fluxo principal com as pré-condições indicadas, conferir os dados/pós-condição no servidor e repetir as exceções descritas. Aprovar somente se a interface e a resposta HTTP coincidirem com os resultados registrados. A existência desta ficha não é evidência de execução.
+
+<a id="rf11"></a>
+
+### RF11 — Recuperar senha com código por e-mail
+
+| Campo | Especificação |
+| --- | --- |
+| Ator | Visitante |
+| Tela e gatilho | Login → Esqueci minha senha → E-mail cadastrado → botão Enviar código por e-mail |
+| Pré-condições | SMTP e API disponíveis; não exige sessão. |
+| Entradas e contrato | POST /auth/forgot-password; POST /auth/reset-password; prefixo /api em todas as rotas |
+| Dados/pós-condição de sucesso | users.reset_token=SHA-256(código), reset_token_expires; novo password_hash; remoção de auth_sessions. O vínculo google_id permanece. |
+| Sequência UML | [seq-recuperacao](Diagramas/renderizados/seq-recuperacao.svg) |
+
+**Fluxo principal**
+
+1. Preencher E-mail cadastrado e acionar o botão textual Enviar código por e-mail.
+2. O app remove espaços externos e exige campo preenchido; essa etapa não executa validação completa de formato.
+3. A API normaliza, aplica limites e consulta conta. Para conta existente, grava hash de código de seis dígitos e validade de 15 minutos, enviando por SMTP.
+4. Exibir mensagem genérica, sem confirmar existência da conta; abrir etapa com Código, Nova senha e confirmação.
+5. Enviar e-mail/código/nova senha; a API exige oito caracteres, confere hash/prazo e consome o código com UPDATE condicionado.
+6. Revogar sessões da conta e retornar ao login.
+
+**Alternativas, exceções e limites:** Sem SMTP: 503; falha de envio: 502 e código invalidado; código inválido/expirado/usado: 400; limite: 429. Há divergência local remanescente: resetPasswordFromLogin ainda usa mínimo seis, mas servidor exige oito. Não existe link simulado nem envio de link no fluxo atual.
+
+**Critério de aceite:** executar o fluxo principal com as pré-condições indicadas, conferir os dados/pós-condição no servidor e repetir as exceções descritas. Aprovar somente se a interface e a resposta HTTP coincidirem com os resultados registrados. A existência desta ficha não é evidência de execução.
+
+<a id="rf12"></a>
+
+### RF12 — Alterar nome e telefone com confirmação biométrica local
+
+| Campo | Especificação |
+| --- | --- |
+| Ator | Usuário autenticado |
+| Tela e gatilho | Perfil → Dados pessoais → Nome/Telefone → Salvar dados |
+| Pré-condições | Celular com biometria forte disponível e cadastrada; sessão válida. |
+| Entradas e contrato | PUT /users/:id; prefixo /api em todas as rotas |
+| Dados/pós-condição de sucesso | users.name/phone/updated_at; não altera email, system_role ou password_hash. |
+| Sequência UML | [seq-biometria](Diagramas/renderizados/seq-biometria.svg) |
+
+**Fluxo principal**
+
+1. Abrir Perfil; o formulário recebe nome/e-mail/telefone da conta ativa.
+2. Editar nome e/ou telefone. E-mail verificado permanece somente leitura.
+3. Acionar Salvar dados; validar nome/e-mail do perfil e confirmar que e-mail não mudou.
+4. Solicitar biometria com fallback para senha do aparelho desabilitado.
+5. Se autorizada, enviar PUT do próprio usuário; sincronizar e mostrar sucesso somente após confirmação.
+
+**Alternativas, exceções e limites:** Biometria cancelada/ausente, inclusive web, impede envio nesse formulário. A biometria é verificação local; não há prova biométrica transmitida/validada pelo backend. A API protege a conta pela sessão. Trocar e-mail não é implementado.
+
+**Critério de aceite:** executar o fluxo principal com as pré-condições indicadas, conferir os dados/pós-condição no servidor e repetir as exceções descritas. Aprovar somente se a interface e a resposta HTTP coincidirem com os resultados registrados. A existência desta ficha não é evidência de execução.
+
+<a id="rf13"></a>
+
+### RF13 — Definir tema do perfil
+
+| Campo | Especificação |
+| --- | --- |
+| Ator | Usuário autenticado |
+| Tela e gatilho | Perfil → Tema preferido → botões Claro/Escuro |
+| Pré-condições | Sessão válida. |
+| Entradas e contrato | PUT /users/:id com {theme}; GET /sync; prefixo /api em todas as rotas |
+| Dados/pós-condição de sucesso | users.theme; cache JSON na chave @synple:incremento-1, coleção users, atributo theme. Token não fica nesse JSON. |
+| Sequência UML | [seq-comando](Diagramas/renderizados/seq-comando.svg) |
+
+**Fluxo principal**
+
+1. Acionar Claro ou Escuro.
+2. Enviar theme=LIGHT ou theme=DARK ao servidor.
+3. A API valida o domínio e atualiza users.theme.
+4. Após sucesso, sincronizar e recalcular getThemeStyles pelo ThemeContext.
+5. Cachear o snapshot sanitizado em AsyncStorage; no login sem sessão a aparência acompanha o SO.
+
+**Alternativas, exceções e limites:** Falha de rede não confirma preferência salva. Não são usados L/D. Tema selecionável é requisito funcional; contraste e legibilidade são RNFs separados.
+
+**Critério de aceite:** executar o fluxo principal com as pré-condições indicadas, conferir os dados/pós-condição no servidor e repetir as exceções descritas. Aprovar somente se a interface e a resposta HTTP coincidirem com os resultados registrados. A existência desta ficha não é evidência de execução.
+
+<a id="rf14"></a>
+
+### RF14 — Consultar informação operacional real
+
+| Campo | Especificação |
+| --- | --- |
+| Ator | Administrador do sistema |
+| Tela e gatilho | Sistema → Status do sistema |
+| Pré-condições | Sessão SYSTEM_ADMIN; API alcançável. |
+| Entradas e contrato | GET /system; GET /health público; prefixo /api em todas as rotas |
+| Dados/pós-condição de sucesso | Consulta system_metadata e funções SQL; uptime não é persistido. system_subsystems é tabela legada, não monitor real. |
+| Sequência UML | [seq-sistema](Diagramas/renderizados/seq-sistema.svg) |
+
+**Fluxo principal**
+
+1. Abrir Sistema.
+2. Consultar GET /system com sessão.
+3. A API consulta relógio/versão do PostgreSQL e marco de instalação, calculando uptime e latência.
+4. Exibir versão da API/Node, versão do banco, horário e disponibilidade; se falhar, exibir falha da consulta.
+
+**Alternativas, exceções e limites:** Usuário comum recebe 403; erro de banco não deve ser apresentado como disponibilidade comprovada. /health é público e mínimo, sem os detalhes administrativos.
+
+**Critério de aceite:** executar o fluxo principal com as pré-condições indicadas, conferir os dados/pós-condição no servidor e repetir as exceções descritas. Aprovar somente se a interface e a resposta HTTP coincidirem com os resultados registrados. A existência desta ficha não é evidência de execução.
+
+<a id="rf15"></a>
+
+### RF15 — Consultar contadores administrativos
+
+| Campo | Especificação |
+| --- | --- |
+| Ator | Administrador do sistema |
+| Tela e gatilho | Sistema → Relatório resumido |
+| Pré-condições | Snapshot autorizado já carregado. |
+| Entradas e contrato | GET /sync; prefixo /api em todas as rotas |
+| Dados/pós-condição de sucesso | Sem tabela própria de relatório; coleções de GET /sync. |
+| Sequência UML | [seq-sincronizacao](Diagramas/renderizados/seq-sincronizacao.svg) |
+
+**Fluxo principal**
+
+1. Abrir o relatório.
+2. Calcular totais de usuários, organizações, comissões e acessos pendentes a partir das coleções do snapshot.
+3. Atualizar dados para obter nova contagem.
+
+**Alternativas, exceções e limites:** Contadores representam o último snapshot; não há push nem atualização em tempo real garantida. Snapshot de usuário comum é filtrado e não equivale aos totais administrativos.
+
+**Critério de aceite:** executar o fluxo principal com as pré-condições indicadas, conferir os dados/pós-condição no servidor e repetir as exceções descritas. Aprovar somente se a interface e a resposta HTTP coincidirem com os resultados registrados. A existência desta ficha não é evidência de execução.
+
+<a id="rf16"></a>
+
+### RF16 — Verificar disponibilidade atual
+
+| Campo | Especificação |
+| --- | --- |
+| Ator | Administrador do sistema |
+| Tela e gatilho | Sistema → botão Verificar de um subsistema |
+| Pré-condições | Sessão administrativa. |
+| Entradas e contrato | GET /system; GET /sync; prefixo /api em todas as rotas |
+| Dados/pós-condição de sucesso | Nenhuma mudança de estado de serviço; consultas. |
+| Sequência UML | [seq-sistema](Diagramas/renderizados/seq-sistema.svg) |
+
+**Fluxo principal**
+
+1. Acionar Verificar.
+2. Consultar estado real da API/banco por GET /system.
+3. Apresentar uptime/estado e atualizar snapshot.
+
+**Alternativas, exceções e limites:** Apesar do nome interno restartSubsystem, a função atual consulta disponibilidade. Não envia comando Docker, não reinicia serviço e não usa temporizador para fingir sucesso. Reinício operacional não é funcionalidade implementada no app.
+
+**Critério de aceite:** executar o fluxo principal com as pré-condições indicadas, conferir os dados/pós-condição no servidor e repetir as exceções descritas. Aprovar somente se a interface e a resposta HTTP coincidirem com os resultados registrados. A existência desta ficha não é evidência de execução.
+
+<a id="rf17"></a>
+
+### RF17 — Consultar marcos de inicialização
+
+| Campo | Especificação |
+| --- | --- |
+| Ator | Administrador do sistema |
+| Tela e gatilho | Sistema → Inicializado em / Servidor iniciado em / Consultar disponibilidade real |
+| Pré-condições | Instalação migrada. |
+| Entradas e contrato | GET /sync; GET /system; prefixo /api em todas as rotas |
+| Dados/pós-condição de sucesso | system_metadata.initialized_at; startedAt derivado de process.uptime(). |
+| Sequência UML | [seq-sistema](Diagramas/renderizados/seq-sistema.svg) |
+
+**Fluxo principal**
+
+1. Abrir Sistema e consultar o snapshot e os detalhes.
+2. Exibir initializedAt persistido e startedAt do processo como informações distintas.
+3. Repetir consulta sem substituir a data persistida pela hora da sincronização.
+
+**Alternativas, exceções e limites:** Em instalação antiga, initialized_at representa a primeira aplicação da migração, não uma data histórica recuperada. O botão não executa setup de banco pelo celular. Inicialização/migração é operação externa do servidor.
+
+**Critério de aceite:** executar o fluxo principal com as pré-condições indicadas, conferir os dados/pós-condição no servidor e repetir as exceções descritas. Aprovar somente se a interface e a resposta HTTP coincidirem com os resultados registrados. A existência desta ficha não é evidência de execução.
+
+<a id="rf18"></a>
+
+### RF18 — Sair e limpar o cache local
+
+| Campo | Especificação |
+| --- | --- |
+| Ator | Usuário autenticado |
+| Tela e gatilho | Cabeçalho → Sair; administrador também tem Limpar cache e sair com confirmação |
+| Pré-condições | Sessão local aberta; serviço remoto pode estar indisponível. |
+| Entradas e contrato | POST /auth/logout; prefixo /api em todas as rotas |
+| Dados/pós-condição de sucesso | DELETE auth_sessions quando alcançável; remoção de synple.session.v1 do SecureStore; JSON local vazio. |
+| Sequência UML | [seq-sistema](Diagramas/renderizados/seq-sistema.svg) |
+
+**Fluxo principal**
+
+1. Acionar Sair ou confirmar Limpar cache e sair.
+2. Solicitar revogação da sessão atual no servidor.
+3. Apagar token da memória/SecureStore e substituir snapshot local por estrutura vazia.
+4. Retornar ao login; registros do PostgreSQL permanecem.
+
+**Alternativas, exceções e limites:** Cancelar a confirmação preserva sessão/cache. Se a API não for alcançada, a limpeza local ainda ocorre; revogação remota não é garantida e token expira no prazo original. Não se trata de restauração de backup nem reset do banco.
+
+**Critério de aceite:** executar o fluxo principal com as pré-condições indicadas, conferir os dados/pós-condição no servidor e repetir as exceções descritas. Aprovar somente se a interface e a resposta HTTP coincidirem com os resultados registrados. A existência desta ficha não é evidência de execução.
+
+<a id="rf19"></a>
+
+### RF19 — Entrar com e-mail e senha
+
+| Campo | Especificação |
+| --- | --- |
+| Ator | Visitante |
+| Tela e gatilho | Login → E-mail/Senha → botão Entrar como usuário ou administrador |
+| Pré-condições | Conta existente, ativa e API disponível. |
+| Entradas e contrato | POST /auth/login; GET /sync; prefixo /api em todas as rotas |
+| Dados/pós-condição de sucesso | auth_sessions.token_hash/user_id/expires_at. Token bruto não é guardado no banco ou AsyncStorage. |
+| Sequência UML | [seq-login](Diagramas/renderizados/seq-login.svg) |
+
+**Fluxo principal**
+
+1. Preencher e-mail/senha; validar formato do e-mail e presença da senha no app.
+2. Enviar credenciais ao servidor; seleção de modo não concede papel administrativo.
+3. A API normaliza dados, compara bcrypt, verifica ativação e aplica limites.
+4. Emitir sessão opaca de sete dias; devolver perfil sem hash de senha.
+5. Guardar token em memória e tentar armazenamento biométrico protegido; consultar snapshot e abrir área conforme systemRole real.
+
+**Alternativas, exceções e limites:** Conta ausente/senha inválida: 401; conta pendente: 403; limite: 429. Não há autenticação por senha local nem senhas alternativas de demonstração.
+
+**Critério de aceite:** executar o fluxo principal com as pré-condições indicadas, conferir os dados/pós-condição no servidor e repetir as exceções descritas. Aprovar somente se a interface e a resposta HTTP coincidirem com os resultados registrados. A existência desta ficha não é evidência de execução.
+
+<a id="rf20"></a>
+
+### RF20 — Entrar/cadastrar com Google
+
+| Campo | Especificação |
+| --- | --- |
+| Ator | Visitante |
+| Tela e gatilho | Login ou Criar conta → Continuar com Google |
+| Pré-condições | Client IDs Web/plataforma e backend configurados; development build compatível no celular. |
+| Entradas e contrato | POST /auth/google; prefixo /api em todas as rotas |
+| Dados/pós-condição de sucesso | users.google_id/email_verified; senha aleatória com hash para nova conta Google; auth_sessions. |
+| Sequência UML | [seq-login](Diagramas/renderizados/seq-login.svg) |
+
+**Fluxo principal**
+
+1. Acionar Continuar com Google e selecionar conta no provedor.
+2. SDK nativo retorna ID token; app envia ao backend.
+3. Backend verifica assinatura/audience e exige sub e e-mail verificado.
+4. Vincular conta de mesmo e-mail quando compatível ou criar conta Google verificada.
+5. Emitir sessão do Synple e consultar snapshot autorizado.
+
+**Alternativas, exceções e limites:** Expo Go não contém o módulo nativo necessário. Credencial ausente: indisponibilidade/hint; Google incompatível: 401; vínculo Google conflitante: 409. Login web usa expo-auth-session. Alteração do PC não cria credenciais OAuth automaticamente.
+
+**Critério de aceite:** executar o fluxo principal com as pré-condições indicadas, conferir os dados/pós-condição no servidor e repetir as exceções descritas. Aprovar somente se a interface e a resposta HTTP coincidirem com os resultados registrados. A existência desta ficha não é evidência de execução.
+
+<a id="rf21"></a>
+
+### RF21 — Ativar conta local e reenviar código
+
+| Campo | Especificação |
+| --- | --- |
+| Ator | Visitante |
+| Tela e gatilho | Etapa Ativar conta; também Login → Já tenho um código de ativação |
+| Pré-condições | Cadastro local pendente; e-mail de ativação emitido. |
+| Entradas e contrato | POST /auth/verify-email; POST /auth/resend-activation; prefixo /api em todas as rotas |
+| Dados/pós-condição de sucesso | users.email_verified/activation_hash/activation_expires. |
+| Sequência UML | [seq-cadastro](Diagramas/renderizados/seq-cadastro.svg) |
+
+**Fluxo principal**
+
+1. Informar E-mail e Código recebido por e-mail; campo do código limita digitação a seis caracteres.
+2. Acionar Confirmar código.
+3. API valida hash/prazo e, em uma atualização, marca email_verified=TRUE e apaga desafio.
+4. Retornar ao login. Se necessário, Reenviar código emite novo desafio, invalidando o anterior após atualização.
+
+**Alternativas, exceções e limites:** Código inválido, expirado ou consumido: 400; excesso: 429; reenvio sem SMTP: 503. Reenvio usa mensagem genérica para não confirmar cadastro. Não autentica automaticamente.
+
+**Critério de aceite:** executar o fluxo principal com as pré-condições indicadas, conferir os dados/pós-condição no servidor e repetir as exceções descritas. Aprovar somente se a interface e a resposta HTTP coincidirem com os resultados registrados. A existência desta ficha não é evidência de execução.
+
+<a id="rf22"></a>
+
+### RF22 — Transferir propriedade da organização
+
+| Campo | Especificação |
+| --- | --- |
+| Ator | Proprietário atual |
+| Tela e gatilho | Minha organização → membro aprovado → comando de transferência → confirmação |
+| Pré-condições | Novo proprietário distinto do atual e com acesso APPROVED. |
+| Entradas e contrato | PATCH /organizations/:id/owner; prefixo /api em todas as rotas |
+| Dados/pós-condição de sucesso | organizations.owner_id e access_requests do antigo dono. |
+| Sequência UML | [seq-transferencia](Diagramas/renderizados/seq-transferencia.svg) |
+
+**Fluxo principal**
+
+1. Escolher membro e confirmar.
+2. Enviar novo proprietário; API obtém proprietário atual pela sessão.
+3. Abrir transação e bloquear organização; verificar proprietário e elegibilidade do sucessor.
+4. Manter antigo proprietário como MEMBER aprovado e atualizar owner_id.
+5. Confirmar transação e sincronizar permissões.
+
+**Alternativas, exceções e limites:** Pessoa não aprovada/igual ao dono: 400; ator não proprietário: 403. Erro causa rollback. O novo proprietário não recebe automaticamente o papel global SYSTEM_ADMIN.
+
+**Critério de aceite:** executar o fluxo principal com as pré-condições indicadas, conferir os dados/pós-condição no servidor e repetir as exceções descritas. Aprovar somente se a interface e a resposta HTTP coincidirem com os resultados registrados. A existência desta ficha não é evidência de execução.
+
+<a id="rf23"></a>
+
+### RF23 — Convidar conta existente para organização
+
+| Campo | Especificação |
+| --- | --- |
+| Ator | Proprietário da organização |
+| Tela e gatilho | Minha organização → campo de e-mail → Enviar convite |
+| Pré-condições | Destinatário existente, verificado e diferente do proprietário. |
+| Entradas e contrato | POST /organizations/:id/invitations; prefixo /api em todas as rotas |
+| Dados/pós-condição de sucesso | access_requests; uma linha por organização/pessoa. |
+| Sequência UML | [seq-convite-org](Diagramas/renderizados/seq-convite-org.svg) |
+
+**Fluxo principal**
+
+1. Preencher e-mail da conta e enviar.
+2. API verifica propriedade e procura conta verificada.
+3. Criar vínculo PENDING/MEMBER com invited_by e invitation_accepted=FALSE.
+4. Destinatário recebe o convite ao atualizar a lista de organizações no app.
+
+**Alternativas, exceções e limites:** Não há e-mail de convite nessa funcionalidade. Conta não encontrada: 404; vínculo existente de qualquer situação: 409. Não existe reabertura/reconvite automático para vínculo rejeitado.
+
+**Critério de aceite:** executar o fluxo principal com as pré-condições indicadas, conferir os dados/pós-condição no servidor e repetir as exceções descritas. Aprovar somente se a interface e a resposta HTTP coincidirem com os resultados registrados. A existência desta ficha não é evidência de execução.
+
+<a id="rf24"></a>
+
+### RF24 — Aceitar/recusar convite de organização
+
+| Campo | Especificação |
+| --- | --- |
+| Ator | Destinatário autenticado |
+| Tela e gatilho | Organizações → convite recebido → Aceitar convite ou Recusar |
+| Pré-condições | Convite PENDING recebido pela própria conta. |
+| Entradas e contrato | PATCH /organizations/:id/invitations/:requestId; prefixo /api em todas as rotas |
+| Dados/pós-condição de sucesso | access_requests.status/invitation_accepted/updated_at. |
+| Sequência UML | [seq-convite-org](Diagramas/renderizados/seq-convite-org.svg) |
+
+**Fluxo principal**
+
+1. Atualizar a lista e localizar o convite.
+2. Selecionar aceitar ou recusar.
+3. API limita UPDATE ao user_id da sessão e à organização/solicitação informadas.
+4. Aceite grava APPROVED/TRUE; recusa grava REJECTED/FALSE; sincronizar.
+
+**Alternativas, exceções e limites:** Outro usuário ou convite não pendente não consegue responder: 404. Proprietário não pode aprovar o próprio convite em nome do destinatário pelo fluxo de solicitações.
+
+**Critério de aceite:** executar o fluxo principal com as pré-condições indicadas, conferir os dados/pós-condição no servidor e repetir as exceções descritas. Aprovar somente se a interface e a resposta HTTP coincidirem com os resultados registrados. A existência desta ficha não é evidência de execução.
+
+<a id="rf25"></a>
+
+### RF25 — Sincronizar snapshot autorizado e manter cache sanitizado
+
+| Campo | Especificação |
+| --- | --- |
+| Ator | Usuário autenticado |
+| Tela e gatilho | Acesso após login ou ação Atualizar |
+| Pré-condições | Sessão válida. |
+| Entradas e contrato | GET /sync; prefixo /api em todas as rotas |
+| Dados/pós-condição de sucesso | AsyncStorage @synple:incremento-1; não armazena senha/token. Sem fila automática de cadastros offline. |
+| Sequência UML | [seq-sincronizacao](Diagramas/renderizados/seq-sincronizacao.svg) |
+
+**Fluxo principal**
+
+1. Enviar GET /sync com Bearer.
+2. API consulta coleções e filtra por identidade/papel/vínculo/histórico.
+3. Substituir snapshot anterior pela resposta; não mesclar novamente registros locais removidos no servidor.
+4. Sanitizar campos de credenciais e serializar o snapshot no cache local.
+
+**Alternativas, exceções e limites:** Sem API, manter leitura do último estado em memória durante a sessão aberta, sem confirmar novas escritas. A reabertura exige validar a sessão online. Cache antigo é sanitizado, mas não é usado como senha nem prova de acesso. O snapshot é formado por múltiplas consultas, sem transação de leitura única.
+
+**Critério de aceite:** executar o fluxo principal com as pré-condições indicadas, conferir os dados/pós-condição no servidor e repetir as exceções descritas. Aprovar somente se a interface e a resposta HTTP coincidirem com os resultados registrados. A existência desta ficha não é evidência de execução.
+
+<a id="rf26"></a>
+
+### RF26 — Reabrir sessão com biometria
+
+| Campo | Especificação |
+| --- | --- |
+| Ator | Pessoa com sessão previamente guardada |
+| Tela e gatilho | Reabertura do aplicativo após autenticação anterior |
+| Pré-condições | Celular com SecureStore/biometria disponíveis e token salvo. |
+| Entradas e contrato | GET /auth/me; prefixo /api em todas as rotas |
+| Dados/pós-condição de sucesso | SecureStore synple.session.v1 protegido; memória do app; auth_sessions no servidor. |
+| Sequência UML | [seq-biometria](Diagramas/renderizados/seq-biometria.svg) |
+
+**Fluxo principal**
+
+1. Solicitar leitura de synple.session.v1 com requireAuthentication.
+2. SO solicita confirmação para liberar o token; usuário pode cancelar.
+3. Se token disponível, consultar /auth/me e validar sessão no servidor.
+4. Abrir área autenticada somente após validação e atualizar dados.
+
+**Alternativas, exceções e limites:** Token expirado/revogado ou falha de validação exige login; no fluxo atual também limpa a sessão local após falha. Sem hardware/enrollment, web ou falha ao gravar SecureStore, token fica só em memória. Não há garantia de entrada offline nem teste físico comprovado nesta revisão.
+
+**Critério de aceite:** executar o fluxo principal com as pré-condições indicadas, conferir os dados/pós-condição no servidor e repetir as exceções descritas. Aprovar somente se a interface e a resposta HTTP coincidirem com os resultados registrados. A existência desta ficha não é evidência de execução.
+
+<a id="rf27"></a>
+
+### RF27 — Excluir conta administrativamente
+
+| Campo | Especificação |
+| --- | --- |
+| Ator | Administrador do sistema |
+| Tela e gatilho | Gestão → usuário → Remover → confirmação |
+| Pré-condições | Conta alvo existente e diferente do administrador ativo; interface também restringe remoção de outro administrador. |
+| Entradas e contrato | DELETE /users/:id; prefixo /api em todas as rotas |
+| Dados/pós-condição de sucesso | users e cascatas/restrições reais das FKs; sessões são removidas por cascata. |
+| Sequência UML | [seq-comando](Diagramas/renderizados/seq-comando.svg) |
+
+**Fluxo principal**
+
+1. Selecionar usuário e confirmar a exclusão.
+2. API verifica SYSTEM_ADMIN e inicia transação.
+3. Bloquear remoção do próprio administrador, de coordenador atual e de aprovador fixado em ata em revisão/aprovada.
+4. Executar DELETE conforme FKs; em sucesso confirmar e remover dados locais correspondentes.
+
+**Alternativas, exceções e limites:** É necessário transferir coordenação antes de remover coordenador. Referências históricas sem cascata podem impedir exclusão; conflitos retornam 409. A proteção contra excluir qualquer outro SYSTEM_ADMIN está na interface, não como regra equivalente em todas as ramificações do backend.
+
+**Critério de aceite:** executar o fluxo principal com as pré-condições indicadas, conferir os dados/pós-condição no servidor e repetir as exceções descritas. Aprovar somente se a interface e a resposta HTTP coincidirem com os resultados registrados. A existência desta ficha não é evidência de execução.
+
+<a id="rf28"></a>
+
+### RF28 — Alterar nome/CNPJ da organização
+
+| Campo | Especificação |
+| --- | --- |
+| Ator | Proprietário da organização |
+| Tela e gatilho | Minha organização → Dados da organização → campos Nome/CNPJ → Salvar organização → confirmação |
+| Pré-condições | Organização selecionada; sessão do proprietário. |
+| Entradas e contrato | PATCH /organizations/:id; prefixo /api em todas as rotas |
+| Dados/pós-condição de sucesso | organizations.name/document/updated_at; owner_id não muda nessa operação. |
+| Sequência UML | [seq-comando](Diagramas/renderizados/seq-comando.svg) |
+
+**Fluxo principal**
+
+1. Editar nome e CNPJ no formulário.
+2. Validar preenchimento no app e confirmar diálogo.
+3. API confere proprietário, remove pontuação do documento e atualiza a linha.
+4. Exibir alteração somente após resposta positiva e atualizar lista.
+
+**Alternativas, exceções e limites:** Nome/CNPJ duplicados são impedidos pelos índices, mas a rota de edição transforma alguns conflitos SQL em HTTP 500 genérico. A validação explícita de 14 dígitos feita no cadastro não é repetida integralmente nessa rota de edição. Não documentar um tratamento 409 uniforme inexistente.
+
+**Critério de aceite:** executar o fluxo principal com as pré-condições indicadas, conferir os dados/pós-condição no servidor e repetir as exceções descritas. Aprovar somente se a interface e a resposta HTTP coincidirem com os resultados registrados. A existência desta ficha não é evidência de execução.
+
+<a id="rf0201"></a>
+
+### RF02.01 — Agendar reunião da comissão
+
+| Campo | Especificação |
+| --- | --- |
+| Ator | Coordenador atual ou proprietário |
+| Tela e gatilho | Reuniões → título, início, término, pauta → Agendar e convidar |
+| Pré-condições | Comissão existente; gestor com sessão válida. |
+| Entradas e contrato | POST /meetings; prefixo /api em todas as rotas |
+| Dados/pós-condição de sucesso | meetings e meeting_invitations na mesma transação. |
+| Sequência UML | [seq-agendamento](Diagramas/renderizados/seq-agendamento.svg) |
+
+**Fluxo principal**
+
+1. Preencher título até 160 caracteres, datas DD/MM/AAAA HH:mm e pauta.
+2. Validar campos e converter datas para ISO com fuso.
+3. API valida período, gestor e comissão em transação com lock.
+4. Criar reunião e convites; organizador entra como ACCEPTED.
+5. Confirmar reunião após commit.
+
+**Alternativas, exceções e limites:** Término não posterior/início inválido: 400; não gestor: 403; convidados inválidos abortam toda a transação. Não há edição/cancelamento do agendamento implementados.
+
+**Critério de aceite:** executar o fluxo principal com as pré-condições indicadas, conferir os dados/pós-condição no servidor e repetir as exceções descritas. Aprovar somente se a interface e a resposta HTTP coincidirem com os resultados registrados. A existência desta ficha não é evidência de execução.
+
+<a id="rf0202"></a>
+
+### RF02.02 — Selecionar e convidar integrantes no agendamento
+
+| Campo | Especificação |
+| --- | --- |
+| Ator | Gestor da reunião |
+| Tela e gatilho | Reuniões → Membros convidados no formulário Agendar e convidar |
+| Pré-condições | Mesmo contexto de RF02.01; integrantes pertencentes à comissão. |
+| Entradas e contrato | POST /meetings, campo inviteeIds; prefixo /api em todas as rotas |
+| Dados/pós-condição de sucesso | meeting_invitations, UNIQUE(meeting_id,user_id). |
+| Sequência UML | [seq-agendamento](Diagramas/renderizados/seq-agendamento.svg) |
+
+**Fluxo principal**
+
+1. Selecionar pessoas da comissão no formulário.
+2. Enviar inviteeIds junto ao agendamento.
+3. Resolver IDs, rejeitar pessoas não integrantes e deduplicar; incluir organizador.
+4. Persistir INVITED para demais pessoas e ACCEPTED para organizador.
+
+**Alternativas, exceções e limites:** Não há endpoint/tela para convidar pessoas avulsas após criar a reunião. O proprietário pode ser organizador sem integrar a comissão; demais convidados precisam ser integrantes.
+
+**Critério de aceite:** executar o fluxo principal com as pré-condições indicadas, conferir os dados/pós-condição no servidor e repetir as exceções descritas. Aprovar somente se a interface e a resposta HTTP coincidirem com os resultados registrados. A existência desta ficha não é evidência de execução.
+
+<a id="rf0203"></a>
+
+### RF02.03 — Responder convite de reunião
+
+| Campo | Especificação |
+| --- | --- |
+| Ator | Convidado autenticado |
+| Tela e gatilho | Cartão da reunião → Aceitar convite / Recusar |
+| Pré-condições | Convite da própria pessoa. |
+| Entradas e contrato | PATCH /meetings/:meetingId/invitation; prefixo /api em todas as rotas |
+| Dados/pós-condição de sucesso | meeting_invitations.status/responded_at. |
+| Sequência UML | [seq-agendamento](Diagramas/renderizados/seq-agendamento.svg) |
+
+**Fluxo principal**
+
+1. Selecionar aceitar/recusar.
+2. API usa identidade da sessão e valida estado enviado.
+3. Atualizar status e responded_at pelo relógio do servidor.
+
+**Alternativas, exceções e limites:** Recusa após registrar entrada é bloqueada: 409. Usuário sem convite não responde pelo de outra pessoa.
+
+**Critério de aceite:** executar o fluxo principal com as pré-condições indicadas, conferir os dados/pós-condição no servidor e repetir as exceções descritas. Aprovar somente se a interface e a resposta HTTP coincidirem com os resultados registrados. A existência desta ficha não é evidência de execução.
+
+<a id="rf0204"></a>
+
+### RF02.04 — Registrar entrada
+
+| Campo | Especificação |
+| --- | --- |
+| Ator | Convidado com convite aceito |
+| Tela e gatilho | Cartão da reunião → Registrar entrada |
+| Pré-condições | Convite ACCEPTED e ausência de entrada anterior; ata ainda permite novas entradas. |
+| Entradas e contrato | PATCH /meetings/:meetingId/attendance com action=ENTER; prefixo /api em todas as rotas |
+| Dados/pós-condição de sucesso | meeting_attendance, UNIQUE(meeting_id,user_id). |
+| Sequência UML | [seq-presenca](Diagramas/renderizados/seq-presenca.svg) |
+
+**Fluxo principal**
+
+1. Acionar Registrar entrada.
+2. API bloqueia reunião em transação e verifica convite/presença/ata.
+3. Registrar entered_at pelo servidor e confirmar.
+
+**Alternativas, exceções e limites:** Não se registra por outro participante. Após submissão para revisão e aprovação final, novas entradas ficam bloqueadas. Registro é da primeira entrada; não existe fluxo de múltiplas reentradas.
+
+**Critério de aceite:** executar o fluxo principal com as pré-condições indicadas, conferir os dados/pós-condição no servidor e repetir as exceções descritas. Aprovar somente se a interface e a resposta HTTP coincidirem com os resultados registrados. A existência desta ficha não é evidência de execução.
+
+<a id="rf0205"></a>
+
+### RF02.05 — Registrar saída
+
+| Campo | Especificação |
+| --- | --- |
+| Ator | Participante com entrada registrada |
+| Tela e gatilho | Cartão da reunião → Registrar saída |
+| Pré-condições | Entrada existente e saída ainda não registrada. |
+| Entradas e contrato | PATCH /meetings/:meetingId/attendance com action=EXIT; prefixo /api em todas as rotas |
+| Dados/pós-condição de sucesso | meeting_attendance.left_at. |
+| Sequência UML | [seq-presenca](Diagramas/renderizados/seq-presenca.svg) |
+
+**Fluxo principal**
+
+1. Acionar Registrar saída.
+2. API confere própria presença em transação.
+3. Gravar left_at com relógio do servidor e devolver presença.
+
+**Alternativas, exceções e limites:** Sem entrada, negar operação; saída não apaga presença nem retira voto obrigatório. Saídas continuam disponíveis após submissão/aprovação da ata.
+
+**Critério de aceite:** executar o fluxo principal com as pré-condições indicadas, conferir os dados/pós-condição no servidor e repetir as exceções descritas. Aprovar somente se a interface e a resposta HTTP coincidirem com os resultados registrados. A existência desta ficha não é evidência de execução.
+
+<a id="rf0206"></a>
+
+### RF02.06 — Consultar e compartilhar lista de presença
+
+| Campo | Especificação |
+| --- | --- |
+| Ator | Gestor atual ou convidado histórico |
+| Tela e gatilho | Reuniões → lista e Gerar / compartilhar lista de presença |
+| Pré-condições | Acesso à reunião por gestão ou convite, inclusive histórico. |
+| Entradas e contrato | GET /meetings/:meetingId/attendance; prefixo /api em todas as rotas |
+| Dados/pós-condição de sucesso | Leitura de meeting_invitations, meeting_attendance e users; sem nova tabela de relatório. |
+| Sequência UML | [seq-presenca](Diagramas/renderizados/seq-presenca.svg) |
+
+**Fluxo principal**
+
+1. Consultar lista atualizada pela API.
+2. Exibir convidados, situação do convite, entrada, saída e ausências.
+3. Contar presentes apenas com entered_at registrado.
+4. Gerar texto e abrir compartilhamento do SO ou prévia copiável.
+
+**Alternativas, exceções e limites:** Convite aceito sozinho não significa presença. Falha de rede não é lista recém-confirmada. Compartilhar texto não cria assinatura digital.
+
+**Critério de aceite:** executar o fluxo principal com as pré-condições indicadas, conferir os dados/pós-condição no servidor e repetir as exceções descritas. Aprovar somente se a interface e a resposta HTTP coincidirem com os resultados registrados. A existência desta ficha não é evidência de execução.
+
+<a id="rf0207"></a>
+
+### RF02.07 — Criar ou corrigir ata
+
+| Campo | Especificação |
+| --- | --- |
+| Ator | Gestor atual |
+| Tela e gatilho | Reuniões → Discussões e decisões → Salvar rascunho da ata ou Salvar correção da ata |
+| Pré-condições | Gestor autorizado; ata não aprovada. |
+| Entradas e contrato | POST /meetings/:meetingId/minutes; prefixo /api em todas as rotas |
+| Dados/pós-condição de sucesso | meeting_minutes e remoção das decisões substituídas em meeting_minutes_approvals. |
+| Sequência UML | [seq-ata](Diagramas/renderizados/seq-ata.svg) |
+
+**Fluxo principal**
+
+1. Preencher texto não vazio até 50.000 caracteres.
+2. Enviar salvamento.
+3. API bloqueia reunião/ata e grava DRAFT.
+4. Se corrigir revisão/rejeição, gerar nova versão, limpar decisões/conjunto de aprovadores e exigir nova submissão.
+
+**Alternativas, exceções e limites:** APPROVED não pode ser alterada. Falha de envio preserva o texto local do formulário para nova tentativa, mas não o declara salvo no banco. Não há histórico completo dos conteúdos substituídos.
+
+**Critério de aceite:** executar o fluxo principal com as pré-condições indicadas, conferir os dados/pós-condição no servidor e repetir as exceções descritas. Aprovar somente se a interface e a resposta HTTP coincidirem com os resultados registrados. A existência desta ficha não é evidência de execução.
+
+<a id="rf0208"></a>
+
+### RF02.08 — Submeter ata para aprovação
+
+| Campo | Especificação |
+| --- | --- |
+| Ator | Gestor atual |
+| Tela e gatilho | Reuniões → botão Enviar ata para aprovação |
+| Pré-condições | Ata DRAFT salva e pelo menos uma pessoa com entrada registrada. |
+| Entradas e contrato | POST /meetings/:meetingId/minutes/submit; prefixo /api em todas as rotas |
+| Dados/pós-condição de sucesso | meeting_minutes e conjunto UUID[]; sem tabela de snapshot completo de pessoas. |
+| Sequência UML | [seq-ata](Diagramas/renderizados/seq-ata.svg) |
+
+**Fluxo principal**
+
+1. Enviar submissão.
+2. API bloqueia reunião/ata e fixa o conjunto de pessoas com entered_at no instante do envio.
+3. Gravar required_approver_ids, status=IN_REVIEW e submitted_at.
+4. Exigir decisão de cada pessoa desse conjunto, inclusive gestor presente e quem já saiu.
+
+**Alternativas, exceções e limites:** Sem presentes ou sem rascunho: 409. Não inclui ausentes. Novas entradas são bloqueadas durante revisão/após aprovação. Remover vínculo da comissão não remove a obrigação do aprovador fixado.
+
+**Critério de aceite:** executar o fluxo principal com as pré-condições indicadas, conferir os dados/pós-condição no servidor e repetir as exceções descritas. Aprovar somente se a interface e a resposta HTTP coincidirem com os resultados registrados. A existência desta ficha não é evidência de execução.
+
+<a id="rf0209"></a>
+
+### RF02.09 — Aprovar ou solicitar correção da versão da ata
+
+| Campo | Especificação |
+| --- | --- |
+| Ator | Aprovador fixado na submissão |
+| Tela e gatilho | Reuniões → leitura da versão → campo Comentário (opcional) → Aprovar ata / Rejeitar ata |
+| Pré-condições | Ata IN_REVIEW e ator incluído em required_approver_ids. |
+| Entradas e contrato | PATCH /meetings/:meetingId/minutes/approval; prefixo /api em todas as rotas |
+| Dados/pós-condição de sucesso | meeting_minutes_approvals e meeting_minutes.status/approved_at. |
+| Sequência UML | [seq-ata](Diagramas/renderizados/seq-ata.svg) |
+
+**Fluxo principal**
+
+1. Ler texto e versão atual; selecionar decisão.
+2. Enviar version, decision e comentário quando rejeitar.
+3. API bloqueia a reunião, verifica versão e elegibilidade e grava a decisão atual.
+4. Rejeição muda para REJECTED; unanimidade APPROVED fixa approved_at; antes disso permanece em revisão.
+
+**Alternativas, exceções e limites:** Versão antiga/estado incompatível: 409; pessoa não fixada: 403; rejeição sem comentário é inválida. Cargo de coordenador não equivale a aprovação automática. Uma decisão atual por usuário/ata, sem histórico completo dos votos substituídos.
+
+**Critério de aceite:** executar o fluxo principal com as pré-condições indicadas, conferir os dados/pós-condição no servidor e repetir as exceções descritas. Aprovar somente se a interface e a resposta HTTP coincidirem com os resultados registrados. A existência desta ficha não é evidência de execução.
+
+<a id="rf0210"></a>
+
+### RF02.10 — Gerar PDF da ata salva
+
+| Campo | Especificação |
+| --- | --- |
+| Ator | Gestor atual ou convidado histórico |
+| Tela e gatilho | Reuniões → Gerar ata em PDF |
+| Pré-condições | Ata salva; formulário sem alterações locais pendentes; versão atual. |
+| Entradas e contrato | HEAD/GET /meetings/:meetingId/minutes/pdf; POST /auth/download-ticket; prefixo /api em todas as rotas |
+| Dados/pós-condição de sucesso | Leitura das tabelas de reunião/ata/presença/decisões; download_tickets para autorização temporária; PDF não é armazenado no banco. |
+| Sequência UML | [seq-pdf](Diagramas/renderizados/seq-pdf.svg) |
+
+**Fluxo principal**
+
+1. Acionar exportação; app faz HEAD autenticado e confere MIME/versão.
+2. Solicitar ticket de download limitado à rota/sessão por 60 segundos.
+3. Abrir navegador com URL do PDF, versão, fuso e ticket.
+4. API revalida sessão/acesso/versão e gera PDF em memória com dados atuais.
+5. Exibir rascunho/revisão/rejeição como documento não final; ata aprovada é identificada como aprovada.
+
+**Alternativas, exceções e limites:** Sem acesso: 403; sem ata: 404; versão antiga: 409; ticket inválido/expirado: 401. Ticket pode ser reutilizado na mesma rota até expirar; não é de uso único. PDF não altera votos/situação e não contém assinatura digital.
+
+**Critério de aceite:** executar o fluxo principal com as pré-condições indicadas, conferir os dados/pós-condição no servidor e repetir as exceções descritas. Aprovar somente se a interface e a resposta HTTP coincidirem com os resultados registrados. A existência desta ficha não é evidência de execução.
+
+## 6. Modelo de classes e dicionário
+
+Os classificadores de domínio representam responsabilidades/dados, não classes JavaScript inexistentes. Não foi atribuída a Usuario uma operação login que, no código, pertence ao módulo de API/rotas. Os módulos de projeto têm operações com parâmetros/retornos reais e dicionário próprio. Associação não implica exclusão em cascata; esta é especificada no modelo físico.
+
+![Classes de cadastro](Diagramas/renderizados/classes-cadastro.svg)
+
+![Classes de reuniões](Diagramas/renderizados/classes-reunioes.svg)
+
+![Módulos e operações](Diagramas/renderizados/classes-servicos.svg)
+
+[Dicionário de classes, atributos e métodos](dicionario-classes.md). Atributos técnicos e nomes SQL completos estão no dicionário físico; os recortes visuais não substituem esses inventários.
+
+## 7. Modelo relacional e dicionário físico
+
+O modelo relacional representa tabelas, PKs, FKs e cardinalidades de referência. Não é chamado de diagrama UML. As multiplicidades relacionais indicam capacidade SQL, não pressupõem que cada organização já possua comissões ou cada reunião já possua uma ata.
+
+![Cadastro relacional](Diagramas/renderizados/relacional-cadastro.svg)
+
+![Reuniões relacionais](Diagramas/renderizados/relacional-reunioes.svg)
+
+![Segurança e operação relacionais](Diagramas/renderizados/relacional-seguranca.svg)
+
+[Dicionário físico completo](dicionario-banco-dados.md): 15 tabelas, 99 colunas, 53 restrições e 39 índices extraídos do DDL. Inclui tipos, nulabilidade, defaults, PK/FK/UNIQUE/CHECK, índices parciais/expressões e ações de exclusão. [Snapshot estruturado](modelo-fisico.snapshot.json) permite conferir o inventário.
+
+**Distinção entre regra e garantia:** enums de tema/papel/situação em várias tabelas são validados por rotas, mas não têm CHECK SQL. Nome de comissão não tem UNIQUE SQL. E-mail tem unicidade textual, não índice de minúsculas. Ao contrário, nome/CNPJ de organização têm índices normalizados. Presença/voto/unanimidade e validade de credenciais exigem lógica de serviço e transações; não são garantidos apenas pela existência de uma tabela.
+
+## 8. Requisitos não funcionais
+
+Cada RNF contém condição, medida e método de avaliação. “Implementado” indica mecanismo observado no código; só evidência identificada permite declarar teste aprovado. Metas de desempenho/usabilidade ainda não medidas permanecem metas pendentes.
+
+| ID / atributo | Critério verificável | Condições e medida | Evidência ou estado |
+| --- | --- | --- | --- |
+| RNF01 — Autenticação | Recurso privado sem token válido retorna 401 e não efetua escrita | Chamadas HTTP anônimas, expiradas/revogadas e com ator adulterado | security.test.js; mecanismos implantados no código |
+| RNF02 — Autorização | Usuário não altera perfil de outra conta nem acessa /system sem papel administrativo | Duas contas distintas; comparar resposta e dados antes/depois | security.test.js |
+| RNF03 — Credenciais locais | Serialização do cache não contém campos de senha, token ou segredo | Objeto com credenciais inclusive aninhadas; comparar JSON sanitizado | cacheSafety.test.js; sem comprovação de inspeção forense de aparelho |
+| RNF04 — Sessão/expiração | Sessão expira em sete dias; código em 15 minutos; ticket em 60 segundos; troca/recuperação revoga sessões | Alterar timestamps em schema isolado e consultar endpoints | Validades no código; testes específicos de sessão/código e revogação. Não alegar cobertura de todos os cenários apenas por essa descrição |
+| RNF05 — Limitação de tentativas | Login/Google/troca: 10, envio/reenvio: 3, código/reset: 5 por janela de 900 s | Por endpoint/IP e e-mail quando fornecido; excedente retorna 429 | UPSERT persistente; teste de limite de recuperação |
+| RNF06 — Integridade transacional | Agendamento, criação de comissão, transferência e decisões não deixam escritas parciais em falha validada | Consultar tabelas após payload inválido/falha e após disputa concorrente | Suítes de segurança/reuniões/migração; não generalizar transação a toda rota |
+| RNF07 — Concorrência de atas | Voto de versão antiga é negado; aprovação depende do conjunto fixado e unanimidade | Pedidos concorrentes em schema isolado; comparar versão/votos/status | meetings.test.js |
+| RNF08 — Persistência confirmada | Escrita declarada confirmada continua disponível ao consultar a API após atualização | Fluxos com API disponível; em falha, interface não informa salvamento concluído | Mecanismos presentes; roteiro manual por operação ainda necessário |
+| RNF09 — Recuperação de falha | Indisponibilidade não vira autenticação local nem cadastro offline | Desligar API/rede; verificar mensagem, cache e ausência de escrita | Roteiro em aparelho pendente. Reabertura offline não é suportada |
+| RNF10 — Privacidade | Snapshot de conta sem vínculo não contém contas/atas/presenças de outra organização | Duas organizações e pessoas; manter acesso histórico permitido explicitamente | Filtro por sessão; teste de isolamento de contas. Diretório de organizações aprovadas é público entre usuários autenticados |
+| RNF11 — Compatibilidade | Fluxos essenciais em Android 7+/API24 e iOS16.4+ no build configurado | Registrar dispositivo, SO, assinatura e versão; executar casos de aceite | Mínimos declarados; validação física pendente |
+| RNF12 — Legibilidade/acessibilidade | Campo focado e ação permanecem utilizáveis com teclado, fonte ampliada e temas claro/escuro | Telas 360×640; fonte 200%; leitor de tela; contraste alvo WCAG AA: 4,5:1 em texto comum | Meta de aceite; medições e testes físicos pendentes. Tema/máscara não são RNFs |
+| RNF13 — Desempenho | Abertura p95 ≤ 3 s; lista de 100 registros p95 ≤ 500 ms | Build release, aparelho intermediário identificado; 30 execuções; separar latência local/API; fixar rede e volume | Meta não medida; não prometer resposta universal abaixo de 100 ms |
+| RNF14 — Operação | Consultas repetidas/reinício não alteram marco persistido nem hashes de senha | Comparar metadados antes/depois de migração e consultas | Testes de data estável e migração; restart do processo é operação externa |
+| RNF15 — Comunicação | Produção usa HTTPS e URL estável; não transmitir senha/sessão em HTTP público | Inspecionar implantação e certificados; LAN HTTP é desenvolvimento | Requisito de implantação pendente de evidência; túnel de desenvolvimento não garante disponibilidade |
+| RNF16 — Manutenção | Documento, contrato, DDL e testes usam mesmos IDs, domínios e versões | Regerar inventário/diagramas e revisar alterações de regra | Scripts documentais e checklist; sem promessa de sincronização automática de textos manuais |
+| RNF17 — PDF | Português legível, texto longo paginado, versão/status/fuso identificados e aviso não final | Fixtures longas e estados de ata, mais download em aparelhos | Testes de geração registrados; download/compartilhamento físico pendentes |
+
+## 9. Contratos de interface e serialização
+
+Campos de entrada são componentes nativos não controlados por value; usam defaultValue e ref para sincronizar alterações externas/máscaras. A aplicação ainda utiliza estado React para representar formulários e dados. Isso não significa ausência de estado ou teste de foco/cursor comprovado.
+
+Tema: PUT /api/users/:id, JSON {"theme":"DARK"}; resposta deve confirmar e só então a interface sincroniza. Banco: users.theme. Cache: JSON.stringify do snapshot sanitizado na chave @synple:incremento-1. Não existe persistência isolada na chave theme e não se usam abreviações L/D.
+
+Recuperação: tela Login → Esqueci minha senha; campo E-mail cadastrado e botão Enviar código por e-mail; segunda etapa com código/nova senha/confirmação. JSON do envio: {email}; JSON da redefinição: {email,code,newPassword}. O cliente não recebe o hash do código. Cadastros usam outra etapa Ativar conta e outro par de colunas/desafios.
+
+Sessão: perfil devolvido por login inclui token; api.js separa o token do perfil e o envia em Authorization: Bearer. Cache não recebe esse token. A validação da sessão é no servidor a cada recurso privado; biometria apenas libera sessão protegida localmente e autoriza o formulário de perfil.
+
+Estados de interface, fonte e componentes: [contrato de interfaces](../Synple/docs/INTERFACES.md). Padrões de programação diários: [PADROES_DESENVOLVIMENTO.md](../Synple/docs/PADROES_DESENVOLVIMENTO.md). Os formulários, o modelo físico e os dicionários adotam os identificadores reais; classes conceituais usam nomes de domínio em português com mapeamento explícito.
+
+## 10. Testes, rastreabilidade e evidências
+
+Cada RF está ligado a um contrato e a uma sequência no próprio formulário. Para execução manual, registrar ID, build/commit, aparelho/SO, pré-condições, dados fictícios, passos, esperado, obtido, responsável/data e evidência. Uma linha de roteiro não é resultado aprovado.
+
+| Arquivo de teste | Comportamentos relacionados | RFs principais |
+| --- | --- | --- |
+| backend/test/security.test.js | Acesso, senha alternativa negada, sessão/hash, conta pendente/ativação, SMTP simulado, expiração, sincronização, unicidade, transferência, comissão e convite/ticket/limite/logout | RF01, RF04, RF07, RF11, RF12, RF17–RF26 |
+| backend/test/meetings.test.js | Transações, elegibilidade, presença, versões, unanimidade, concorrência, histórico, permissões e PDF | RF06, RF02.01–RF02.10 |
+| backend/test/migrate.test.js | Reaplicação sem redefinir senha e coordenador atribuído a comissão antiga sem responsável | RF06, RF17 |
+| backend/test/backend.test.js | Conexão/tabelas, dados fictícios de demonstração, exclusão de usuário e estrutura de recuperação | Persistência e operação; não comprova interface ou envio real |
+| backend/test/meetingMinutesPdf.test.js | Conteúdo, fonte e paginação do PDF | RF02.10 |
+| mobile/test/validation.test.js | E-mail, formulários, senhas, telefone/CNPJ | RF01, RF04, RF07, RF10, RF19 |
+| mobile/test/cacheSafety.test.js | Remoção de credenciais aninhadas sem mutar objeto original | RF25 |
+| mobile/test/meetings.test.js e meetingMinutesPdf.test.js | Datas, lista, aprovadores, URL/HEAD/MIME/erros antes do navegador | RF02.01, RF02.06, RF02.09, RF02.10 |
+
+[Resultados registrados da revisão de código](../Synple/docs/VERIFICACAO_CORRECOES.md): 35 testes backend e 23 mobile aprovados, exportação de bundles e migração. Nesta revisão documental, extração de schema e renderização UML são validações de documentação; não são nova execução dos 58 testes ou dos APKs. [Registro desta revisão documental](VERIFICACAO_DOCUMENTACAO.md).
+
+**Roteiro manual complementar:** executar RFs em Android e iOS, usando duas contas em dois aparelhos; testar offline, teclado/fonte/tema, OAuth, envio real de e-mail, biometria cancelada, mudança de propriedade, coordenação, aceite/recusa e PDF com ticket expirado. Registrar também limites conhecidos para não confundir resultado observado com comportamento desejado.
+
+## 11. Limitações e lacunas verificadas
+
+1. A documentação não corrige código: na recuperação, a checagem local ainda menciona seis caracteres, enquanto servidor exige oito. Descrever o mínimo efetivo do servidor e registrar a divergência até sua correção.
+2. Recuperação valida preenchimento do e-mail nessa etapa, não um formato completo; outras telas usam validador de formato. Não afirmar validação uniforme inexistente.
+3. Domínios de papel/tema/situação em várias tabelas dependem da API. UNIQUE de nome de comissão por organização não existe. Mínimo de coordenador não é uma restrição CHECK do banco.
+4. Revogação de vínculo organizacional não apaga automaticamente os vínculos de comissão. Nem todas as rotas repetem a checagem de organização APPROVED da interface. Revisar consistência de autorização antes de produção.
+5. Exclusão de organização segue cascatas SQL e não tem uma proteção histórica geral implementada. As proteções de exclusão de conta/ata não podem ser generalizadas a todas as entidades.
+6. Reconvite após rejeição não está implementado: o vínculo único existente provoca conflito no convite novo. E-mail de convite para organização não é enviado; o convite é interno.
+7. Não há autenticação offline por senha. Sessão reaberta requer servidor. Logout offline limpa o aparelho sem comprovar revogação remota imediata.
+8. Biometria exige novo APK/módulos nativos, hardware e enrollment; edição de perfil no fluxo atual é bloqueada quando indisponível. Servidor não recebe atestado biométrico.
+9. Atas guardam conteúdo/decisões atuais, sem histórico completo ou assinatura digital. Array de aprovadores não tem FK por elemento.
+10. Papéis/quantidade de coordenadores, retenção de presença/atas, acessibilidade e itens adicionais de reunião precisam de validação com a comunidade. Não há entrevistas comprovadas nesta documentação.
+11. Permanecem alertas de dependências do Expo, conforme relatório de correções; não declarar segurança absoluta com base nos testes.
+12. Tags Docker/CLI flutuantes, tempo de resposta e disponibilidade de túneis não constituem garantias de versão fixa, desempenho universal ou hospedagem permanente.
+
+## 12. Padrões de entrega e manutenção
+
+Antes de entregar: conferir padrão institucional fornecido pelo professor (o formulário original não está disponível neste checkout); manter esta especificação como referência principal, dicionários e fontes UML como anexos versionados; registrar commit/build/data da evidência; separar teste automatizado, renderização e teste físico; citar somente tecnologias instaladas; atualizar todas as fichas afetadas por mudança de contrato.
+
+Não há necessidade de anexar node_modules ou senhas para documentar. Dicionário físico e versões são regenerados com generate-data-dictionary.cjs; fontes UML com generate-uml.cjs; esta especificação com generate-main-spec.cjs. Qualquer regeneração exige revisão semântica dos textos manuais e conferência visual das imagens. [Índice geral do projeto](../Documentacao_do_ProjetoSynple.md).

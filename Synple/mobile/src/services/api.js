@@ -1,3 +1,4 @@
+import { getSessionToken, rememberSession } from './session';
 // ============================================================================
 // CLIENTE DE API E SINCRONIZAÇÃO COM POSTGRESQL (SYNPLE)
 // Compatível com Expo Go (dispositivo físico), Web e Emuladores
@@ -70,6 +71,7 @@ async function fetchWithTimeout(url, options = {}, timeoutMs = 3500) {
   try {
     const response = await fetch(url, {
       ...options,
+      headers: { ...options.headers, ...(getSessionToken() ? { Authorization: `Bearer ${getSessionToken()}` } : {}) },
       signal: controller.signal,
     });
     clearTimeout(timeoutId);
@@ -138,7 +140,9 @@ export async function loginWithApi(email, password) {
     }
 
     const user = await response.json();
-    return { success: true, user };
+    await rememberSession(user.token);
+    const { token, ...profile } = user;
+    return { success: true, user: profile };
   } catch (err) {
     return { success: false, error: 'Falha na comunicação com o servidor.' };
   }
@@ -161,7 +165,9 @@ export async function loginWithGoogleApi(idToken) {
       return { success: false, error: err.error || 'Não foi possível entrar com Google.' };
     }
 
-    return { success: true, user: await response.json() };
+    const { token, ...user } = await response.json();
+    await rememberSession(token);
+    return { success: true, user };
   } catch (err) {
     return { success: false, error: 'Não foi possível conectar ao servidor para validar a conta Google.' };
   }
@@ -176,15 +182,14 @@ export async function registerWithApi({ name, email, phone, password }) {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ name, email, phone, password }),
-    }, 7000);
+    }, 45000);
 
     if (!response.ok) {
       const err = await response.json();
       return { success: false, error: err.error || 'Falha ao cadastrar' };
     }
 
-    const user = await response.json();
-    return { success: true, user };
+    return { success: true, ...await response.json() };
   } catch (err) {
     return { success: false, error: 'Falha na comunicação com o servidor.' };
   }
@@ -211,32 +216,6 @@ export async function requestAccessWithApi(organizationId, userId) {
 /**
  * Sincroniza usuários criados localmente com o PostgreSQL (apenas pendências explícitas)
  */
-export async function syncPendingUsers(localUsers = []) {
-  if (!Array.isArray(localUsers) || localUsers.length === 0) return [];
-  const synced = [];
-
-  for (const user of localUsers) {
-    if (user && user.pendingSync && user.email) {
-      try {
-        const res = await registerWithApi({
-          name: user.name || 'Usuário',
-          email: user.email,
-          phone: user.phone || null,
-          password: user.password || 'Synple@123',
-        });
-        if (res && res.success && res.user) {
-          user.pendingSync = false;
-          user.id = res.user.id;
-          synced.push(res.user);
-        }
-      } catch {
-        // continua para o próximo
-      }
-    }
-  }
-  return synced;
-}
-
 /**
  * Atualiza dados pessoais / tema no PostgreSQL
  */
@@ -559,74 +538,50 @@ export async function createCommissionWithApi({ organizationId, name, type, desc
     const commission = await response.json();
     return { success: true, commission };
   } catch (err) {
-    return { success: false, error: 'Servidor offline, comissão salva localmente.' };
+    return { success: false, error: 'Servidor indisponível. A comissão não foi criada.' };
   }
 }
 
 /**
  * Sincroniza em lote todos os itens pendentes gerados localmente (offline ou rede externa) com o PostgreSQL
  */
-export async function syncPendingData(data = {}) {
-  if (!data) return;
+export async function syncPendingData() { /* Escritas precisam de confirmação explícita da API. */ }
 
-  // 1. Usuários pendentes
-  if (Array.isArray(data.users)) {
-    await syncPendingUsers(data.users);
-  }
 
-  // 2. Organizações pendentes
-  if (Array.isArray(data.organizations)) {
-    for (const org of data.organizations) {
-      if (org && org.pendingSync) {
-        try {
-          const res = await createOrganizationWithApi({
-            name: org.name,
-            document: org.document,
-            ownerId: org.ownerId,
-            status: org.status || 'PENDING',
-          });
-          if (res && res.success && res.organization) {
-            org.pendingSync = false;
-            org.id = res.organization.id;
-          }
-        } catch {}
-      }
-    }
-  }
-
-  // 3. Comissões pendentes
-  if (Array.isArray(data.commissions)) {
-    for (const comm of data.commissions) {
-      if (comm && comm.pendingSync) {
-        try {
-          const res = await createCommissionWithApi({
-            organizationId: comm.organizationId,
-            name: comm.name,
-            type: comm.type,
-            description: comm.description,
-          });
-          if (res && res.success && res.commission) {
-            comm.pendingSync = false;
-            comm.id = res.commission.id;
-          }
-        } catch {}
-      }
-    }
-  }
-
-  // 4. Solicitações de acesso pendentes
-  if (Array.isArray(data.accessRequests)) {
-    for (const req of data.accessRequests) {
-      if (req && req.pendingSync) {
-        try {
-          const res = await requestAccessWithApi(req.organizationId, req.userId);
-          if (res && res.id) {
-            req.pendingSync = false;
-            req.id = res.id;
-          }
-        } catch {}
-      }
-    }
-  }
+export async function authRequest(endpoint, payload, method = 'POST') {
+  try {
+    const response = await fetchWithTimeout(`${getApiBaseUrl()}/auth/${endpoint}`, { method,
+      headers: { 'Content-Type': 'application/json' }, ...(method !== 'GET' ? { body: JSON.stringify(payload || {}) } : {}) }, 45000);
+    const result = await response.json();
+    return response.ok ? { success: true, ...result } : { success: false, error: result.error };
+  } catch { return { success: false, error: 'Não foi possível conectar ao servidor.' }; }
+}
+export async function fetchSystemInfo() {
+  const response = await fetchWithTimeout(`${getApiBaseUrl()}/system`, { method: 'GET' }, 10000);
+  if (!response.ok) throw new Error('Não foi possível consultar o estado real do servidor.');
+  return response.json();
 }
 
+export async function organizationInvitation(organizationId, payload, requestId) {
+  try {
+    const response = await fetchWithTimeout(`${getApiBaseUrl()}/organizations/${organizationId}/invitations${requestId ? '/' + requestId : ''}`,
+      { method: requestId ? 'PATCH' : 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) }, 10000);
+    const result = await response.json();
+    return response.ok ? { success: true, ...result } : { success: false, error: result.error };
+  } catch { return { success: false, error: 'Não foi possível confirmar o convite no servidor.' }; }
+}
+export const authenticatedFetch = (url, options = {}) => fetchWithTimeout(url, options, 15000);
+export async function authorizePdfDownload(url) {
+  const path = new URL(url).pathname.replace(/^\/api/, '');
+  const result = await authRequest('download-ticket', { path });
+  if (!result.success) throw new Error(result.error);
+  return url + '&download=' + encodeURIComponent(result.ticket);
+}
+
+export async function commissionRequest(id, method, payload) {
+  try {
+    const response = await fetchWithTimeout(`${getApiBaseUrl()}/commissions/${id}`, { method, headers: { 'Content-Type': 'application/json' }, ...(payload ? { body: JSON.stringify(payload) } : {}) }, 10000);
+    const result = await response.json();
+    return response.ok ? { success: true, ...result } : { success: false, error: result.error };
+  } catch { return { success: false, error: 'A alteração não foi confirmada pelo servidor.' }; }
+}

@@ -1,4 +1,5 @@
-import { useContext } from 'react';
+import { fetchSystemInfo } from '../services/api';
+import { useContext, useEffect, useState } from 'react';
 import { Text, View } from 'react-native';
 import { Pressable } from '../components/ActionPressable';
 import { SUBSYSTEM_LABELS } from '../constants/status';
@@ -15,11 +16,21 @@ export function SystemScreen({
   onResetDemo,
 }) {
   const { styles } = useContext(ThemeContext);
+  const [details, setDetails] = useState(null);
+  const [error, setError] = useState('');
+  useEffect(() => { let active = true; fetchSystemInfo().then(d => active && setDetails(d)).catch(e => active && setError(e.message)); return () => { active = false; }; }, []);
 
   return (
     <>
       <View style={styles.card}>
         <Text style={styles.cardTitle}>Status do sistema</Text>
+        {error ? <Text style={styles.hint}>{error}</Text> : null}
+        {details && <View>
+          <Text style={styles.hint}>Servidor iniciado em {new Date(details.startedAt).toLocaleString('pt-BR')}</Text>
+          <Text style={styles.hint}>Disponível há {Math.floor(details.uptime)} segundos · API {details.version}</Text>
+          <Text style={styles.hint}>Banco: {details.database.status} · resposta {details.database.latencyMs} ms</Text>
+          <Text style={styles.hint}>{details.database.version}</Text>
+        </View>}
         <Text style={styles.hint}>
           {system.initialized
             ? `Inicializado em ${new Date(system.initializedAt).toLocaleString('pt-BR')}`
@@ -35,7 +46,7 @@ export function SystemScreen({
               style={styles.smallButton}
               onPress={() => onRestartSubsystem(subsystem.id)}
             >
-              <Text style={styles.smallButtonText}>Reiniciar</Text>
+              <Text style={styles.smallButtonText}>Verificar</Text>
             </Pressable>
           </View>
         ))}
@@ -64,10 +75,10 @@ export function SystemScreen({
       <View style={styles.card}>
         <Text style={styles.cardTitle}>Operações administrativas</Text>
         <Pressable style={styles.primaryButton} onPress={onInitializeSystem}>
-          <Text style={styles.primaryButtonText}>Executar setup inicial</Text>
+          <Text style={styles.primaryButtonText}>Consultar disponibilidade real</Text>
         </Pressable>
         <Pressable style={styles.outlineButton} onPress={onResetDemo}>
-          <Text style={styles.outlineText}>Resetar sistema e dados locais</Text>
+          <Text style={styles.outlineText}>Limpar cache e sair</Text>
         </Pressable>
       </View>
     </>

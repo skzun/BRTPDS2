@@ -4,13 +4,26 @@ const bcrypt = require('bcryptjs');
 const crypto = require('crypto');
 const { OAuth2Client } = require('google-auth-library');
 const db = require('../db/connection');
-const { sendPasswordResetEmail } = require('../services/mailer');
+const { sendPasswordResetEmail, sendActivationEmail } = require('../services/mailer');
 
 function normalizeEmail(email) {
   return (email || '').trim().toLowerCase();
 }
 
 const googleOAuthClient = new OAuth2Client();
+const { issueSession, digest, rateLimit } = require('../services/security');
+router.use((req, res, next) => {
+  const limits = { name: 120, email: 150, phone: 30, password: 256, currentPassword: 256, nextPassword: 256, newPassword: 256, code: 64, idToken: 12000 };
+  for (const [field, max] of Object.entries(limits)) {
+    if (req.body?.[field] !== undefined && (typeof req.body[field] !== 'string' || req.body[field].length > max)) {
+      return res.status(400).json({ error: `O campo ${field} é inválido.` });
+    }
+  }
+  next();
+});
+router.use(['/login', '/google', '/change-password'], rateLimit(10, 900));
+router.use(['/forgot-password', '/resend-activation'], rateLimit(3, 900));
+router.use(['/reset-password', '/verify-email'], rateLimit(5, 900));
 
 function getGoogleClientIds() {
   return (process.env.GOOGLE_OAUTH_CLIENT_IDS || '')
@@ -36,14 +49,15 @@ router.post('/login', async (req, res) => {
     }
 
     const user = userRes.rows[0];
-    const isPasswordValid = bcrypt.compareSync(cleanPassword, user.password_hash) ||
-      ['Admin@123', 'Marina@123', 'Joao@123', 'admin123', 'marina123', 'joao123'].includes(cleanPassword);
+    const isPasswordValid = await bcrypt.compare(cleanPassword, user.password_hash);
 
     if (!isPasswordValid) {
       return res.status(401).json({ error: 'Senha incorreta.' });
     }
 
+    if (!user.email_verified) return res.status(403).json({ error: 'Ative sua conta com o código enviado por e-mail.', code: 'EMAIL_NOT_VERIFIED' });
     return res.json({
+      token: await issueSession(user.id),
       id: user.id,
       name: user.name,
       email: user.email,
@@ -73,14 +87,17 @@ router.post('/register', async (req, res) => {
       return res.status(409).json({ error: 'Este e-mail já está cadastrado.' });
     }
 
-    const passwordHash = bcrypt.hashSync(cleanPassword, 10);
-    const insertRes = await db.query(`
-      INSERT INTO users (name, email, phone, password_hash, system_role, theme)
-      VALUES ($1, $2, $3, $4, 'USER', 'LIGHT')
-      RETURNING id, name, email, phone, system_role as "systemRole", theme;
-    `, [name.trim(), cleanEmail, phone ? phone.trim() : null, passwordHash]);
-
-    return res.status(201).json(insertRes.rows[0]);
+    if (cleanPassword.length < 8 || typeof name !== 'string' || !name.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(cleanEmail)) {
+      return res.status(400).json({ error: 'Informe nome, e-mail válido e senha com pelo menos 8 caracteres.' });
+    }
+    const code = crypto.randomInt(100000, 1000000).toString();
+    const mail = await sendActivationEmail(cleanEmail, code);
+    if (!mail.success) return res.status(503).json({ error: 'O envio do e-mail de ativação falhou. A conta não foi criada; tente novamente.' });
+    const passwordHash = await bcrypt.hash(cleanPassword, 10);
+    await db.query(`INSERT INTO users (name, email, phone, password_hash, system_role, theme, email_verified, activation_hash, activation_expires)
+      VALUES ($1, $2, $3, $4, 'USER', 'LIGHT', FALSE, $5, NOW() + INTERVAL '15 minutes')`,
+      [name.trim(), cleanEmail, phone?.trim() || null, passwordHash, digest(code)]);
+    return res.status(201).json({ requiresActivation: true, email: cleanEmail });
   } catch (err) {
     console.error('Erro no registro:', err);
     return res.status(500).json({ error: 'Erro ao registrar usuário no PostgreSQL.' });
@@ -122,22 +139,22 @@ router.post('/google', async (req, res) => {
 
       const linkedUser = await db.query(`
         UPDATE users
-        SET google_id = COALESCE(google_id, $1), updated_at = NOW()
+        SET google_id = COALESCE(google_id, $1), email_verified = TRUE, updated_at = NOW()
         WHERE id = $2
         RETURNING id, name, email, phone, system_role as "systemRole", theme;
       `, [payload.sub, existingUser.id]);
-      return res.json({ ...linkedUser.rows[0], isNewUser: false });
+      return res.json({ ...linkedUser.rows[0], token: await issueSession(linkedUser.rows[0].id), isNewUser: false });
     }
 
     const passwordHash = bcrypt.hashSync(crypto.randomBytes(32).toString('hex'), 10);
     const displayName = String(payload.name || email.split('@')[0]).trim().slice(0, 120);
     const createdUser = await db.query(`
-      INSERT INTO users (name, email, password_hash, google_id, system_role, theme)
-      VALUES ($1, $2, $3, $4, 'USER', 'LIGHT')
+      INSERT INTO users (name, email, password_hash, google_id, system_role, theme, email_verified)
+      VALUES ($1, $2, $3, $4, 'USER', 'LIGHT', TRUE)
       RETURNING id, name, email, phone, system_role as "systemRole", theme;
     `, [displayName, email, passwordHash, payload.sub]);
 
-    return res.status(201).json({ ...createdUser.rows[0], isNewUser: true });
+    return res.status(201).json({ ...createdUser.rows[0], token: await issueSession(createdUser.rows[0].id), isNewUser: true });
   } catch (err) {
     console.error('Erro no login Google:', err.message);
     return res.status(401).json({ error: 'Não foi possível validar a identidade da conta Google.' });
@@ -146,7 +163,9 @@ router.post('/google', async (req, res) => {
 
 // POST /api/auth/change-password - Troca de senha segura
 router.post('/change-password', async (req, res) => {
-  const { userId, currentPassword, nextPassword } = req.body;
+  const { currentPassword, nextPassword } = req.body;
+  const userId = req.auth.id;
+  if (typeof currentPassword !== 'string' || typeof nextPassword !== 'string' || nextPassword.length < 8) return res.status(400).json({ error: 'Informe a senha atual e uma nova senha com pelo menos 8 caracteres.' });
 
   try {
     const userRes = await db.query('SELECT * FROM users WHERE id = $1;', [userId]);
@@ -155,8 +174,7 @@ router.post('/change-password', async (req, res) => {
     }
 
     const user = userRes.rows[0];
-    const isCurrentValid = bcrypt.compareSync(currentPassword, user.password_hash) ||
-      ['Admin@123', 'Marina@123', 'Joao@123', 'admin123', 'marina123', 'joao123'].includes(currentPassword);
+    const isCurrentValid = await bcrypt.compare(currentPassword, user.password_hash);
 
     if (!isCurrentValid) {
       return res.status(400).json({ error: 'Senha atual informada está incorreta.' });
@@ -165,6 +183,7 @@ router.post('/change-password', async (req, res) => {
     const newHash = bcrypt.hashSync(nextPassword, 10);
     await db.query('UPDATE users SET password_hash = $1, updated_at = NOW() WHERE id = $2;', [newHash, userId]);
 
+    await db.query('DELETE FROM auth_sessions WHERE user_id = $1', [userId]);
     return res.json({ success: true, message: 'Senha alterada com sucesso no PostgreSQL.' });
   } catch (err) {
     console.error('Erro ao alterar senha:', err);
@@ -240,8 +259,8 @@ router.post('/reset-password', async (req, res) => {
     return res.status(400).json({ error: 'E-mail, código de verificação e nova senha são obrigatórios.' });
   }
 
-  if (cleanPassword.length < 6) {
-    return res.status(400).json({ error: 'A nova senha deve ter no mínimo 6 caracteres.' });
+  if (cleanPassword.length < 8) {
+    return res.status(400).json({ error: 'A nova senha deve ter no mínimo 8 caracteres.' });
   }
 
   try {
@@ -267,15 +286,17 @@ router.post('/reset-password', async (req, res) => {
     }
 
     const newHash = bcrypt.hashSync(cleanPassword, 10);
-    await db.query(`
+    const reset = await db.query(`
       UPDATE users 
       SET password_hash = $1, 
           reset_token = NULL, 
           reset_token_expires = NULL, 
           updated_at = NOW() 
-      WHERE id = $2;
-    `, [newHash, user.id]);
+      WHERE id = $2 AND reset_token = $3 AND reset_token_expires > NOW() RETURNING id;
+    `, [newHash, user.id, tokenHash]);
 
+    if (!reset.rowCount) return res.status(400).json({ error: 'Código incorreto, expirado ou já utilizado.' });
+    await db.query('DELETE FROM auth_sessions WHERE user_id = $1', [user.id]);
     return res.json({
       success: true,
       message: 'Senha redefinida com sucesso no PostgreSQL! Você já pode fazer login.',
@@ -286,4 +307,43 @@ router.post('/reset-password', async (req, res) => {
   }
 });
 
+router.post('/verify-email', async (req, res, next) => {
+  try {
+    const result = await db.query(`UPDATE users SET email_verified = TRUE, activation_hash = NULL, activation_expires = NULL
+      WHERE LOWER(email) = $1 AND activation_hash = $2 AND activation_expires > NOW() RETURNING id`,
+      [normalizeEmail(req.body.email), digest(String(req.body.code || ''))]);
+    if (!result.rowCount) return res.status(400).json({ error: 'Código inválido ou expirado.' });
+    res.json({ success: true });
+  } catch (error) { next(error); }
+});
+router.post('/resend-activation', async (req, res, next) => {
+  try {
+    const email = normalizeEmail(req.body.email);
+    const user = await db.query('SELECT id FROM users WHERE LOWER(email) = $1 AND email_verified = FALSE', [email]);
+    if (user.rowCount) {
+      const code = crypto.randomInt(100000, 1000000).toString();
+      const mail = await sendActivationEmail(email, code);
+      if (!mail.success) return res.status(503).json({ error: 'Não foi possível enviar o e-mail.' });
+      await db.query("UPDATE users SET activation_hash = $1, activation_expires = NOW() + INTERVAL '15 minutes' WHERE id = $2", [digest(code), user.rows[0].id]);
+    }
+    res.json({ success: true, message: 'Se houver cadastro pendente, enviaremos outro código.' });
+  } catch (error) { next(error); }
+});
+router.get('/me', async (req, res, next) => {
+  try { const user = await db.query('SELECT id, name, email, phone, system_role AS "systemRole", theme FROM users WHERE id = $1', [req.auth.id]); res.json(user.rows[0]); }
+  catch (error) { next(error); }
+});
+router.post('/logout', async (req, res, next) => {
+  try { await db.query('DELETE FROM auth_sessions WHERE token_hash = $1', [req.sessionHash]); res.json({ success: true }); }
+  catch (error) { next(error); }
+});
+router.post('/download-ticket', async (req, res, next) => {
+  try {
+    if (typeof req.body.path !== 'string' || !/^\/meetings\/[a-f0-9-]+\/minutes\/pdf$/i.test(req.body.path)) return res.status(400).json({ error: 'Endereço de PDF inválido.' });
+    const ticket = crypto.randomBytes(32).toString('hex');
+    await db.query("DELETE FROM download_tickets WHERE expires_at < NOW()");
+    await db.query("INSERT INTO download_tickets (token_hash, session_hash, path, expires_at) VALUES ($1, $2, $3, NOW() + INTERVAL '60 seconds')", [digest(ticket), req.sessionHash, req.body.path]);
+    res.json({ ticket });
+  } catch(error) { next(error); }
+});
 module.exports = router;

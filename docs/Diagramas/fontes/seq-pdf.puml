@@ -1,0 +1,31 @@
+@startuml
+!pragma layout smetana
+skinparam backgroundColor white
+skinparam shadowing false
+skinparam defaultFontName SansSerif
+skinparam defaultFontSize 13
+skinparam ArrowColor #334155
+skinparam packageStyle rectangle
+skinparam classAttributeIconSize 0
+skinparam roundcorner 5
+skinparam dpi 130
+title SQ11 — exportação autenticada
+autonumber
+actor Pessoa
+participant "App Synple" as App
+participant "API Express" as API
+database PostgreSQL as DB
+participant Navegador
+Pessoa -> App : Gerar ata em PDF
+App -> API : HEAD /meetings/:id/minutes/pdf com Bearer
+API -> DB : Verifica acesso, versão e ata salva
+API --> App : application/pdf ou erro
+App -> API : POST /auth/download-ticket com caminho
+API -> DB : INSERT ticket ligado à sessão por 60 segundos
+API --> App : Ticket
+App -> Navegador : Abre URL com ticket, versão e fuso
+Navegador -> API : GET PDF
+API -> DB : Verifica ticket, sessão, acesso e versão
+API -> API : Gera PDF em memória
+API --> Navegador : PDF ou erro; não modifica ata
+@enduml

@@ -9,12 +9,14 @@ import {
   ScrollView,
   Text,
   View,
+  useColorScheme,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { INITIAL_DATA } from './src/constants/data';
-import { useSynpleData } from './src/hooks/useSynpleData';
+import { useSynpleData, EMPTY_DATA } from './src/hooks/useSynpleData';
 import { saveData } from './src/services/storage';
+import { restoreSession, clearSession, confirmBiometric } from './src/services/session';
 import { formatCNPJ, formatPhone } from './src/services/formatters';
 import { getAccessibleMeetingCommissions } from './src/services/meetings';
 import { normalizeEmail, validateCommission, validateLogin, validateOrganization, validatePassword, validatePhone, validateRegistration, validateUser } from './src/services/validation';
@@ -29,6 +31,11 @@ import {
   deleteUserWithApi,
   getApiBaseUrl,
   loginWithGoogleApi,
+  loginWithApi,
+  authRequest,
+  fetchSystemInfo,
+  commissionRequest,
+  organizationInvitation,
   registerWithApi,
   requestAccessWithApi,
   requestPasswordResetWithApi,
@@ -65,14 +72,6 @@ import { MeetingsScreen } from './src/screens/MeetingsScreen';
 
 const createId = (prefix) => `${prefix}-${Date.now()}`;
 
-const DEMO_LOGIN_ALIASES = {
-  'admin@synple.com': 'user-system-admin',
-  'admin@synple.app': 'user-system-admin',
-  'marina@synple.com': 'user-admin',
-  'marina@synple.app': 'user-admin',
-  'joao@synple.com': 'user-visitante',
-  'joao@email.com': 'user-visitante',
-};
 
 export default function App() {
   const { data, isReady, setData, storageError, dbStatus, syncWithRemote } = useSynpleData();
@@ -106,7 +105,8 @@ export default function App() {
   }, [isReady]);
 
   const activeUser = data.users.find((user) => user.id === activeUserId);
-  const isDark = activeUser?.theme === 'DARK';
+  const deviceTheme = useColorScheme();
+  const isDark = isAuthenticated ? activeUser?.theme === 'DARK' : deviceTheme === 'dark';
   const styles = useMemo(() => getThemeStyles(isDark), [isDark]);
   const isSystemAdmin = role === 'SYSTEM_ADMIN';
   const ownedOrganizations = data.organizations.filter((organization) => organization.ownerId === activeUserId);
@@ -200,43 +200,32 @@ export default function App() {
     });
   }
 
-  function login({ email, password, mode }) {
-    const trimmedEmail = (email || '').trim().toLowerCase();
-    const trimmedPassword = (password || '').trim();
-
-    const validationError = validateLogin({ email: trimmedEmail, password: trimmedPassword });
-    if (validationError) return Alert.alert('Dados inválidos', validationError);
-
-    const demoUserId = DEMO_LOGIN_ALIASES[trimmedEmail];
-    const user = data.users.find((item) => normalizeEmail(item.email) === trimmedEmail)
-      || (demoUserId ? data.users.find((item) => item.id === demoUserId) : undefined);
-    if (!user) return Alert.alert('Conta não encontrada', 'Cadastre um usuário antes de entrar.');
-
-    const isMarina = user.email === 'marina@synple.app' || user.id === 'user-admin';
-    const isAdmin = user.systemRole === 'SYSTEM_ADMIN' || user.email === 'admin@synple.app';
-    const isJoao = user.email === 'joao@email.com' || user.id === 'user-visitante';
-
-    const validPasswords = [];
-    if (user.password) validPasswords.push(user.password.trim());
-    if (isMarina) validPasswords.push('Marina@123', 'marina123', 'marina', 'admin123', 'admin', '123456', 'senha123');
-    if (isAdmin) validPasswords.push('Admin@123', 'admin123', 'admin', '123456');
-    if (isJoao) validPasswords.push('Joao@123', 'joao123', 'joao', 'admin123', 'admin', '123456');
-
-    if (!validPasswords.includes(trimmedPassword)) {
-      return Alert.alert('Senha incorreta', 'A senha informada não confere.');
-    }
-
-    const actualRole = user.systemRole === 'SYSTEM_ADMIN' ? 'SYSTEM_ADMIN' : 'USER';
-
+  async function finishLogin(user) {
+    setData({ ...EMPTY_DATA, users: [user] });
     setActiveUserId(user.id);
-    const firstOwnedOrganization = data.organizations.find((organization) => organization.ownerId === user.id && organization.status === 'APPROVED');
-    const firstRequestableOrganization = data.organizations.find((organization) => organization.status === 'APPROVED' && organization.ownerId !== user.id);
-    if (actualRole === 'USER' && firstOwnedOrganization) setSelectedOrganizationId(firstOwnedOrganization.id);
-    else if (actualRole === 'USER' && firstRequestableOrganization) setSelectedOrganizationId(firstRequestableOrganization.id);
-    setRole(actualRole);
-    setScreen(actualRole === 'SYSTEM_ADMIN' ? 'admin-management' : 'organizations');
+    setRole(user.systemRole === 'SYSTEM_ADMIN' ? 'SYSTEM_ADMIN' : 'USER');
+    setScreen(user.systemRole === 'SYSTEM_ADMIN' ? 'admin-management' : 'organizations');
     setIsAuthenticated(true);
+    await syncWithRemote();
   }
+  async function login({ email, password }) {
+    const error = validateLogin({ email, password });
+    if (error) return Alert.alert('Dados inválidos', error);
+    const result = await loginWithApi(normalizeEmail(email), password);
+    if (!result.success) return Alert.alert('Não foi possível entrar', result.error);
+    await finishLogin(result.user);
+  }
+  useEffect(() => {
+    if (!isReady) return;
+    let alive = true;
+    (async () => {
+      if (!(await restoreSession()) || !alive) return;
+      const user = await authRequest('me', null, 'GET');
+      if (user.success && alive) await finishLogin(user);
+      else await clearSession();
+    })();
+    return () => { alive = false; };
+  }, [isReady]);
 
   async function loginWithGoogle(idToken) {
     const result = await loginWithGoogleApi(idToken);
@@ -245,111 +234,38 @@ export default function App() {
       return false;
     }
 
-    const user = result.user;
-    setData((current) => ({
-      ...current,
-      users: current.users.some((item) => normalizeEmail(item.email) === normalizeEmail(user.email))
-        ? current.users.map((item) => normalizeEmail(item.email) === normalizeEmail(user.email) ? { ...item, ...user, pendingSync: false } : item)
-        : [...current.users, { ...user, pendingSync: false }],
-    }));
-    setActiveUserId(user.id);
-    setRole(user.systemRole === 'SYSTEM_ADMIN' ? 'SYSTEM_ADMIN' : 'USER');
-    setScreen(user.systemRole === 'SYSTEM_ADMIN' ? 'admin-management' : 'organizations');
-    setIsAuthenticated(true);
+    await finishLogin(result.user);
     return true;
   }
-
-  async function registerUser({ name, email, phone, password, confirmPassword }) {
-    const validationError = validateRegistration({ name, email, phone, password, confirmPassword });
-    if (validationError) return Alert.alert('Dados inválidos', validationError);
-    const normalizedEmail = normalizeEmail(email);
-    if (data.users.some((user) => user.email === normalizedEmail)) return Alert.alert('E-mail já cadastrado', 'Use outro e-mail ou entre com a conta existente.');
-
-    let newUserId = createId('user');
-    const user = {
-      id: newUserId,
-      name: name.trim(),
-      email: normalizedEmail,
-      phone: formatPhone(phone),
-      password: password,
-      theme: 'LIGHT',
-      systemRole: 'USER',
-      pendingSync: true,
-    };
-
-    // Salva no banco PostgreSQL diretamente se o backend estiver rodando
-    try {
-      const apiRes = await registerWithApi({ name: user.name, email: normalizedEmail, phone: user.phone, password });
-      if (apiRes && apiRes.success && apiRes.user?.id) {
-        user.id = apiRes.user.id;
-        user.pendingSync = false;
-        newUserId = apiRes.user.id;
-        console.log('✅ Usuário salvo com sucesso no PostgreSQL:', apiRes.user.email);
-      } else {
-        const errorMsg = apiRes?.error || 'Servidor indisponível';
-        console.warn('⚠️ Não foi possível salvar no PostgreSQL:', errorMsg);
-        Alert.alert(
-          'Aviso de Conexão',
-          `Não foi possível salvar diretamente no PostgreSQL (${errorMsg}). O usuário foi salvo temporariamente no celular e será sincronizado quando o servidor conectar.`
-        );
-      }
-    } catch (err) {
-      console.warn('Registro mantido localmente:', err);
-    }
-
-    setData((current) => {
-      const updated = { ...current, users: [...current.users, user] };
-      saveData(updated).catch(() => {});
-      return updated;
-    });
-    setActiveUserId(newUserId);
-    const firstOrg = data.organizations.find((o) => o.status === 'APPROVED');
-    if (firstOrg) setSelectedOrganizationId(firstOrg.id);
-    setRole('USER');
-    setScreen('organizations');
-    setIsAuthenticated(true);
+  async function registerUser(form) {
+    const error = validateRegistration(form);
+    if (error) { Alert.alert('Dados inválidos', error); return false; }
+    const result = await registerWithApi({ ...form, email: normalizeEmail(form.email) });
+    if (!result.success) { Alert.alert('Cadastro não realizado', result.error); return false; }
+    Alert.alert('Confirme seu e-mail', 'Enviamos um código de ativação. Informe-o para liberar seu acesso.');
+    return true;
   }
-
-  function logout() {
+  async function logout() {
+    await authRequest('logout');
+    await clearSession();
     setPasswordForm({ current: '', next: '', confirm: '' });
+    setData(EMPTY_DATA);
     setIsAuthenticated(false);
   }
 
   function changeOrganizationStatus(organizationId, status) {
-    if (!isSystemAdmin) return;
-    const organization = data.organizations.find((item) => item.id === organizationId);
-    if (!organization) return;
-    confirmAction('Confirmar alteração', `Alterar a situação de "${organization.name}" para ${status === 'APPROVED' ? 'aprovada' : status === 'REJECTED' ? 'rejeitada' : 'pendente'}?`, () => {
-    updateOrganizationStatusWithApi(organizationId, status).catch(() => {});
-    setData((current) => ({
-      ...current,
-      organizations: current.organizations.map((organization) => (
-        organization.id === organizationId ? { ...organization, status } : organization
-      )),
-    }));
+    confirmAction('Alterar situação', 'Confirmar a alteração da organização?', async () => {
+      const result = await updateOrganizationStatusWithApi(organizationId, status);
+      if (!result?.id) return Alert.alert('Alteração não realizada', 'A API não confirmou a alteração.');
+      await syncWithRemote();
     });
   }
-
   function removeOrganization(organizationId) {
-    if (!isSystemAdmin) return;
-    Alert.alert('Remover organização', 'A organização, suas comissões e seus acessos serão removidos.', [
-      { text: 'Cancelar', style: 'cancel' },
-      { text: 'Remover', style: 'destructive', onPress: () => {
-        deleteOrganizationWithApi(organizationId).catch(() => {});
-        setData((current) => {
-          const commissionIds = current.commissions.filter((commission) => commission.organizationId === organizationId).map((commission) => commission.id);
-          const updated = {
-            ...current,
-            organizations: current.organizations.filter((organization) => organization.id !== organizationId),
-            accessRequests: current.accessRequests.filter((request) => request.organizationId !== organizationId),
-            commissions: current.commissions.filter((commission) => commission.organizationId !== organizationId),
-            commissionMembers: current.commissionMembers.filter((member) => !commissionIds.includes(member.commissionId)),
-          };
-          saveData(updated).catch(() => {});
-          return updated;
-        });
-      } },
-    ]);
+    confirmAction('Excluir organização', 'Excluir a organização no servidor? Registros históricos podem impedir a exclusão.', async () => {
+      const result = await deleteOrganizationWithApi(organizationId);
+      if (!result.success) return Alert.alert('Organização não removida', 'A API não confirmou a exclusão.');
+      await syncWithRemote();
+    }, true);
   }
 
   function removeUser(userId) {
@@ -383,72 +299,23 @@ export default function App() {
     ]);
   }
 
-  function requestAccess(organizationId) {
-    const orgId = typeof organizationId === 'string' ? organizationId : selectedOrganizationId;
-    const organization = data.organizations.find((item) => item.id === orgId);
-    if (!organization || organization.status !== 'APPROVED') {
-      return Alert.alert('Organização indisponível', 'Selecione uma organização válida e aprovada.');
-    }
-    if (organization.ownerId === activeUserId) {
-      return Alert.alert('Você já é o administrador', 'O administrador da organização não precisa solicitar acesso a ela.');
-    }
-    const existingRequest = data.accessRequests.find((request) => (
-      request.organizationId === organization.id && request.userId === activeUserId && ['PENDING', 'APPROVED'].includes(request.status)
-    ));
-    if (existingRequest) {
-      const msg = existingRequest.status === 'APPROVED'
-        ? `Você já é um membro aprovado da organização "${organization.name}".`
-        : `Você já possui uma solicitação de acesso pendente para a organização "${organization.name}".`;
-      return Alert.alert('Solicitação existente', msg);
-    }
-    confirmAction('Confirmar solicitação', `Enviar pedido para participar de "${organization.name}"?`, () => {
-    setData((current) => ({
-      ...current,
-      accessRequests: [...current.accessRequests, {
-        id: createId('access'), organizationId: organization.id, userId: activeUserId, status: 'PENDING', organizationRole: 'MEMBER',
-      }],
-    }));
-    requestAccessWithApi(organization.id, activeUserId).catch(() => {});
-    Alert.alert('Solicitação enviada', `Sua solicitação de entrada na organização "${organization.name}" foi enviada com sucesso e aguarda aprovação.`);
-    });
+  async function requestAccess(organizationId) {
+    const result = await requestAccessWithApi(organizationId, activeUserId);
+    if (!result?.id) return Alert.alert('Solicitação não enviada', 'Não foi possível confirmar sua solicitação no servidor.');
+    await syncWithRemote();
   }
-
-  function changeAccessStatus(requestId, status) {
-    const request = data.accessRequests.find((item) => item.id === requestId);
-    const organization = data.organizations.find((item) => item.id === request?.organizationId);
-    if (!isOrgAdmin || organization?.ownerId !== activeUserId || organization.status !== 'APPROVED') return;
-    updateAccessRequestStatusWithApi(requestId, status, status === 'APPROVED' ? (request.organizationRole || 'MEMBER') : request.organizationRole).catch(() => {});
-    setData((current) => ({
-      ...current,
-      accessRequests: current.accessRequests.map((request) => (
-        request.id === requestId ? { ...request, status, organizationRole: status === 'APPROVED' ? (request.organizationRole || 'MEMBER') : request.organizationRole } : request
-      )),
-    }));
+  async function changeAccessStatus(requestId, status) {
+    const result = await updateAccessRequestStatusWithApi(requestId, status, 'MEMBER');
+    if (!result?.id && !result?.success) return Alert.alert('Alteração não confirmada', 'Confira sua conexão e se o convite já foi aceito.');
+    await syncWithRemote();
   }
-
-  function updateOrganizationRole(requestId, organizationRole) {
-    const request = data.accessRequests.find((item) => item.id === requestId);
-    const organization = data.organizations.find((item) => item.id === request?.organizationId);
-    if (!isOrgAdmin || organization?.ownerId !== activeUserId || organization.status !== 'APPROVED' || request.status !== 'APPROVED') return;
-    const member = data.users.find((user) => user.id === request.userId);
-    confirmAction('Confirmar alteração de cargo', `Alterar o cargo de ${member?.name || 'participante'} para ${organizationRole === 'COORDINATOR' ? 'coordenador' : 'membro'}?`, () => setData((current) => ({
-      ...current,
-      accessRequests: current.accessRequests.map((item) => (item.id === requestId ? { ...item, organizationRole } : item)),
-    })));
+  async function updateOrganizationRole(requestId, organizationRole) {
+    const result = await updateAccessRequestStatusWithApi(requestId, null, organizationRole);
+    if (!result?.id && !result?.success) return Alert.alert('Cargo não alterado', 'Não foi possível confirmar a alteração no servidor.');
+    await syncWithRemote();
   }
-
   function removeOrganizationMember(requestId) {
-    const request = data.accessRequests.find((item) => item.id === requestId);
-    const organization = data.organizations.find((item) => item.id === request?.organizationId);
-    if (!isOrgAdmin || organization?.ownerId !== activeUserId || organization.status !== 'APPROVED' || request.status !== 'APPROVED') return;
-    Alert.alert('Remover membro', 'A pessoa perderá acesso à organização e às comissões vinculadas.', [
-      { text: 'Cancelar', style: 'cancel' },
-      { text: 'Remover', style: 'destructive', onPress: () => setData((current) => ({
-        ...current,
-        accessRequests: current.accessRequests.map((item) => (item.id === requestId ? { ...item, status: 'REVOKED' } : item)),
-        commissionMembers: current.commissionMembers.filter((member) => member.userId !== request.userId || !current.commissions.some((commission) => commission.id === member.commissionId && commission.organizationId === request.organizationId)),
-      })) },
-    ]);
+    confirmAction('Remover membro', 'A remoção será confirmada pelo servidor. Transfira a coordenação antes de remover um coordenador.', () => changeAccessStatus(requestId, 'REVOKED'));
   }
 
   function transferOrganizationOwnership(userId) {
@@ -463,24 +330,22 @@ export default function App() {
         accessRequests: current.accessRequests.map((request) => request.organizationId === selectedOrganization.id && request.userId === activeUserId
           ? { ...request, status: 'APPROVED', organizationRole: 'MEMBER' } : request),
       }));
+      await syncWithRemote();
       Alert.alert('Propriedade transferida', `${member.name} agora é o proprietário da organização.`);
     });
   }
 
-  function inviteOrganizationMember(email) {
-    const invitedUser = data.users.find((user) => normalizeEmail(user.email) === normalizeEmail(email));
+  async function inviteOrganizationMember(email) {
     if (!selectedOrganization || selectedOrganization.ownerId !== activeUserId) return;
-    if (!invitedUser) return Alert.alert('Usuário não encontrado', 'O convite precisa usar o e-mail de uma conta já cadastrada.');
-    if (invitedUser.id === activeUserId) return Alert.alert('Convite inválido', 'Você já é o proprietário da organização.');
-    const existing = data.accessRequests.find((request) => request.organizationId === selectedOrganization.id && request.userId === invitedUser.id && ['PENDING', 'APPROVED'].includes(request.status));
-    if (existing) return Alert.alert('Participação existente', existing.status === 'APPROVED' ? 'Esse usuário já participa da organização.' : 'Esse usuário já tem um pedido pendente.');
-    confirmAction('Confirmar convite', `Convidar ${invitedUser.name} (${invitedUser.email}) para "${selectedOrganization.name}"?`, () => {
-      requestAccessWithApi(selectedOrganization.id, invitedUser.id).catch(() => {});
-      setData((current) => ({ ...current, accessRequests: [...current.accessRequests, {
-        id: createId('invite'), organizationId: selectedOrganization.id, userId: invitedUser.id, status: 'PENDING', organizationRole: 'MEMBER', invitedBy: activeUserId,
-      }] }));
-      Alert.alert('Convite enviado', 'O usuário aparecerá nas solicitações pendentes para aprovação.');
-    });
+    const result = await organizationInvitation(selectedOrganization.id, { email: normalizeEmail(email) });
+    if (!result.success) return Alert.alert('Convite não enviado', result.error);
+    await syncWithRemote();
+    Alert.alert('Convite enviado', 'O destinatário precisa aceitar o convite no aplicativo.');
+  }
+  async function respondOrganizationInvitation(request, decision) {
+    const result = await organizationInvitation(request.organizationId, { decision }, request.id);
+    if (!result.success) return Alert.alert('Resposta não confirmada', result.error);
+    await syncWithRemote();
   }
 
   function updateOrganization(organizationId, changes) {
@@ -573,39 +438,11 @@ export default function App() {
       return Alert.alert('Nome já cadastrado', 'Já existe uma comissão ou grupo de trabalho com este nome nesta organização.');
     }
 
-    let commissionId = createId('commission');
-    let pendingSync = true;
-
-    try {
-      const apiRes = await createCommissionWithApi({
-        organizationId: selectedOrganizationId,
-        name,
-        type: commissionForm.type || 'Comissão',
-        description: commissionForm.description.trim(),
-        memberIds: [activeUserId],
-      });
-      if (apiRes && apiRes.success && apiRes.commission?.id) {
-        commissionId = apiRes.commission.id;
-        pendingSync = false;
-      }
-    } catch (err) {
-      console.warn('Comissão salva localmente para sincronização:', err);
-    }
-
-    const commission = {
-      id: commissionId,
-      organizationId: selectedOrganizationId,
-      name,
-      type: commissionForm.type || 'Comissão',
-      description: commissionForm.description.trim(),
-      status: 'ACTIVE',
-      pendingSync,
-    };
-    setData((current) => ({
-      ...current,
-      commissions: [...current.commissions, commission],
-      commissionMembers: [...current.commissionMembers, { commissionId: commission.id, userId: activeUserId, role: 'COORDINATOR' }],
-    }));
+    const result = await createCommissionWithApi({ organizationId: selectedOrganizationId, name,
+      type: commissionForm.type || 'Comissão', description: commissionForm.description.trim(), memberIds: [activeUserId] });
+    if (!result.success) return Alert.alert('Comissão não criada', result.error);
+    const commission = result.commission;
+    await syncWithRemote();
     setSelectedCommissionId(commission.id);
     setCommissionForm({ name: '', type: 'Comissão', description: '' });
     Alert.alert('Comissão cadastrada', 'A comissão/grupo de trabalho foi criada com sucesso e você foi incluído como coordenador(a).');
@@ -626,51 +463,25 @@ export default function App() {
     setEditingCommissionId(null);
   }
 
-  function saveEditCommission() {
-    if (!editingCommissionId || selectedOrganization?.ownerId !== activeUserId || selectedOrganization.status !== 'APPROVED') return;
-    const validationError = validateCommission(editCommissionForm);
-    if (validationError) return Alert.alert('Dados obrigatórios', validationError);
-    const name = editCommissionForm.name.trim();
-    if (data.commissions.some((c) => c.organizationId === selectedOrganizationId && c.id !== editingCommissionId && c.name.toLowerCase() === name.toLowerCase())) {
-      return Alert.alert('Nome já cadastrado', 'Já existe outra comissão ou grupo de trabalho com este nome nesta organização.');
-    }
-    setData((current) => ({
-      ...current,
-      commissions: current.commissions.map((c) => (
-        c.id === editingCommissionId
-          ? { ...c, name, type: editCommissionForm.type, description: editCommissionForm.description.trim(), status: editCommissionForm.status }
-          : c
-      )),
-    }));
-    setEditingCommissionId(null);
-    Alert.alert('Comissão atualizada', 'As alterações da comissão foram salvas.');
+  async function saveEditCommission() {
+    const error = validateCommission(editCommissionForm);
+    if (error) return Alert.alert('Dados inválidos', error);
+    const result = await commissionRequest(editingCommissionId, 'PATCH', editCommissionForm);
+    if (!result.success) return Alert.alert('Comissão não alterada', result.error);
+    setEditingCommissionId(null); await syncWithRemote();
   }
-
-  function toggleCommissionStatus(commissionId) {
-    const commission = data.commissions.find((item) => item.id === commissionId);
-    if (!commission || selectedOrganization?.ownerId !== activeUserId || selectedOrganization.status !== 'APPROVED') return;
-    const nextStatus = commission.status === 'INACTIVE' ? 'ACTIVE' : 'INACTIVE';
-    setData((current) => ({
-      ...current,
-      commissions: current.commissions.map((item) => (item.id === commissionId ? { ...item, status: nextStatus } : item)),
-    }));
+  async function toggleCommissionStatus(commissionId) {
+    const commission = data.commissions.find(c => c.id === commissionId);
+    const result = await commissionRequest(commissionId, 'PATCH', { ...commission, status: commission.status === 'ACTIVE' ? 'INACTIVE' : 'ACTIVE' });
+    if (!result.success) return Alert.alert('Comissão não alterada', result.error);
+    await syncWithRemote();
   }
-
   function deleteCommission(commissionId) {
-    const commission = data.commissions.find((item) => item.id === commissionId);
-    if (!commission || selectedOrganization?.ownerId !== activeUserId || selectedOrganization.status !== 'APPROVED') return;
-    Alert.alert('Excluir comissão', `Deseja realmente excluir "${commission.name}"? A equipe vinculada também será removida.`, [
-      { text: 'Cancelar', style: 'cancel' },
-      { text: 'Excluir', style: 'destructive', onPress: () => {
-        setData((current) => ({
-          ...current,
-          commissions: current.commissions.filter((item) => item.id !== commissionId),
-          commissionMembers: current.commissionMembers.filter((member) => member.commissionId !== commissionId),
-        }));
-        if (selectedCommissionId === commissionId) setSelectedCommissionId('');
-        if (editingCommissionId === commissionId) setEditingCommissionId(null);
-      } },
-    ]);
+    confirmAction('Excluir comissão', 'A exclusão será feita no servidor. Comissões com reuniões históricas precisam ser preservadas.', async () => {
+      const result = await commissionRequest(commissionId, 'DELETE');
+      if (!result.success) return Alert.alert('Comissão não removida', result.error);
+      await syncWithRemote();
+    }, true);
   }
 
   async function changeCommissionMember(userId, operation, role) {
@@ -692,6 +503,7 @@ export default function App() {
           ...(operation === 'REMOVE' ? [] : [result.member]),
         ],
       }));
+      await syncWithRemote();
     } finally {
       commissionMemberOperationsRef.current.delete(operationId);
     }
@@ -721,58 +533,25 @@ export default function App() {
     setScreen('profile');
   }
 
-  function updateProfile() {
-    const validationError = validateUser(profileForm);
-    if (validationError) return Alert.alert('Dados inválidos', validationError);
-    if (profileForm.phone) {
-      const phoneError = validatePhone(profileForm.phone);
-      if (phoneError) return Alert.alert('Telefone inválido', phoneError);
+  async function updateProfile() {
+    const error = validateUser(profileForm);
+    if (error) return Alert.alert('Dados inválidos', error);
+    if (normalizeEmail(profileForm.email) !== normalizeEmail(activeUser.email)) {
+      return Alert.alert('E-mail de acesso', 'A alteração do e-mail requer um fluxo de verificação e não está disponível neste formulário.');
     }
-    const name = profileForm.name.trim();
-    const email = normalizeEmail(profileForm.email);
-    if (data.users.some((user) => user.id !== activeUserId && user.email === email)) return Alert.alert('E-mail já utilizado', 'Escolha outro e-mail.');
-
-    confirmAction('Confirmar alterações', 'Salvar as alterações dos seus dados pessoais?', () => {
-    updateUserWithApi(activeUserId, { name, email, phone: formatPhone(profileForm.phone) }).catch(() => {});
-
-    setData((current) => ({
-      ...current,
-      users: current.users.map((user) => (
-        user.id === activeUserId
-          ? { ...user, name, email, phone: formatPhone(profileForm.phone) }
-          : user
-      )),
-    }));
-    Alert.alert('Dados atualizados', 'Suas informações pessoais foram alteradas.');
-    });
+    if (!(await confirmBiometric())) return Alert.alert('Confirmação necessária', 'Cadastre biometria no aparelho e autorize para alterar o perfil.');
+    const result = await updateUserWithApi(activeUserId, { name: profileForm.name.trim(), phone: formatPhone(profileForm.phone) });
+    if (!result.success) return Alert.alert('Alteração não realizada', 'Não foi possível confirmar a alteração no servidor.');
+    await syncWithRemote();
+    Alert.alert('Dados atualizados', 'As alterações foram confirmadas no servidor.');
   }
-
-  function updatePassword() {
-    const validationError = validatePassword(passwordForm);
-    if (validationError) return Alert.alert('Senha inválida', validationError);
-    const currentInput = (passwordForm.current || '').trim();
-    const validCurrents = [activeUser?.password?.trim()].filter(Boolean);
-    if (activeUser?.email?.includes('marina')) validCurrents.push('Marina@123', 'marina123', 'marina', 'admin', 'admin123');
-    if (activeUser?.systemRole === 'SYSTEM_ADMIN' || activeUser?.email?.includes('admin')) validCurrents.push('Admin@123', 'admin123', 'admin');
-    if (activeUser?.email?.includes('joao')) validCurrents.push('Joao@123', 'joao123', 'joao', 'admin');
-    if (!validCurrents.includes(currentInput)) {
-      return Alert.alert('Senha atual incorreta', 'A senha atual informada não confere.');
-    }
-
-    confirmAction('Confirmar troca de senha', 'Deseja atualizar sua senha agora?', () => {
-    changePasswordWithApi(activeUserId, currentInput, passwordForm.next).catch(() => {});
-
-    setData((current) => ({
-      ...current,
-      users: current.users.map((user) => (
-        user.id === activeUserId
-          ? { ...user, password: passwordForm.next, passwordUpdatedAt: new Date().toISOString() }
-          : user
-      )),
-    }));
-    setPasswordForm({ current: '', next: '', confirm: '' });
-    Alert.alert('Senha alterada', 'Sua senha foi atualizada com sucesso.');
-    });
+  async function updatePassword() {
+    const error = validatePassword(passwordForm);
+    if (error) return Alert.alert('Senha inválida', error);
+    const result = await changePasswordWithApi(activeUserId, passwordForm.current, passwordForm.next);
+    if (!result.success) return Alert.alert('Senha não alterada', result.error);
+    await logout();
+    Alert.alert('Senha alterada', 'Entre novamente com sua nova senha. As sessões anteriores foram encerradas.');
   }
 
   async function recoverAccountFromLogin(rawEmail) {
@@ -818,7 +597,7 @@ export default function App() {
       if (apiRes && apiRes.success) {
         setData((current) => ({
           ...current,
-          users: current.users.map((u) => normalizeEmail(u.email) === email ? { ...u, password: next, passwordUpdatedAt: new Date().toISOString() } : u),
+          users: current.users.map((u) => normalizeEmail(u.email) === email ? { ...u, passwordUpdatedAt: new Date().toISOString() } : u),
         }));
         Alert.alert('Senha redefinida com sucesso!', 'Sua nova senha foi gravada no banco PostgreSQL. Faça login para continuar.');
         return true;
@@ -832,31 +611,23 @@ export default function App() {
     }
   }
 
-  function setTheme(theme) {
-    if (activeUser?.theme === theme) return;
-    confirmAction('Confirmar tema', `Alterar o tema do perfil para ${theme === 'DARK' ? 'escuro' : 'claro'}?`, () => {
-    updateUserWithApi(activeUserId, { theme }).catch(() => {});
-    setData((current) => ({ ...current, users: current.users.map((user) => user.id === activeUserId ? { ...user, theme } : user) }));
-    });
+  async function setTheme(theme) {
+    const result = await updateUserWithApi(activeUserId, { theme });
+    if (!result.success) return Alert.alert('Tema não salvo', 'Não foi possível confirmar a preferência no servidor.');
+    await syncWithRemote();
   }
 
-  function restartSubsystem(subsystemId) {
-    if (!isSystemAdmin) return;
-    setData((current) => ({ ...current, system: { ...current.system, subsystems: current.system.subsystems.map((subsystem) => subsystem.id === subsystemId ? { ...subsystem, status: 'RESTARTING' } : subsystem) } }));
-    setTimeout(() => setData((current) => ({ ...current, system: { ...current.system, subsystems: current.system.subsystems.map((subsystem) => subsystem.id === subsystemId ? { ...subsystem, status: 'ONLINE' } : subsystem) } })), 900);
+  async function restartSubsystem() {
+    try {
+      const info = await fetchSystemInfo();
+      Alert.alert('Verificação concluída', `API em operação há ${Math.floor(info.uptime)} segundos. Banco: ${info.database.status}. Para reiniciar processos, use o Docker Desktop.`);
+      await syncWithRemote();
+    } catch (error) { Alert.alert('Servidor indisponível', error.message); }
   }
-
-  function initializeSystem() {
-    if (!isSystemAdmin) return;
-    setData((current) => ({ ...current, system: { ...current.system, initialized: true, initializedAt: new Date().toISOString() } }));
-    Alert.alert('Sistema inicializado', 'Os subsistemas estão prontos para operação.');
-  }
-
+  async function initializeSystem() { await restartSubsystem(); }
   function resetDemo() {
-    if (!isSystemAdmin) return;
-    Alert.alert('Restaurar demonstração', 'Os dados cadastrados neste dispositivo serão removidos.', [
-      { text: 'Cancelar', style: 'cancel' },
-      { text: 'Restaurar', style: 'destructive', onPress: () => setData(INITIAL_DATA) },
+    Alert.alert('Limpar cache e sair', 'Remove os dados locais e encerra sua sessão. Os registros do servidor serão preservados.', [
+      { text: 'Cancelar', style: 'cancel' }, { text: 'Limpar e sair', style: 'destructive', onPress: logout },
     ]);
   }
 
@@ -872,7 +643,7 @@ export default function App() {
 
   if (!isAuthenticated) {
     return (
-      <ThemeContext.Provider value={{ isDark: false, styles: getThemeStyles(false) }}>
+      <ThemeContext.Provider value={{ isDark, styles }}>
         <LoginScreen
           onLogin={login}
           onGoogleLogin={loginWithGoogle}
@@ -928,6 +699,7 @@ export default function App() {
               activeUserId={activeUserId}
               accessRequests={data.accessRequests}
               onRequestAccess={requestAccess}
+              onRespondInvitation={respondOrganizationInvitation}
             />
           )}
 
@@ -1049,7 +821,7 @@ export default function App() {
 
           {isSystemAdmin && (
             <Pressable style={styles.resetButton} onPress={resetDemo}>
-              <Text style={styles.resetText}>Restaurar dados de demonstração</Text>
+              <Text style={styles.resetText}>Limpar cache e sair</Text>
             </Pressable>
           )}
         </ScrollView>

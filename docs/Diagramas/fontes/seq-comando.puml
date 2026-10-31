@@ -1,0 +1,36 @@
+@startuml
+!pragma layout smetana
+skinparam backgroundColor white
+skinparam shadowing false
+skinparam defaultFontName SansSerif
+skinparam defaultFontSize 13
+skinparam ArrowColor #334155
+skinparam packageStyle rectangle
+skinparam classAttributeIconSize 0
+skinparam roundcorner 5
+skinparam dpi 130
+title SQ03 — comando privado confirmado pelo servidor
+autonumber
+actor Pessoa
+participant "App Synple" as App
+participant "API Express" as API
+database PostgreSQL as DB
+Pessoa -> App : Aciona comando no formulário
+App -> App : Valida campos e solicita confirmação quando prevista
+App -> API : Requisição com Bearer token
+API -> DB : Verifica sessão e prazo
+API -> API : Vincula ator e verifica permissão
+alt permitido e dados válidos
+ API -> DB : Escrita parametrizada
+ note right of DB
+ Transação/lock somente nos fluxos
+ que efetivamente os implementam.
+ end note
+ API --> App : Confirmação ou dados alterados
+ App -> API : GET /sync
+ API --> App : Snapshot autorizado
+else sessão / permissão / dados inválidos
+ API --> App : 401 / 403 / 400 / 409
+ App --> Pessoa : Exibe erro sem confirmar sucesso
+end
+@enduml

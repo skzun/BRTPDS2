@@ -1,5 +1,7 @@
 # 🐳 Como Rodar o Synple via CMD com Docker
 
+> **Procedimento atualizado em 30/10/2026:** siga o [README da raiz](../README.md) e `../iniciar.ps1`. O boot aplica migrações e preserva senhas; não executa seeds. Para uma instalação nova de demonstração, use explicitamente `docker compose exec backend npm run init-db`. O login Google/biometria exige novo development build e `npm --prefix mobile run tunnel`. As instruções históricas abaixo sobre criação automática de contas e uso do Expo Go não descrevem esse fluxo.
+
 Este guia contém **todos os comandos e passos necessários** para rodar o Banco de Dados (PostgreSQL) e o Backend (API Node.js) em qualquer computador utilizando Docker via CMD (Prompt de Comando).
 
 Para o passo a passo completo de instalação, uso do app, login Google e recuperação de senha, consulte [GUIA_USO_E_INICIALIZACAO.md](GUIA_USO_E_INICIALIZACAO.md). O mesmo guia explica como [gerar, salvar e compartilhar a ata em PDF](GUIA_USO_E_INICIALIZACAO.md#gerar-ata-em-pdf).

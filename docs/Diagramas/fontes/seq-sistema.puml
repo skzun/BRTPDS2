@@ -1,0 +1,31 @@
+@startuml
+!pragma layout smetana
+skinparam backgroundColor white
+skinparam shadowing false
+skinparam defaultFontName SansSerif
+skinparam defaultFontSize 13
+skinparam ArrowColor #334155
+skinparam packageStyle rectangle
+skinparam classAttributeIconSize 0
+skinparam roundcorner 5
+skinparam dpi 130
+title SQ13 — informação administrativa e saída
+autonumber
+actor Pessoa
+participant "App Synple" as App
+participant "API Express" as API
+database PostgreSQL as DB
+Pessoa -> App : Administrador abre Sistema / Verificar
+App -> API : GET /system com Bearer
+API -> DB : SELECT NOW(), version(), system_metadata
+API --> App : Uptime, versões, latência e datas
+App --> Pessoa : Exibe resultado real ou falha da consulta
+Pessoa -> App : Limpar cache e sair; confirma
+App -> API : POST /auth/logout
+API -> DB : Remove sessão atual
+App -> App : Apaga token e substitui cache por dados vazios
+note right of App
+Não reinicia processos e
+não restaura/apaga dados do banco.
+end note
+@enduml

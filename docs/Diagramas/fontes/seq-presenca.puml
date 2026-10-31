@@ -1,0 +1,32 @@
+@startuml
+!pragma layout smetana
+skinparam backgroundColor white
+skinparam shadowing false
+skinparam defaultFontName SansSerif
+skinparam defaultFontSize 13
+skinparam ArrowColor #334155
+skinparam packageStyle rectangle
+skinparam classAttributeIconSize 0
+skinparam roundcorner 5
+skinparam dpi 130
+title SQ09 — entrada e saída
+autonumber
+actor Pessoa
+participant "App Synple" as App
+participant "API Express" as API
+database PostgreSQL as DB
+Pessoa -> App : Registrar entrada ou Registrar saída
+App -> API : PATCH /meetings/:id/attendance
+API -> DB : BEGIN; lock da reunião
+API -> DB : Verifica convite, presença e situação da ata
+alt entrada permitida
+ API -> DB : Registra entered_at pelo relógio do servidor
+else saída permitida
+ API -> DB : Registra left_at pelo relógio do servidor
+else operação inválida
+ API -> DB : ROLLBACK
+ API --> App : 403/409
+end
+API -> DB : COMMIT se operação válida
+API --> App : Presença atualizada
+@enduml

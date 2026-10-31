@@ -1,0 +1,53 @@
+@startuml
+!pragma layout smetana
+skinparam backgroundColor white
+skinparam shadowing false
+skinparam defaultFontName SansSerif
+skinparam defaultFontSize 13
+skinparam ArrowColor #334155
+skinparam packageStyle rectangle
+skinparam classAttributeIconSize 0
+skinparam roundcorner 5
+skinparam dpi 130
+left to right direction
+title Casos de uso — reuniões, presença e atas
+actor "Usuário autenticado" as U
+actor "Gestor da reunião\n(coordenador ou proprietário)" as M
+actor "Convidado da reunião" as C
+actor "Participante com entrada registrada" as P
+U <|-- M
+U <|-- C
+C <|-- P
+rectangle "Synple" {
+usecase "RF02.01\nAgendar reunião" as RF02_01
+usecase "RF02.02\nConvidar integrantes no agendamento" as RF02_02
+usecase "RF02.03\nResponder convite" as RF02_03
+usecase "RF02.04\nRegistrar entrada" as RF02_04
+usecase "RF02.05\nRegistrar saída" as RF02_05
+usecase "RF02.06\nConsultar / compartilhar presença" as RF02_06
+usecase "RF02.07\nCriar / corrigir ata" as RF02_07
+usecase "RF02.08\nSubmeter ata" as RF02_08
+usecase "RF02.09\nAprovar / rejeitar versão" as RF02_09
+usecase "RF02.10\nGerar PDF da ata" as RF02_10
+}
+M -- RF02_01
+M -- RF02_02
+M -- RF02_06
+M -- RF02_07
+M -- RF02_08
+M -- RF02_10
+C -- RF02_03
+C -- RF02_04
+C -- RF02_06
+C -- RF02_10
+P -- RF02_05
+P -- RF02_09
+note bottom of RF02_02
+Seleção feita no formulário de agendamento;
+não existe envio avulso após criar a reunião.
+end note
+note bottom of RF02_09
+Somente aprovadores fixados na submissão;
+cargo de gestor não concede voto automático.
+end note
+@enduml

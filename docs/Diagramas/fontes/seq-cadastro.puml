@@ -1,0 +1,37 @@
+@startuml
+!pragma layout smetana
+skinparam backgroundColor white
+skinparam shadowing false
+skinparam defaultFontName SansSerif
+skinparam defaultFontSize 13
+skinparam ArrowColor #334155
+skinparam packageStyle rectangle
+skinparam classAttributeIconSize 0
+skinparam roundcorner 5
+skinparam dpi 130
+title SQ01 — cadastro e ativação
+autonumber
+actor Pessoa
+participant "App Synple" as App
+participant "API Express" as API
+database PostgreSQL as DB
+participant SMTP
+Pessoa -> App : Preenche cadastro e toca Criar conta
+App -> App : Valida nome, e-mail, telefone e confirmação
+App -> API : POST /auth/register
+API -> DB : Verifica duplicidade de e-mail
+API -> API : Valida dados e gera código de seis dígitos
+API -> SMTP : Envia código de ativação
+alt envio aceito
+ API -> DB : INSERT conta pendente com bcrypt e hash do código
+ API --> App : 201 requiresActivation=true
+ App --> Pessoa : Abre etapa Ativar conta
+else SMTP indisponível
+ API --> App : 503; conta não criada
+end
+Pessoa -> App : Informa código e toca Confirmar código
+App -> API : POST /auth/verify-email
+API -> DB : UPDATE condicionado a hash e prazo válidos
+API --> App : 200 ou 400
+App --> Pessoa : Solicita login após ativação
+@enduml

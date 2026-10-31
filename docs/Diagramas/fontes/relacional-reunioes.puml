@@ -1,0 +1,107 @@
+@startuml
+!pragma layout smetana
+skinparam backgroundColor white
+skinparam shadowing false
+skinparam defaultFontName SansSerif
+skinparam defaultFontSize 13
+skinparam ArrowColor #334155
+skinparam packageStyle rectangle
+skinparam classAttributeIconSize 0
+skinparam roundcorner 5
+skinparam dpi 130
+title Modelo físico relacional — reunioes
+hide methods
+entity "users" as users {
+{field} * id: uuid <<PK>>
+{field} * name: character varying(120)
+{field} * email: character varying(150)
+{field} phone: character varying(20)
+{field} * password_hash: character varying(255)
+{field} google_id: character varying(255)
+{field} * system_role: character varying(30)
+{field} * theme: character varying(10)
+{field} reset_token: character varying(255)
+{field} reset_token_expires: timestamp with time zone
+{field} * created_at: timestamp with time zone
+{field} * updated_at: timestamp with time zone
+{field} * email_verified: boolean
+{field} activation_hash: text
+{field} activation_expires: timestamp with time zone
+}
+entity "commissions" as commissions {
+{field} * id: uuid <<PK>>
+{field} * organization_id: uuid <<FK>>
+{field} * name: character varying(120)
+{field} * type: character varying(50)
+{field} description: text
+{field} * status: character varying(20)
+{field} * created_at: timestamp with time zone
+{field} * updated_at: timestamp with time zone
+}
+entity "meetings" as meetings {
+{field} * id: uuid <<PK>>
+{field} * commission_id: uuid <<FK>>
+{field} * title: character varying(160)
+{field} * starts_at: timestamp with time zone
+{field} * ends_at: timestamp with time zone
+{field} * agenda: text
+{field} * created_by: uuid <<FK>>
+{field} * created_at: timestamp with time zone
+{field} * updated_at: timestamp with time zone
+}
+entity "meeting_invitations" as meeting_invitations {
+{field} * id: uuid <<PK>>
+{field} * meeting_id: uuid <<FK>>
+{field} * user_id: uuid <<FK>>
+{field} * status: character varying(20)
+{field} responded_at: timestamp with time zone
+{field} * created_at: timestamp with time zone
+}
+entity "meeting_attendance" as meeting_attendance {
+{field} * id: uuid <<PK>>
+{field} * meeting_id: uuid <<FK>>
+{field} * user_id: uuid <<FK>>
+{field} entered_at: timestamp with time zone
+{field} left_at: timestamp with time zone
+}
+entity "meeting_minutes" as meeting_minutes {
+{field} * id: uuid <<PK>>
+{field} * meeting_id: uuid <<FK>>
+{field} * content: text
+{field} * status: character varying(20)
+{field} * version: integer
+{field} * required_approver_ids: uuid[]
+{field} * created_by: uuid <<FK>>
+{field} * updated_by: uuid <<FK>>
+{field} submitted_at: timestamp with time zone
+{field} approved_at: timestamp with time zone
+{field} * created_at: timestamp with time zone
+{field} * updated_at: timestamp with time zone
+}
+entity "meeting_minutes_approvals" as meeting_minutes_approvals {
+{field} * id: uuid <<PK>>
+{field} * minutes_id: uuid <<FK>>
+{field} * meeting_id: uuid <<FK>>
+{field} * user_id: uuid <<FK>>
+{field} * version: integer
+{field} * decision: character varying(20)
+{field} * comment: character varying(2000)
+{field} * decided_at: timestamp with time zone
+}
+meetings ||--o{ meeting_attendance : "meeting_id"
+users ||--o{ meeting_attendance : "user_id"
+meetings ||--o{ meeting_invitations : "meeting_id"
+users ||--o{ meeting_invitations : "user_id"
+users ||--o{ meeting_minutes : "created_by"
+meetings ||--o| meeting_minutes : "meeting_id"
+users ||--o{ meeting_minutes : "updated_by"
+meeting_minutes ||--o{ meeting_minutes_approvals : "minutes_id, meeting_id"
+users ||--o{ meeting_minutes_approvals : "user_id"
+commissions ||--o{ meetings : "commission_id"
+users ||--o{ meetings : "created_by"
+legend bottom
+* = NOT NULL; PK/FK = chaves.
+Unicidades, CHECK, defaults e ações de exclusão:
+ver dicionário físico, extraído do DDL.
+endlegend
+@enduml

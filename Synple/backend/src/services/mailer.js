@@ -104,6 +104,15 @@ async function sendPasswordResetEmail(toEmail, code) {
   }
 }
 
-module.exports = {
+async function sendActivationEmail(email, code) {
+  try {
+    const smtp = await getTransporter();
+    if (!smtp) return { success: false };
+    await smtp.sendMail({ from: process.env.EMAIL_FROM || process.env.SMTP_USER, to: email,
+      subject: 'Ative sua conta Synple', text: `Seu código de ativação é: ${code}. Válido por 15 minutos.` });
+    return { success: true };
+  } catch { return { success: false }; }
+}
+module.exports = { sendActivationEmail,
   sendPasswordResetEmail,
 };

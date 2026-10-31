@@ -11,6 +11,7 @@ export function OrganizationsScreen({
   activeUserId,
   accessRequests,
   onRequestAccess,
+  onRespondInvitation,
 }) {
   const { styles } = useContext(ThemeContext);
 
@@ -60,10 +61,14 @@ export function OrganizationsScreen({
 
             {!isOwner && userReq?.status === 'PENDING' && (
               <Text style={{ color: '#F59E0B', fontWeight: 'bold', marginTop: 8 }}>
-                ⏳ Solicitação enviada (aguardando aprovação)
+                {userReq.invitedBy && !userReq.invitationAccepted ? 'Você recebeu um convite para participar' : 'Solicitação aguardando aprovação'}
               </Text>
             )}
 
+            {!isOwner && userReq?.status === 'PENDING' && userReq.invitedBy && !userReq.invitationAccepted && <View style={styles.userChoices}>
+              <Pressable style={styles.primaryButton} onPress={() => onRespondInvitation(userReq, 'ACCEPTED')}><Text style={styles.primaryButtonText}>Aceitar convite</Text></Pressable>
+              <Pressable style={styles.outlineButton} onPress={() => onRespondInvitation(userReq, 'DECLINED')}><Text style={styles.outlineText}>Recusar</Text></Pressable>
+            </View>}
             {!isOwner && !userReq && (
               <Pressable
                 style={styles.smallButton}

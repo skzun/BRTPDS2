@@ -153,3 +153,34 @@ CREATE INDEX IF NOT EXISTS idx_meetings_commission ON meetings(commission_id, st
 CREATE INDEX IF NOT EXISTS idx_meeting_invitations_user ON meeting_invitations(user_id, status);
 CREATE INDEX IF NOT EXISTS idx_meeting_attendance_meeting ON meeting_attendance(meeting_id);
 CREATE INDEX IF NOT EXISTS idx_minutes_approvals_meeting ON meeting_minutes_approvals(meeting_id);
+
+-- Segurança: migração preserva contas existentes; novos cadastros exigem ativação.
+ALTER TABLE users ADD COLUMN IF NOT EXISTS email_verified BOOLEAN NOT NULL DEFAULT TRUE;
+ALTER TABLE users ALTER COLUMN email_verified SET DEFAULT FALSE;
+ALTER TABLE users ADD COLUMN IF NOT EXISTS activation_hash TEXT;
+ALTER TABLE users ADD COLUMN IF NOT EXISTS activation_expires TIMESTAMPTZ;
+CREATE TABLE IF NOT EXISTS auth_sessions (
+  token_hash TEXT PRIMARY KEY, user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  expires_at TIMESTAMPTZ NOT NULL
+);
+CREATE INDEX IF NOT EXISTS idx_auth_sessions_user ON auth_sessions(user_id);
+CREATE TABLE IF NOT EXISTS auth_rate_limits (key TEXT PRIMARY KEY, attempts INTEGER NOT NULL, expires_at TIMESTAMPTZ NOT NULL);
+CREATE TABLE IF NOT EXISTS system_metadata (id BOOLEAN PRIMARY KEY DEFAULT TRUE CHECK (id), initialized_at TIMESTAMPTZ NOT NULL DEFAULT NOW());
+INSERT INTO system_metadata (id) VALUES (TRUE) ON CONFLICT DO NOTHING;
+
+CREATE TABLE IF NOT EXISTS download_tickets (
+ token_hash TEXT PRIMARY KEY, session_hash TEXT NOT NULL REFERENCES auth_sessions(token_hash) ON DELETE CASCADE,
+ path TEXT NOT NULL, expires_at TIMESTAMPTZ NOT NULL
+);
+ALTER TABLE access_requests ADD COLUMN IF NOT EXISTS invited_by UUID REFERENCES users(id) ON DELETE SET NULL;
+ALTER TABLE access_requests ADD COLUMN IF NOT EXISTS invitation_accepted BOOLEAN NOT NULL DEFAULT TRUE;
+
+-- Os índices recusam duplicidades antigas sem apagar dados; resolver os conflitos antes de migrar.
+CREATE UNIQUE INDEX IF NOT EXISTS uq_org_normalized_document ON organizations ((regexp_replace(document, '[^0-9]', '', 'g')));
+CREATE UNIQUE INDEX IF NOT EXISTS uq_org_normalized_name ON organizations ((LOWER(TRIM(name))));
+-- Instalações antigas sem coordenador passam a ter o proprietário como responsável.
+INSERT INTO commission_members (commission_id, user_id, role)
+SELECT c.id, o.owner_id, 'COORDINATOR' FROM commissions c JOIN organizations o ON o.id = c.organization_id
+WHERE NOT EXISTS (SELECT 1 FROM commission_members cm WHERE cm.commission_id = c.id AND cm.role = 'COORDINATOR')
+ON CONFLICT (commission_id, user_id) DO UPDATE SET role = 'COORDINATOR';
+CREATE UNIQUE INDEX IF NOT EXISTS uq_commission_coordinator ON commission_members (commission_id) WHERE role = 'COORDINATOR';

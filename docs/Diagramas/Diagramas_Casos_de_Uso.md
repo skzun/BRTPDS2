@@ -1,821 +1,155 @@
-# 📊 Diagramas UML — Synple
-
-> Diagramas arquiteturais e comportamentais do **Synple**, aplicativo mobile open source para gerenciamento de reuniões, agendamentos e chat integrado.
-
----
-
-## Índice
+# Diagramas do Synple — revisão de 30/10/2026
 
-1. [Diagrama de Casos de Uso](#1-diagrama-de-casos-de-uso)
-2. [Diagrama de Implantação](#2-diagrama-de-implantação)
-3. [Diagrama de Classes](#3-diagrama-de-classes)
-4. [Diagramas de Sequência](#4-diagramas-de-sequência)
-5. [Diagramas de Atividades](#5-diagramas-de-atividades)
+Notação UML para casos de uso, classes, sequências e implantação. O modelo físico é relacional, com entidades/tabelas, e não é apresentado como UML. Fontes PlantUML versionadas em `fontes/`; SVGs renderizados localmente em `renderizados/`. Não dependem de servidor externo para abrir.
 
----
+Atores estão fora da fronteira Synple. As associações ator/caso de uso são linhas; especializações usam triângulo vazio voltado ao ator geral. Autenticação é pré-condição de operações privadas; não foi inserido `include` de login em todos os casos. Os papéis de proprietário/coordenador são contextuais. Campos que não aparecem nos recortes de classes constam no dicionário físico completo.
 
-# 1. Diagrama de Casos de Uso
+[Especificação principal](../incremento-1-especificacao-completa.md) · [Dicionário físico](../dicionario-banco-dados.md) · [Dicionário de classes e operações](../dicionario-classes.md).
 
-O diagrama representa as principais funcionalidades disponíveis para o usuário e os serviços responsáveis pelo funcionamento do sistema.
+## uc-autenticacao
 
-```mermaid
-flowchart LR
-    U([👤 Usuário])
+![uc-autenticacao](renderizados/uc-autenticacao.svg)
 
-    subgraph SYNPLE["📱 Synple"]
-        UC1((Criar conta))
-        UC2((Autenticar))
-        UC3((Gerenciar perfil))
+[Fonte editável](fontes/uc-autenticacao.puml) · [SVG](renderizados/uc-autenticacao.svg)
 
-        UC4((Criar reunião))
-        UC5((Editar reunião))
-        UC6((Cancelar reunião))
-        UC7((Visualizar agenda))
+## uc-organizacoes
 
-        UC8((Convidar participantes))
-        UC9((Responder convite))
-        UC10((Informar disponibilidade))
+![uc-organizacoes](renderizados/uc-organizacoes.svg)
 
-        UC11((Criar grupo))
-        UC12((Gerenciar grupo))
+[Fonte editável](fontes/uc-organizacoes.puml) · [SVG](renderizados/uc-organizacoes.svg)
 
-        UC13((Enviar mensagem))
-        UC14((Receber mensagem))
-        UC15((Visualizar histórico))
+## uc-reunioes
 
-        UC16((Sincronizar dados))
-        UC17((Usar aplicativo offline))
-    end
+![uc-reunioes](renderizados/uc-reunioes.svg)
 
-    U --> UC1
-    U --> UC2
-    U --> UC3
+[Fonte editável](fontes/uc-reunioes.puml) · [SVG](renderizados/uc-reunioes.svg)
 
-    U --> UC4
-    U --> UC5
-    U --> UC6
-    U --> UC7
+## uc-operacao
 
-    U --> UC8
-    U --> UC9
-    U --> UC10
+![uc-operacao](renderizados/uc-operacao.svg)
 
-    U --> UC11
-    U --> UC12
+[Fonte editável](fontes/uc-operacao.puml) · [SVG](renderizados/uc-operacao.svg)
 
-    U --> UC13
-    U --> UC14
-    U --> UC15
+## classes-cadastro
 
-    U --> UC16
-    U --> UC17
+![classes-cadastro](renderizados/classes-cadastro.svg)
 
-    UC4 -. inclui .-> UC8
-    UC4 -. inclui .-> UC16
-    UC13 -. depende de .-> UC2
-    UC16 -. requer .-> UC2
-```
+[Fonte editável](fontes/classes-cadastro.puml) · [SVG](renderizados/classes-cadastro.svg)
 
-### Principais casos de uso
+## classes-reunioes
 
-| ID   | Caso de uso                 | Ator    |
-| ---- | --------------------------- | ------- |
-| UC01 | Criar conta                 | Usuário |
-| UC02 | Autenticar                  | Usuário |
-| UC03 | Gerenciar perfil            | Usuário |
-| UC04 | Criar reunião               | Usuário |
-| UC05 | Editar reunião              | Usuário |
-| UC06 | Cancelar reunião            | Usuário |
-| UC07 | Visualizar agenda           | Usuário |
-| UC08 | Convidar participantes      | Usuário |
-| UC09 | Responder convite           | Usuário |
-| UC10 | Informar disponibilidade    | Usuário |
-| UC11 | Criar grupo                 | Usuário |
-| UC12 | Gerenciar grupo             | Usuário |
-| UC13 | Enviar mensagem             | Usuário |
-| UC14 | Receber mensagem            | Usuário |
-| UC15 | Visualizar histórico        | Usuário |
-| UC16 | Sincronizar dados           | Sistema |
-| UC17 | Utilizar aplicativo offline | Usuário |
+![classes-reunioes](renderizados/classes-reunioes.svg)
 
----
+[Fonte editável](fontes/classes-reunioes.puml) · [SVG](renderizados/classes-reunioes.svg)
 
-# 2. Diagrama de Implantação
+## classes-servicos
 
-O Synple possui uma arquitetura cliente-servidor. O aplicativo mobile mantém os dados localmente e se comunica com o servidor quando há conectividade.
+![classes-servicos](renderizados/classes-servicos.svg)
 
-```mermaid
-flowchart TB
+[Fonte editável](fontes/classes-servicos.puml) · [SVG](renderizados/classes-servicos.svg)
 
-    subgraph CLIENT["📱 Dispositivo do Usuário"]
+## relacional-cadastro
 
-        AND["Android"]
-        IOS["iOS"]
+![relacional-cadastro](renderizados/relacional-cadastro.svg)
 
-        APP["Synple Mobile<br/>React Native CLI<br/>TypeScript"]
+[Fonte editável](fontes/relacional-cadastro.puml) · [SVG](renderizados/relacional-cadastro.svg)
 
-        DB["WatermelonDB<br/>SQLite"]
+## relacional-reunioes
 
-        CACHE["TanStack Query<br/>Cache"]
+![relacional-reunioes](renderizados/relacional-reunioes.svg)
 
-        STATE["Zustand<br/>Estado global"]
+[Fonte editável](fontes/relacional-reunioes.puml) · [SVG](renderizados/relacional-reunioes.svg)
 
-        AND --> APP
-        IOS --> APP
+## relacional-seguranca
 
-        APP --> DB
-        APP --> CACHE
-        APP --> STATE
-    end
+![relacional-seguranca](renderizados/relacional-seguranca.svg)
 
-    subgraph NETWORK["🌐 Internet"]
+[Fonte editável](fontes/relacional-seguranca.puml) · [SVG](renderizados/relacional-seguranca.svg)
 
-        HTTPS["HTTPS"]
-        WSS["WebSocket / WSS"]
-    end
+## seq-cadastro
 
-    subgraph SERVER["🖥️ Servidor Próprio"]
+![seq-cadastro](renderizados/seq-cadastro.svg)
 
-        NGINX["Nginx<br/>Reverse Proxy<br/>TLS"]
+[Fonte editável](fontes/seq-cadastro.puml) · [SVG](renderizados/seq-cadastro.svg)
 
-        API["Express.js 5<br/>Node.js 22<br/>TypeScript"]
+## seq-login
 
-        SOCKET["Socket.io 4"]
+![seq-login](renderizados/seq-login.svg)
 
-        AUTH["Lucia Auth<br/>JWT"]
+[Fonte editável](fontes/seq-login.puml) · [SVG](renderizados/seq-login.svg)
 
-        REDIS["Redis 7"]
+## seq-comando
 
-        PG["PostgreSQL 16"]
+![seq-comando](renderizados/seq-comando.svg)
 
-        MINIO["MinIO<br/>S3-compatible storage"]
+[Fonte editável](fontes/seq-comando.puml) · [SVG](renderizados/seq-comando.svg)
 
-        PM2["PM2"]
+## seq-recuperacao
 
-        NGINX --> API
-        NGINX --> SOCKET
+![seq-recuperacao](renderizados/seq-recuperacao.svg)
 
-        API --> AUTH
-        API --> PG
-        API --> REDIS
-        API --> MINIO
+[Fonte editável](fontes/seq-recuperacao.puml) · [SVG](renderizados/seq-recuperacao.svg)
 
-        SOCKET --> REDIS
-        SOCKET --> PG
+## seq-sincronizacao
 
-        PM2 -. gerencia .-> API
-        PM2 -. gerencia .-> SOCKET
-    end
+![seq-sincronizacao](renderizados/seq-sincronizacao.svg)
 
-    APP --> HTTPS
-    APP --> WSS
+[Fonte editável](fontes/seq-sincronizacao.puml) · [SVG](renderizados/seq-sincronizacao.svg)
 
-    HTTPS --> NGINX
-    WSS --> NGINX
-```
+## seq-convite-org
 
-### Implantação física
+![seq-convite-org](renderizados/seq-convite-org.svg)
 
-```mermaid
-flowchart TB
+[Fonte editável](fontes/seq-convite-org.puml) · [SVG](renderizados/seq-convite-org.svg)
 
-    INTERNET["🌐 Internet"]
+## seq-transferencia
 
-    ROUTER["Roteador / Firewall<br/>IP público fixo"]
+![seq-transferencia](renderizados/seq-transferencia.svg)
 
-    SERVER["🖥️ Servidor próprio"]
+[Fonte editável](fontes/seq-transferencia.puml) · [SVG](renderizados/seq-transferencia.svg)
 
-    NGINX["Nginx<br/>80 / 443"]
+## seq-agendamento
 
-    subgraph DOCKER["🐳 Docker"]
-        PG["PostgreSQL 16"]
-        REDIS["Redis 7"]
-        MINIO["MinIO"]
-    end
+![seq-agendamento](renderizados/seq-agendamento.svg)
 
-    subgraph NODE["⚙️ Processos Node.js"]
-        API["Express API"]
-        SOCKET["Socket.io"]
-    end
+[Fonte editável](fontes/seq-agendamento.puml) · [SVG](renderizados/seq-agendamento.svg)
 
-    INTERNET --> ROUTER
-    ROUTER -->|HTTPS 443| NGINX
+## seq-presenca
 
-    NGINX --> API
-    NGINX --> SOCKET
+![seq-presenca](renderizados/seq-presenca.svg)
 
-    API --> PG
-    API --> REDIS
-    API --> MINIO
+[Fonte editável](fontes/seq-presenca.puml) · [SVG](renderizados/seq-presenca.svg)
 
-    SOCKET --> REDIS
-    SOCKET --> PG
-```
+## seq-ata
 
-> O diagrama não fixa um endereço IP ou domínio específico. Esses valores pertencem ao ambiente de implantação e devem ser configurados externamente.
+![seq-ata](renderizados/seq-ata.svg)
 
----
+[Fonte editável](fontes/seq-ata.puml) · [SVG](renderizados/seq-ata.svg)
 
-# 3. Diagrama de Classes
+## seq-pdf
 
-O modelo abaixo representa as principais entidades de domínio do Synple.
-
-```mermaid
-classDiagram
-
-    class User {
-        +UUID id
-        +string name
-        +string email
-        +string avatarUrl
-        +Date createdAt
-        +Date updatedAt
-    }
-
-    class AuthSession {
-        +UUID id
-        +UUID userId
-        +string token
-        +Date expiresAt
-        +Date createdAt
-        +isValid()
-        +revoke()
-    }
-
-    class Event {
-        +UUID id
-        +UUID creatorId
-        +string title
-        +string description
-        +Date startAt
-        +Date endAt
-        +EventStatus status
-        +Date createdAt
-        +Date updatedAt
-        +cancel()
-        +update()
-    }
-
-    class Participant {
-        +UUID id
-        +UUID eventId
-        +UUID userId
-        +ParticipantStatus status
-        +Availability availability
-        +Date respondedAt
-        +accept()
-        +decline()
-        +setAvailability()
-    }
-
-    class Availability {
-        +UUID id
-        +UUID participantId
-        +Date startAt
-        +Date endAt
-        +AvailabilityStatus status
-    }
-
-    class Group {
-        +UUID id
-        +UUID ownerId
-        +string name
-        +Date createdAt
-        +addMember()
-        +removeMember()
-    }
-
-    class GroupMember {
-        +UUID groupId
-        +UUID userId
-        +Date joinedAt
-    }
-
-    class Message {
-        +UUID id
-        +UUID eventId
-        +UUID senderId
-        +string content
-        +MessageStatus status
-        +Date createdAt
-        +Date updatedAt
-        +edit()
-        +delete()
-    }
-
-    class Attachment {
-        +UUID id
-        +UUID messageId
-        +string objectKey
-        +string fileName
-        +string mimeType
-        +number size
-    }
-
-    class Notification {
-        +UUID id
-        +UUID userId
-        +string type
-        +string title
-        +string content
-        +boolean read
-        +Date createdAt
-        +markAsRead()
-    }
+![seq-pdf](renderizados/seq-pdf.svg)
 
-    class SyncRecord {
-        +UUID id
-        +string entity
-        +UUID entityId
-        +string operation
-        +number version
-        +Date timestamp
-    }
+[Fonte editável](fontes/seq-pdf.puml) · [SVG](renderizados/seq-pdf.svg)
 
-    User "1" --> "*" Event : cria
-    User "1" --> "*" AuthSession : possui
+## seq-biometria
 
-    Event "1" --> "*" Participant : possui
-    User "1" --> "*" Participant : participa
+![seq-biometria](renderizados/seq-biometria.svg)
 
-    Participant "1" --> "*" Availability : informa
+[Fonte editável](fontes/seq-biometria.puml) · [SVG](renderizados/seq-biometria.svg)
 
-    User "1" --> "*" Group : administra
-    Group "1" --> "*" GroupMember : possui
-    User "1" --> "*" GroupMember : pertence
+## seq-sistema
 
-    Event "1" --> "*" Message : possui
-    User "1" --> "*" Message : envia
+![seq-sistema](renderizados/seq-sistema.svg)
 
-    Message "1" --> "*" Attachment : possui
+[Fonte editável](fontes/seq-sistema.puml) · [SVG](renderizados/seq-sistema.svg)
 
-    User "1" --> "*" Notification : recebe
+## implantacao
 
-    Event ..> SyncRecord : sincroniza
-    Message ..> SyncRecord : sincroniza
-    Participant ..> SyncRecord : sincroniza
-```
+![implantacao](renderizados/implantacao.svg)
 
-### Relações principais
+[Fonte editável](fontes/implantacao.puml) · [SVG](renderizados/implantacao.svg)
 
-```text
-User
- ├── Event
- │    ├── Participant
- │    │    └── Availability
- │    └── Message
- │         └── Attachment
- │
- ├── Group
- │    └── GroupMember
- │
- ├── AuthSession
- │
- └── Notification
-```
+## Reprodução
 
----
-
-# 4. Diagramas de Sequência
-
-## 4.1 Criar reunião
-
-```mermaid
-sequenceDiagram
-
-    actor U as Usuário
-    participant UI as React Native
-    participant DB as WatermelonDB
-    participant API as Express API
-    participant PG as PostgreSQL
-
-    U->>UI: Preenche formulário
-    UI->>UI: Valida dados com Zod
-
-    UI->>DB: Cria reunião local
-    DB-->>UI: Reunião salva
-
-    UI-->>U: Exibe reunião imediatamente
-
-    UI->>API: POST /events
-    API->>API: Valida autenticação
-    API->>API: Valida payload
-    API->>PG: INSERT event
-    PG-->>API: Evento criado
-
-    API-->>UI: 201 Created
-    UI->>DB: Atualiza registro local
-```
-
-### Com ausência de conexão
-
-```mermaid
-sequenceDiagram
-
-    actor U as Usuário
-    participant UI as React Native
-    participant DB as WatermelonDB
-    participant SYNC as Sync Engine
-
-    U->>UI: Cria reunião
-    UI->>DB: Salva localmente
-    DB-->>UI: OK
-
-    UI-->>U: Reunião disponível offline
-
-    Note over DB,SYNC: Operação permanece pendente
-
-    SYNC->>SYNC: Detecta conexão
-    SYNC->>SYNC: Envia alterações pendentes
-```
-
----
-
-## 4.2 Responder convite
-
-```mermaid
-sequenceDiagram
-
-    actor U as Usuário
-    participant UI as React Native
-    participant DB as WatermelonDB
-    participant API as Express API
-    participant PG as PostgreSQL
-
-    U->>UI: Seleciona "Aceitar"
-    UI->>DB: Atualiza participante
-    DB-->>UI: Status = ACCEPTED
-
-    UI-->>U: Participação atualizada
-
-    UI->>API: PATCH /events/:id/participants
-    API->>API: Valida JWT
-    API->>PG: UPDATE participant
-    PG-->>API: Atualizado
-
-    API-->>UI: 200 OK
-    UI->>DB: Confirma sincronização
-```
-
----
-
-## 4.3 Chat em tempo real
-
-```mermaid
-sequenceDiagram
-
-    actor A as Usuário A
-    participant APP_A as App A
-    participant WS as Socket.io
-    participant REDIS as Redis
-    participant PG as PostgreSQL
-    participant APP_B as App B
-    actor B as Usuário B
-
-    A->>APP_A: Digita mensagem
-    APP_A->>WS: emit(message:send)
-
-    WS->>WS: Valida sessão
-    WS->>WS: Valida participação no evento
-
-    WS->>PG: Salva mensagem
-    PG-->>WS: Mensagem persistida
-
-    WS->>REDIS: Publica evento
-
-    WS-->>APP_A: message:sent
-    WS-->>APP_B: message:new
-
-    APP_A->>APP_A: Atualiza WatermelonDB
-    APP_B->>APP_B: Atualiza WatermelonDB
-
-    APP_B-->>B: Exibe mensagem
-```
-
----
-
-## 4.4 Sincronização offline-first
-
-```mermaid
-sequenceDiagram
-
-    participant APP as React Native
-    participant DB as WatermelonDB
-    participant SYNC as Sync Engine
-    participant API as Express API
-    participant PG as PostgreSQL
-
-    APP->>SYNC: Solicita sincronização
-
-    SYNC->>DB: Obtém alterações locais
-    DB-->>SYNC: Alterações pendentes
-
-    SYNC->>API: Envia alterações
-
-    API->>PG: Valida e persiste alterações
-    PG-->>API: Operações concluídas
-
-    API-->>SYNC: Confirmações + alterações remotas
-
-    SYNC->>DB: Aplica alterações remotas
-
-    DB-->>SYNC: Sincronização concluída
-
-    SYNC-->>APP: Estado atualizado
-```
-
----
-
-# 5. Diagramas de Atividades
-
-## 5.1 Criação de reunião
-
-```mermaid
-flowchart TD
-
-    START((Início))
-
-    A["Abrir criação de reunião"]
-    B["Preencher título, descrição e horário"]
-    C{"Dados válidos?"}
-
-    D["Exibir erros"]
-    E["Salvar no WatermelonDB"]
-    F{"Existe conexão?"}
-
-    G["Adicionar operação à fila"]
-    H["Enviar para API"]
-    I{"Servidor aceitou?"}
-
-    J["Atualizar estado local"]
-    K["Manter operação pendente"]
-    L["Exibir reunião"]
-
-    END((Fim))
-
-    START --> A
-    A --> B
-    B --> C
-
-    C -->|Não| D
-    D --> B
-
-    C -->|Sim| E
-    E --> F
-
-    F -->|Não| G
-    G --> L
-
-    F -->|Sim| H
-    H --> I
-
-    I -->|Sim| J
-    J --> L
-
-    I -->|Não| K
-    K --> L
-
-    L --> END
-```
-
----
-
-## 5.2 Confirmação de disponibilidade
-
-```mermaid
-flowchart TD
-
-    START((Início))
-
-    A["Abrir convite"]
-    B["Visualizar horários disponíveis"]
-    C["Selecionar disponibilidade"]
-    D{"Dados válidos?"}
-
-    E["Salvar resposta localmente"]
-    F{"Online?"}
-
-    G["Enviar resposta ao servidor"]
-    H["Adicionar à fila de sincronização"]
-
-    I{"Servidor confirmou?"}
-    J["Marcar como sincronizado"]
-    K["Manter como pendente"]
-
-    END((Fim))
-
-    START --> A
-    A --> B
-    B --> C
-    C --> D
-
-    D -->|Não| B
-    D -->|Sim| E
-
-    E --> F
-
-    F -->|Não| H
-    F -->|Sim| G
-
-    G --> I
-
-    I -->|Sim| J
-    I -->|Não| K
-
-    H --> END
-    J --> END
-    K --> END
-```
-
----
-
-## 5.3 Envio de mensagem
-
-```mermaid
-flowchart TD
-
-    START((Início))
-
-    A["Usuário escreve mensagem"]
-    B["Validar mensagem"]
-    C{"Mensagem válida?"}
-
-    D["Enviar pelo Socket.io"]
-    E["Salvar mensagem local"]
-    F{"Conexão disponível?"}
-
-    G["Mensagem pendente"]
-    H["Servidor valida sessão"]
-    I["Servidor valida participação"]
-    J{"Autorizado?"}
-
-    K["Persistir no PostgreSQL"]
-    L["Emitir mensagem pelo Socket.io"]
-    M["Atualizar clientes"]
-    N["Exibir erro"]
-
-    END((Fim))
-
-    START --> A
-    A --> B
-    B --> C
-
-    C -->|Não| A
-    C -->|Sim| E
-
-    E --> F
-
-    F -->|Não| G
-    G --> END
-
-    F -->|Sim| D
-    D --> H
-    H --> I
-    I --> J
-
-    J -->|Não| N
-    N --> END
-
-    J -->|Sim| K
-    K --> L
-    L --> M
-    M --> END
-```
-
----
-
-## 5.4 Sincronização
-
-```mermaid
-flowchart TD
-
-    START((Início))
-
-    A["Detectar conexão"]
-    B{"Conexão disponível?"}
-
-    C["Aguardar conexão"]
-    D["Ler alterações locais"]
-    E["Enviar alterações ao servidor"]
-
-    F{"Servidor aceitou?"}
-
-    G["Resolver conflito"]
-    H["Aplicar confirmação local"]
-    I["Baixar alterações remotas"]
-    J["Atualizar WatermelonDB"]
-
-    K["Sincronização concluída"]
-
-    END((Fim))
-
-    START --> A
-    A --> B
-
-    B -->|Não| C
-    C --> A
-
-    B -->|Sim| D
-    D --> E
-    E --> F
-
-    F -->|Não| G
-    G --> E
-
-    F -->|Sim| H
-    H --> I
-    I --> J
-    J --> K
-    K --> END
-```
-
----
-
-# 📁 Organização recomendada
-
-```text
-synple/
-│
-├── mobile/
-│   ├── android/
-│   ├── ios/
-│   ├── src/
-│   │   ├── components/
-│   │   ├── screens/
-│   │   ├── navigation/
-│   │   ├── db/
-│   │   │   ├── models/
-│   │   │   ├── schema.ts
-│   │   │   └── sync/
-│   │   ├── services/
-│   │   │   ├── api.ts
-│   │   │   └── socket.ts
-│   │   ├── stores/
-│   │   ├── hooks/
-│   │   ├── types/
-│   │   └── utils/
-│   └── App.tsx
-│
-├── server/
-│   ├── src/
-│   │   ├── routes/
-│   │   ├── controllers/
-│   │   ├── services/
-│   │   ├── repositories/
-│   │   ├── socket/
-│   │   ├── middleware/
-│   │   ├── db/
-│   │   └── types/
-│   ├── drizzle/
-│   └── package.json
-│
-├── infrastructure/
-│   ├── docker-compose.yml
-│   ├── nginx/
-│   └── pm2/
-│
-├── docs/
-│   └── diagramas/
-│       ├── README.md
-│       ├── casos-de-uso.md
-│       ├── implantacao.md
-│       ├── classes.md
-│       ├── sequencia/
-│       │   ├── criar-reuniao.md
-│       │   ├── responder-convite.md
-│       │   ├── chat.md
-│       │   └── sincronizacao.md
-│       └── atividades/
-│           ├── criar-reuniao.md
-│           ├── disponibilidade.md
-│           ├── chat.md
-│           └── sincronizacao.md
-│
-└── README.md
-```
-
----
-
-# 🔗 Relação entre os diagramas
-
-```mermaid
-flowchart LR
-
-    UC["Casos de Uso"]
-    CLASS["Classes"]
-    DEP["Implantação"]
-    SEQ["Sequência"]
-    ACT["Atividades"]
-
-    UC -->|"define funcionalidades"| SEQ
-    UC -->|"define comportamentos"| ACT
-    UC -->|"identifica entidades"| CLASS
-
-    CLASS -->|"objetos envolvidos"| SEQ
-    CLASS -->|"operações do domínio"| ACT
-
-    SEQ -->|"executa sobre"| DEP
-    ACT -->|"é implementado por"| CLASS
-```
-
-Essa relação é importante porque os diagramas deixam de ser apenas desenhos isolados: **casos de uso → classes → atividades/sequências → implantação** representam diferentes perspectivas do mesmo sistema.
+Gerar fontes: `node Synple/scripts/generate-uml.cjs` após gerar o snapshot do DDL. Renderizar com Java e o PlantUML oficial: `java -jar plantuml.jar -tsvg -o ../renderizados docs/Diagramas/fontes/*.puml`. O JAR não é dependência do app nem foi incluído no repositório. Referências: [UML 2.5.1 — OMG](https://www.omg.org/spec/UML/2.5.1/About-UML), [casos de uso PlantUML](https://plantuml.com/use-case-diagram), [classes PlantUML](https://plantuml.com/class-diagram). Renderização sem erro comprova sintaxe; a conferência de atores, multiplicidades e comportamento exige confrontar o modelo com o código.

@@ -1,0 +1,70 @@
+@startuml
+!pragma layout smetana
+skinparam backgroundColor white
+skinparam shadowing false
+skinparam defaultFontName SansSerif
+skinparam defaultFontSize 13
+skinparam ArrowColor #334155
+skinparam packageStyle rectangle
+skinparam classAttributeIconSize 0
+skinparam roundcorner 5
+skinparam dpi 130
+title Classes de domínio — cadastro (modelo de análise)
+class Usuario {
+ +id: UUID
+ +name: String {maxLength=120}
+ +email: String {maxLength=150}
+ +phone: String[0..1]
+ -passwordHash: String
+ +systemRole: PapelSistema
+ +theme: Tema
+ +emailVerified: Boolean
+}
+class Organizacao {
+ +id: UUID
+ +name: String {maxLength=150}
+ +document: String {maxLength=18}
+ +status: String
+}
+class VinculoOrganizacao {
+ +id: UUID
+ +status: String
+ +organizationRole: String
+ +invitationAccepted: Boolean
+}
+class Comissao {
+ +id: UUID
+ +name: String {maxLength=120}
+ +type: String {maxLength=50}
+ +description: String[0..1]
+ +status: String
+}
+class VinculoComissao {
+ +role: PapelComissao
+ +createdAt: DateTime
+}
+enum Tema {
+ LIGHT
+ DARK
+}
+enum PapelSistema {
+ USER
+ SYSTEM_ADMIN
+}
+enum PapelComissao {
+ MEMBER
+ COORDINATOR
+}
+Usuario "1" -- "0..*" Organizacao : proprietário
+Usuario "1" -- "0..*" VinculoOrganizacao : destinatário
+Usuario "0..1" -- "0..*" VinculoOrganizacao : autor do convite
+Organizacao "1" -- "0..*" VinculoOrganizacao : recebe
+Organizacao "1" -- "0..*" Comissao : contém
+Comissao "1" -- "0..*" VinculoComissao
+Usuario "1" -- "0..*" VinculoComissao
+note bottom of VinculoComissao
+Um vínculo por pessoa/comissão.
+No máximo um COORDINATOR por índice;
+mínimo de um mantido pelas rotas/migração.
+end note
+@enduml

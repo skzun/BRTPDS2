@@ -22,6 +22,7 @@ export function ProfileScreen({
       {/* 1. Dados Pessoais */}
       <View style={styles.card}>
         <Text style={styles.cardTitle}>Dados pessoais</Text>
+        <Text style={styles.hint}>Para salvar alterações, confirme a biometria cadastrada no celular.</Text>
         <Field
           label="Nome"
           value={profileForm.name}
@@ -29,7 +30,8 @@ export function ProfileScreen({
           placeholder="Seu nome"
         />
         <Field
-          label="E-mail"
+          label="E-mail de acesso (verificado)"
+          editable={false}
           value={profileForm.email}
           onChangeText={(email) => setProfileForm({ ...profileForm, email })}
           placeholder="voce@email.com"
@@ -61,7 +63,7 @@ export function ProfileScreen({
           label="Nova senha"
           value={passwordForm.next}
           onChangeText={(next) => setPasswordForm({ ...passwordForm, next })}
-          placeholder="Mínimo de 6 caracteres"
+          placeholder="Mínimo de 8 caracteres"
           secureTextEntry
         />
         <Field

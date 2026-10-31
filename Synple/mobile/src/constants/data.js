@@ -5,9 +5,9 @@ const INITIAL_DATA = {
     { id: 'org-horizonte', name: 'Coletivo Horizonte', document: '98.765.432/0001-10', status: 'APPROVED', ownerId: 'user-visitante' },
   ],
   users: [
-    { id: 'user-system-admin', name: 'Administrador do Sistema', email: 'admin@synple.com', phone: '(11) 99999-1111', password: 'Admin@123', theme: 'LIGHT', systemRole: 'SYSTEM_ADMIN' },
-    { id: 'user-admin', name: 'Marina Costa', email: 'marina@synple.com', phone: '(11) 99999-0000', password: 'Marina@123', theme: 'LIGHT' },
-    { id: 'user-visitante', name: 'João Silva', email: 'joao@synple.com', phone: '(11) 98888-2222', password: 'Joao@123', theme: 'LIGHT' },
+    { id: 'user-system-admin', name: 'Administrador do Sistema', email: 'admin@synple.com', phone: '(11) 99999-1111', theme: 'LIGHT', systemRole: 'SYSTEM_ADMIN' },
+    { id: 'user-admin', name: 'Marina Costa', email: 'marina@synple.com', phone: '(11) 99999-0000', theme: 'LIGHT' },
+    { id: 'user-visitante', name: 'João Silva', email: 'joao@synple.com', phone: '(11) 98888-2222', theme: 'LIGHT' },
   ],
   accessRequests: [{ id: 'request-1', organizationId: 'org-aurora', userId: 'user-visitante', status: 'PENDING' }],
   commissions: [{ id: 'commission-1', organizationId: 'org-aurora', name: 'Comunicação', description: 'Divulgação e relacionamento com a comunidade.', status: 'ACTIVE' }],
@@ -18,12 +18,12 @@ const INITIAL_DATA = {
   meetingMinutes: [],
   meetingMinutesApprovals: [],
   system: {
-    initialized: true,
-    initializedAt: '2026-09-01T00:00:00.000Z',
+    initialized: false,
+    initializedAt: null,
     subsystems: [
-      { id: 'api', name: 'API e autenticação', status: 'ONLINE' },
-      { id: 'database', name: 'Banco de dados', status: 'ONLINE' },
-      { id: 'notifications', name: 'Notificações', status: 'ONLINE' },
+      { id: 'api', name: 'API e autenticação', status: 'UNKNOWN' },
+      { id: 'database', name: 'Banco de dados', status: 'UNKNOWN' },
+      { id: 'notifications', name: 'Notificações', status: 'UNKNOWN' },
     ],
   },
 };

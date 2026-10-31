@@ -1,0 +1,39 @@
+@startuml
+!pragma layout smetana
+skinparam backgroundColor white
+skinparam shadowing false
+skinparam defaultFontName SansSerif
+skinparam defaultFontSize 13
+skinparam ArrowColor #334155
+skinparam packageStyle rectangle
+skinparam classAttributeIconSize 0
+skinparam roundcorner 5
+skinparam dpi 130
+title SQ02 — senha ou Google e sessão
+autonumber
+actor Pessoa
+participant "App Synple" as App
+participant "API Express" as API
+database PostgreSQL as DB
+participant Google
+participant SecureStore
+Pessoa -> App : Escolhe forma de entrada
+alt e-mail e senha
+ App -> API : POST /auth/login
+ API -> DB : Consulta conta
+ API -> API : bcrypt.compare e email_verified
+else Google
+ App -> Google : Solicita login no SDK nativo
+ Google --> App : ID token
+ App -> API : POST /auth/google com ID token
+ API -> Google : Verifica assinatura / audience do token
+ API -> DB : Vincula ou cria conta verificada
+end
+API -> API : Gera token aleatório
+API -> DB : INSERT auth_sessions(hash, user_id, prazo)
+API --> App : Perfil e token bruto
+App -> SecureStore : Guarda token protegido, se biometria disponível
+App -> API : GET /sync com Bearer token
+API --> App : Dados autorizados
+App --> Pessoa : Área autenticada
+@enduml

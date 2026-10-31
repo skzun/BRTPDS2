@@ -77,25 +77,25 @@ async function initDatabase() {
 
     // Inserir Administrador
     const adminUser = await appClient.query(`
-      INSERT INTO users (name, email, phone, password_hash, system_role, theme)
-      VALUES ($1, $2, $3, $4, $5, $6)
-      ON CONFLICT (email) DO UPDATE SET password_hash = EXCLUDED.password_hash
+      INSERT INTO users (name, email, phone, password_hash, system_role, theme, email_verified)
+      VALUES ($1, $2, $3, $4, $5, $6, TRUE)
+      ON CONFLICT (email) DO UPDATE SET email = EXCLUDED.email
       RETURNING id, name, email;
     `, ['Administrador do Sistema', 'admin@synple.com', '(11) 99999-1111', adminHash, 'SYSTEM_ADMIN', 'LIGHT']);
 
     // Inserir Marina Costa
     const marinaUser = await appClient.query(`
-      INSERT INTO users (name, email, phone, password_hash, system_role, theme)
-      VALUES ($1, $2, $3, $4, $5, $6)
-      ON CONFLICT (email) DO UPDATE SET password_hash = EXCLUDED.password_hash
+      INSERT INTO users (name, email, phone, password_hash, system_role, theme, email_verified)
+      VALUES ($1, $2, $3, $4, $5, $6, TRUE)
+      ON CONFLICT (email) DO UPDATE SET email = EXCLUDED.email
       RETURNING id, name, email;
     `, ['Marina Costa', 'marina@synple.com', '(11) 99999-0000', marinaHash, 'USER', 'LIGHT']);
 
     // Inserir João Silva
     const joaoUser = await appClient.query(`
-      INSERT INTO users (name, email, phone, password_hash, system_role, theme)
-      VALUES ($1, $2, $3, $4, $5, $6)
-      ON CONFLICT (email) DO UPDATE SET password_hash = EXCLUDED.password_hash
+      INSERT INTO users (name, email, phone, password_hash, system_role, theme, email_verified)
+      VALUES ($1, $2, $3, $4, $5, $6, TRUE)
+      ON CONFLICT (email) DO UPDATE SET email = EXCLUDED.email
       RETURNING id, name, email;
     `, ['João Silva', 'joao@synple.com', '(11) 98888-2222', joaoHash, 'USER', 'LIGHT']);
 

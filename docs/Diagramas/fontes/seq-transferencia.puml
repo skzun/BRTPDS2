@@ -1,0 +1,28 @@
+@startuml
+!pragma layout smetana
+skinparam backgroundColor white
+skinparam shadowing false
+skinparam defaultFontName SansSerif
+skinparam defaultFontSize 13
+skinparam ArrowColor #334155
+skinparam packageStyle rectangle
+skinparam classAttributeIconSize 0
+skinparam roundcorner 5
+skinparam dpi 130
+title SQ07 — transferência da organização
+autonumber
+actor Pessoa
+participant "App Synple" as App
+participant "API Express" as API
+database PostgreSQL as DB
+Pessoa -> App : Seleciona novo proprietário e confirma
+App -> API : PATCH /organizations/:id/owner
+API -> DB : Verifica sessão e dono atual
+API -> DB : BEGIN; lock da organização
+API -> DB : Confere novo proprietário com vínculo APPROVED
+API -> DB : Mantém antigo proprietário como membro
+API -> DB : Atualiza owner_id; COMMIT
+API --> App : Organização atualizada
+App -> API : GET /sync
+API --> App : Permissões e vínculos atuais
+@enduml

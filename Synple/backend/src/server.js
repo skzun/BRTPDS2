@@ -17,23 +17,37 @@ const PORT = process.env.PORT || 3001;
 
 // Middlewares
 app.use(cors());
-app.use(express.json());
+app.use(express.json({ limit: '256kb' }));
+const security = require('./services/security');
+const { authorize } = require('./services/authorization');
+app.use('/api', (req, res, next) => {
+  if (req.path === '/health' || /^\/auth\/(login|register|google|forgot-password|reset-password|verify-email|resend-activation)$/.test(req.path)) return next();
+  security.authenticate(req, res, next);
+});
+app.use('/api', (req, res, next) => req.auth ? security.bindActor(req, res, next) : next());
+app.use('/api', (req, res, next) => req.auth ? authorize(req, res, next) : next());
 app.use((req, res, next) => {
   const start = Date.now();
   res.on('finish', () => {
-    console.log(`[HTTP] ${req.method} ${req.originalUrl} -> ${res.statusCode} (${Date.now() - start}ms)`);
+    console.log(`[HTTP] ${req.method} ${req.path} -> ${res.statusCode} (${Date.now() - start}ms)`);
   });
   next();
 });
 
 // Registro dos endpoints da API
 app.use('/api/health', healthRoutes);
+app.use('/api/system', require('./routes/system'));
 app.use('/api/auth', authRoutes);
 app.use('/api/sync', syncRoutes);
 app.use('/api/users', usersRoutes);
 app.use('/api/organizations', organizationsRoutes);
 app.use('/api/commissions', commissionsRoutes);
 app.use('/api/meetings', meetingsRoutes);
+
+app.use((error, req, res, next) => {
+  console.error('[API]', error.message);
+  if (!res.headersSent) res.status(500).json({ error: 'Não foi possível concluir a operação.' });
+});
 
 // Rota raiz informativa
 app.get('/', (req, res) => {

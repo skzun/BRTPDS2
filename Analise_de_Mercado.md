@@ -1,3 +1,5 @@
+> Revisão de 30/10/2026: a análise abaixo é documental. Não representa avaliação manual executada dos aplicativos. O roteiro ao final deve ser realizado e ter evidências registradas.
+
 # Documento de Análise de Mercado
 
 **Projeto:** Aplicativo Mobile de Gerenciamento de Reuniões  
@@ -101,3 +103,25 @@ Entre as medidas previstas estão:
 * Aplicação de práticas de segurança no servidor.
 
 O armazenamento local, isoladamente, não garante conformidade com a LGPD. Os requisitos relacionados à proteção de dados deverão ser considerados durante as demais etapas de análise, desenvolvimento e implantação.
+
+## 5. Concorrente adicional: Nextcloud Calendar
+
+A [documentação oficial](https://docs.nextcloud.com/server/latest/user_manual/en/groupware/calendar.html) descreve calendários compartilhados com permissões de leitura/escrita, eventos com convidados, aceite/recusa por e-mail, consulta de disponibilidade e importação/exportação iCalendar.
+
+**Forças documentadas:** integração de agenda e colaboração; interoperabilidade com calendários; administração própria dos dados. **Implicações para o projeto:** demanda instalar/administrar Nextcloud e configurar e-mail para convites; a proposta envolve um ambiente mais amplo que a tarefa de registrar presença/ata. A facilidade de uso em smartphone ainda deve ser medida manualmente. Diferencial pretendido do Synple: reunir organização/comissão, presença e aprovação de atas num fluxo móvel específico; essa vantagem requer validação com pessoas.
+
+## 6. Protocolo de avaliação manual e levantamento
+
+Aplicar o mesmo roteiro a Cal.com, Calendly, Doodle, Rallly e Nextcloud Calendar. Registrar produto/versão/plano, data, avaliador, aparelho/SO/navegador, evidência e limitações do ambiente. Não registrar “aprovado” sem executar.
+
+| Tarefa | Medida | Resultado |
+| --- | --- | --- |
+| Criar conta e primeira reunião | Tempo e número de passos; dificuldades | Pendente |
+| Convidar duas pessoas; aceitar/recusar | Entrega, clareza do estado e permissões | Pendente |
+| Conferir horário/fuso e alterar evento | Erros e facilidade de localizar alterações | Pendente |
+| Usar em smartphone/teclado aberto | Legibilidade, rolagem, campos cobertos | Pendente |
+| Testar claro/escuro e fonte ampliada | Contraste e conteúdo cortado | Pendente |
+| Simular perda de rede | Mensagem e preservação de dados | Pendente |
+| Buscar presença, ata e exportação | Disponível, ausente ou limitado pelo plano | Pendente |
+
+Entrevistar representantes de organização, coordenação e participantes. Perguntar sobre conflitos de agenda, necessidade de atas, quantidade de coordenadores, acessibilidade, conectividade e retenção de dados. Registrar respostas e prioridades sem dados pessoais desnecessários; devolver a síntese aos participantes para validação. Vincular cada requisito aprovado à evidência de origem.

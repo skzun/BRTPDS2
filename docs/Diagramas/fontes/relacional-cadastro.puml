@@ -1,0 +1,79 @@
+@startuml
+!pragma layout smetana
+skinparam backgroundColor white
+skinparam shadowing false
+skinparam defaultFontName SansSerif
+skinparam defaultFontSize 13
+skinparam ArrowColor #334155
+skinparam packageStyle rectangle
+skinparam classAttributeIconSize 0
+skinparam roundcorner 5
+skinparam dpi 130
+title Modelo físico relacional — cadastro
+hide methods
+entity "users" as users {
+{field} * id: uuid <<PK>>
+{field} * name: character varying(120)
+{field} * email: character varying(150)
+{field} phone: character varying(20)
+{field} * password_hash: character varying(255)
+{field} google_id: character varying(255)
+{field} * system_role: character varying(30)
+{field} * theme: character varying(10)
+{field} reset_token: character varying(255)
+{field} reset_token_expires: timestamp with time zone
+{field} * created_at: timestamp with time zone
+{field} * updated_at: timestamp with time zone
+{field} * email_verified: boolean
+{field} activation_hash: text
+{field} activation_expires: timestamp with time zone
+}
+entity "organizations" as organizations {
+{field} * id: uuid <<PK>>
+{field} * name: character varying(150)
+{field} * document: character varying(18)
+{field} * owner_id: uuid <<FK>>
+{field} * status: character varying(20)
+{field} * created_at: timestamp with time zone
+{field} * updated_at: timestamp with time zone
+}
+entity "access_requests" as access_requests {
+{field} * id: uuid <<PK>>
+{field} * organization_id: uuid <<FK>>
+{field} * user_id: uuid <<FK>>
+{field} * status: character varying(20)
+{field} * organization_role: character varying(30)
+{field} * created_at: timestamp with time zone
+{field} * updated_at: timestamp with time zone
+{field} invited_by: uuid <<FK>>
+{field} * invitation_accepted: boolean
+}
+entity "commissions" as commissions {
+{field} * id: uuid <<PK>>
+{field} * organization_id: uuid <<FK>>
+{field} * name: character varying(120)
+{field} * type: character varying(50)
+{field} description: text
+{field} * status: character varying(20)
+{field} * created_at: timestamp with time zone
+{field} * updated_at: timestamp with time zone
+}
+entity "commission_members" as commission_members {
+{field} * commission_id: uuid <<PK>> <<FK>>
+{field} * user_id: uuid <<PK>> <<FK>>
+{field} * role: character varying(20)
+{field} * created_at: timestamp with time zone
+}
+users |o--o{ access_requests : "invited_by"
+organizations ||--o{ access_requests : "organization_id"
+users ||--o{ access_requests : "user_id"
+commissions ||--o{ commission_members : "commission_id"
+users ||--o{ commission_members : "user_id"
+organizations ||--o{ commissions : "organization_id"
+users ||--o{ organizations : "owner_id"
+legend bottom
+* = NOT NULL; PK/FK = chaves.
+Unicidades, CHECK, defaults e ações de exclusão:
+ver dicionário físico, extraído do DDL.
+endlegend
+@enduml

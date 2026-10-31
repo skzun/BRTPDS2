@@ -14,6 +14,8 @@ function createUsersRouter(db) {
     const { name, email, phone, theme } = req.body;
 
     try {
+      if (email && req.auth && normalizeEmail(email) !== normalizeEmail(req.auth.email)) return res.status(400).json({ error: 'O e-mail de acesso exige nova verificação e não pode ser alterado aqui.' });
+      if (theme && !['LIGHT', 'DARK'].includes(theme)) return res.status(400).json({ error: 'Tema inválido.' });
       const updateRes = await db.query(`
         UPDATE users
         SET name = COALESCE($1, name),
@@ -49,6 +51,9 @@ function createUsersRouter(db) {
         return res.status(404).json({ error: 'Usuário não encontrado no banco de dados.' });
       }
       const targetId = target.rows[0].id;
+      if (req.auth?.id === targetId) { await client.query('ROLLBACK'); return res.status(409).json({ error: 'Você não pode excluir sua própria conta administrativa.' }); }
+      const coordinator = await client.query("SELECT 1 FROM commission_members WHERE user_id = $1 AND role = 'COORDINATOR' LIMIT 1", [targetId]);
+      if (coordinator.rowCount) { await client.query('ROLLBACK'); return res.status(409).json({ error: 'Transfira a coordenação das comissões antes de excluir a conta.' }); }
       // A ordem reunião -> usuário é a mesma usada ao enviar a ata para aprovação.
       await client.query(`SELECT m.id FROM meetings m WHERE
         m.created_by = $1

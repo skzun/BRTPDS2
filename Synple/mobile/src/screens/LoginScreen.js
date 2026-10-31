@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useContext, useEffect, useRef, useState } from 'react';
 import { Alert, Image, KeyboardAvoidingView, Platform, ScrollView, Text, View } from 'react-native';
 import { Pressable } from '../components/ActionPressable';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -8,11 +8,15 @@ import * as WebBrowser from 'expo-web-browser';
 
 import { formatPhone } from '../services/formatters';
 import { Choice, Field } from '../components/FormControls';
-import { styles } from '../styles/theme';
+import { ThemeContext } from '../styles/theme';
+import { authRequest } from '../services/api';
 
 WebBrowser.maybeCompleteAuthSession();
 
 export function LoginScreen({ onLogin, onGoogleLogin, onRegister, onRecoverAccount, onResetPassword }) {
+  const { styles } = useContext(ThemeContext);
+  const [activationEmail, setActivationEmail] = useState('');
+  const [activationCode, setActivationCode] = useState('');
   const [tab, setTab] = useState('LOGIN');
   const [mode, setMode] = useState('USER');
   const [email, setEmail] = useState('');
@@ -149,6 +153,20 @@ export function LoginScreen({ onLogin, onGoogleLogin, onRegister, onRecoverAccou
             <Choice label="Criar conta" active={tab === 'REGISTER'} onPress={() => { setTab('REGISTER'); setForgotStep(1); setResetCode(''); }} />
           </View>
 
+          {tab === 'VERIFY' && <>
+            <Text style={styles.cardTitle}>Ativar conta</Text>
+            <Field label="E-mail" value={activationEmail} onChangeText={setActivationEmail} keyboardType="email-address" />
+            <Field label="Código recebido por e-mail" value={activationCode} onChangeText={setActivationCode} keyboardType="number-pad" maxLength={6} />
+            <Pressable style={styles.primaryButton} onPress={async () => {
+              const result = await authRequest('verify-email', { email: activationEmail, code: activationCode });
+              if (!result.success) return Alert.alert('Ativação não concluída', result.error);
+              setEmail(activationEmail); setActivationCode(''); setTab('LOGIN'); Alert.alert('Conta ativada', 'Entre com seu e-mail e senha.');
+            }}><Text style={styles.primaryButtonText}>Confirmar código</Text></Pressable>
+            <Pressable style={styles.smallButton} onPress={async () => {
+              const result = await authRequest('resend-activation', { email: activationEmail });
+              Alert.alert('Código de ativação', result.message || result.error);
+            }}><Text style={styles.smallButtonText}>Reenviar código</Text></Pressable>
+          </>}
           {tab === 'LOGIN' && (
             <>
               <Text style={styles.cardTitle}>Entrar</Text>
@@ -162,7 +180,10 @@ export function LoginScreen({ onLogin, onGoogleLogin, onRegister, onRecoverAccou
               <Pressable style={styles.forgotLink} onPress={() => { setTab('FORGOT'); setForgotEmail(email); setForgotStep(1); setResetCode(''); }}>
                 <Text style={styles.forgotLinkText}>Esqueci minha senha</Text>
               </Pressable>
-              <Pressable style={styles.primaryButton} onPress={() => onLogin({ email, password, mode })}>
+              <Pressable style={styles.primaryButton} disabled={isSubmitting} onPress={async () => {
+                setIsSubmitting(true);
+                try { await onLogin({ email, password, mode }); } finally { setIsSubmitting(false); }
+              }}>
                 <Text style={styles.primaryButtonText}>Entrar como {mode === 'SYSTEM_ADMIN' ? 'administrador do sistema' : 'usuário'}</Text>
               </Pressable>
               <GoogleLoginButton
@@ -174,6 +195,7 @@ export function LoginScreen({ onLogin, onGoogleLogin, onRegister, onRecoverAccou
             </>
           )}
 
+          {tab === 'LOGIN' && <Pressable style={styles.smallButton} onPress={() => { setActivationEmail(email); setTab('VERIFY'); }}><Text style={styles.smallButtonText}>Já tenho um código de ativação</Text></Pressable>}
           {tab === 'REGISTER' && (
             <>
               <Text style={styles.cardTitle}>Criar conta</Text>
@@ -181,9 +203,13 @@ export function LoginScreen({ onLogin, onGoogleLogin, onRegister, onRecoverAccou
               <Field label="Nome completo" value={registration.name} onChangeText={(name) => setRegistration({ ...registration, name })} placeholder="Seu nome" />
               <Field label="E-mail" value={registration.email} onChangeText={(email) => setRegistration({ ...registration, email })} placeholder="voce@email.com" keyboardType="email-address" />
               <Field label="Telefone" value={registration.phone} onChangeText={(phone) => setRegistration({ ...registration, phone: formatPhone(phone) })} placeholder="(00) 00000-0000" keyboardType="phone-pad" />
-              <Field label="Senha" value={registration.password} onChangeText={(password) => setRegistration({ ...registration, password })} placeholder="Mínimo de 6 caracteres" secureTextEntry />
+              <Field label="Senha" value={registration.password} onChangeText={(password) => setRegistration({ ...registration, password })} placeholder="Mínimo de 8 caracteres" secureTextEntry />
               <Field label="Confirmar senha" value={registration.confirmPassword} onChangeText={(confirmPassword) => setRegistration({ ...registration, confirmPassword })} placeholder="Repita a senha" secureTextEntry />
-              <Pressable style={styles.primaryButton} onPress={() => onRegister(registration)}>
+              <Pressable style={styles.primaryButton} disabled={isSubmitting} onPress={async () => {
+                setIsSubmitting(true);
+                try { if (await onRegister(registration)) { setActivationEmail(registration.email); setRegistration({ ...registration, password: '', confirmPassword: '' }); setTab('VERIFY'); } }
+                finally { setIsSubmitting(false); }
+              }}>
                 <Text style={styles.primaryButtonText}>Criar conta</Text>
               </Pressable>
               <GoogleLoginButton
@@ -249,7 +275,7 @@ export function LoginScreen({ onLogin, onGoogleLogin, onRegister, onRecoverAccou
                     label="Nova senha"
                     value={newPassword}
                     onChangeText={setNewPassword}
-                    placeholder="Mínimo de 6 caracteres"
+                    placeholder="Mínimo de 8 caracteres"
                     secureTextEntry
                   />
                   <Field
@@ -305,6 +331,7 @@ function isValidGoogleClientId(clientId) {
 }
 
 function GoogleConfigurationHint({ isExpoGo }) {
+  const { styles } = useContext(ThemeContext);
   return (
     <Text style={styles.hint}>
       {isExpoGo
@@ -315,6 +342,7 @@ function GoogleConfigurationHint({ isExpoGo }) {
 }
 
 function GoogleLoginButton({ disabled, isLoading, onPress }) {
+  const { styles } = useContext(ThemeContext);
   return (
     <Pressable
       style={[styles.googleButton, disabled && styles.disabledButton]}

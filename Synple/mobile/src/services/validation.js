@@ -26,8 +26,8 @@ function validateUser({ name = '', email = '' }) {
 }
 
 function validatePassword({ current = '', next = '', confirm = '' }) {
-  if (!current || next.length < 6 || next !== confirm) {
-    return 'Informe a senha atual; a nova senha deve ter ao menos 6 caracteres e coincidir com a confirmação.';
+  if (!current || next.length < 8 || next !== confirm) {
+    return 'Informe a senha atual; a nova senha deve ter ao menos 8 caracteres e coincidir com a confirmação.';
   }
   return null;
 }
@@ -44,7 +44,7 @@ function validateRegistration({ name = '', email = '', phone = '', password = ''
     const phoneError = validatePhone(phone);
     if (phoneError) return phoneError;
   }
-  if (password.length < 6 || password !== confirmPassword) return 'A senha deve ter ao menos 6 caracteres e coincidir com a confirmação.';
+  if (password.length < 8 || password !== confirmPassword) return 'A senha deve ter ao menos 8 caracteres e coincidir com a confirmação.';
   return null;
 }
 

@@ -269,14 +269,17 @@ describe('Incremento 2: reuniões, presença e aprovação de atas', { concurren
     await createMeeting({ createdBy: ids.outsider });
     let synchronized = await fetch(base.replace('/meetings', '/sync')).then(response => response.json());
     assert.equal(synchronized.commissionMembers.find(row => row.userId === ids.outsider).role, 'COORDINATOR');
-    assert.equal((await request('PATCH', `${memberRoute}/${ids.outsider}`, { actorId: ids.owner, role: 'MEMBER' })).status, 200);
+    assert.equal((await request('PATCH', `${memberRoute}/${ids.outsider}`, { actorId: ids.owner, role: 'MEMBER' })).status, 409);
+    assert.equal((await request('DELETE', `${memberRoute}/${ids.outsider}`, { actorId: ids.owner })).status, 409);
+    assert.equal((await request('POST', memberRoute, { actorId: ids.owner, userId: ids.owner, role: 'COORDINATOR' })).status, 201);
+    assert.equal((await pool.query("SELECT COUNT(*)::int AS count FROM commission_members WHERE role = 'COORDINATOR'")).rows[0].count, 1);
     assert.equal((await request('POST', '/', meetingBody({ createdBy: ids.outsider }))).status, 403);
     const removed = await request('DELETE', `${memberRoute}/${ids.outsider}`, { actorId: ids.owner });
     assert.equal(removed.status, 200);
     assert.deepEqual(removed.data, { success: true });
     synchronized = await fetch(base.replace('/meetings', '/sync')).then(response => response.json());
     assert.equal(synchronized.commissionMembers.some(row => row.userId === ids.outsider), false);
-    assert.equal((await request('POST', '/', meetingBody({ inviteeIds: [ids.outsider] }))).status, 400);
+    assert.equal((await request('POST', '/', meetingBody({ createdBy: ids.owner, inviteeIds: [ids.outsider] }))).status, 400);
   });
 
   test('gestão de integrantes exige proprietário e acesso aprovado à organização', async () => {

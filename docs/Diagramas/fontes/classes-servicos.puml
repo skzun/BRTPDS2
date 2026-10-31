@@ -1,0 +1,63 @@
+@startuml
+!pragma layout smetana
+skinparam backgroundColor white
+skinparam shadowing false
+skinparam defaultFontName SansSerif
+skinparam defaultFontSize 13
+skinparam ArrowColor #334155
+skinparam packageStyle rectangle
+skinparam classAttributeIconSize 0
+skinparam roundcorner 5
+skinparam dpi 130
+title Classes de projeto — responsabilidades de módulos existentes
+class ClienteAPI <<módulo JS>> {
+ +loginWithApi(email: String, password: String): Promise<Resultado>
+ +registerWithApi(dados: Cadastro): Promise<Resultado>
+ +loginWithGoogleApi(idToken: String): Promise<Resultado>
+ +updateUserWithApi(userId: UUID, payload: JSON): Promise<Resultado>
+ +transferOrganizationOwnershipWithApi(orgId: UUID, atual: UUID, novo: UUID): Promise<Resultado>
+ +authRequest(endpoint: String, payload: JSON, method: String): Promise<Resultado>
+}
+class Seguranca <<módulo CommonJS>> {
+ +digest(value: String): String
+ +issueSession(userId: UUID): Promise<String>
+ +authenticate(req: Request, res: Response, next: Function): Promise<void>
+ +bindActor(req: Request, res: Response, next: Function): void
+ +rateLimit(limit: Integer, seconds: Integer): Middleware
+ +scopeSnapshot(data: Snapshot, actor: Perfil): Snapshot
+}
+class Autorizacao <<módulo CommonJS>> {
+ +authorize(req: Request, res: Response, next: Function): Promise<void>
+}
+class SessaoDispositivo <<módulo JS>> {
+ +rememberSession(value: String): Promise<void>
+ +restoreSession(): Promise<String|null>
+ +clearSession(): Promise<void>
+ +confirmBiometric(): Promise<Boolean>
+}
+class Cache <<módulo JS>> {
+ +loadStoredData(): Promise<Snapshot|null>
+ +saveData(data: Snapshot): Promise<void>
+}
+class Sanitizador <<módulo CommonJS>> {
+ +removeCredentials(value: JSON): JSON
+}
+class RotasReuniao <<módulo CommonJS>> {
+ +createMeetingsRouter(database: Database, options: JSON): Router
+}
+class GeradorPDF <<módulo CommonJS>> {
+ +generateMeetingMinutesPdf(snapshot: JSON): Promise<Buffer>
+}
+ClienteAPI ..> SessaoDispositivo : recupera token
+Autorizacao ..> Seguranca : usa identidade autenticada
+Cache ..> Sanitizador : remove credenciais
+RotasReuniao ..> GeradorPDF
+SessaoDispositivo -[hidden]down-> Autorizacao
+Seguranca -[hidden]down-> Cache
+Sanitizador -[hidden]down-> RotasReuniao
+note bottom of Seguranca
+Os módulos são representados como classificadores
+de projeto com operações reais; não são classes
+JavaScript que o código não declara.
+end note
+@enduml

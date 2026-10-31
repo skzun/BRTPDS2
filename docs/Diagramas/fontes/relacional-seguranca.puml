@@ -1,0 +1,64 @@
+@startuml
+!pragma layout smetana
+skinparam backgroundColor white
+skinparam shadowing false
+skinparam defaultFontName SansSerif
+skinparam defaultFontSize 13
+skinparam ArrowColor #334155
+skinparam packageStyle rectangle
+skinparam classAttributeIconSize 0
+skinparam roundcorner 5
+skinparam dpi 130
+title Modelo físico relacional — seguranca
+hide methods
+entity "users" as users {
+{field} * id: uuid <<PK>>
+{field} * name: character varying(120)
+{field} * email: character varying(150)
+{field} phone: character varying(20)
+{field} * password_hash: character varying(255)
+{field} google_id: character varying(255)
+{field} * system_role: character varying(30)
+{field} * theme: character varying(10)
+{field} reset_token: character varying(255)
+{field} reset_token_expires: timestamp with time zone
+{field} * created_at: timestamp with time zone
+{field} * updated_at: timestamp with time zone
+{field} * email_verified: boolean
+{field} activation_hash: text
+{field} activation_expires: timestamp with time zone
+}
+entity "auth_sessions" as auth_sessions {
+{field} * token_hash: text <<PK>>
+{field} * user_id: uuid <<FK>>
+{field} * expires_at: timestamp with time zone
+}
+entity "auth_rate_limits" as auth_rate_limits {
+{field} * key: text <<PK>>
+{field} * attempts: integer
+{field} * expires_at: timestamp with time zone
+}
+entity "system_metadata" as system_metadata {
+{field} * id: boolean <<PK>>
+{field} * initialized_at: timestamp with time zone
+}
+entity "system_subsystems" as system_subsystems {
+{field} * id: character varying(50) <<PK>>
+{field} * name: character varying(100)
+{field} * status: character varying(20)
+{field} * last_check: timestamp with time zone
+}
+entity "download_tickets" as download_tickets {
+{field} * token_hash: text <<PK>>
+{field} * session_hash: text <<FK>>
+{field} * path: text
+{field} * expires_at: timestamp with time zone
+}
+users ||--o{ auth_sessions : "user_id"
+auth_sessions ||--o{ download_tickets : "session_hash"
+legend bottom
+* = NOT NULL; PK/FK = chaves.
+Unicidades, CHECK, defaults e ações de exclusão:
+ver dicionário físico, extraído do DDL.
+endlegend
+@enduml

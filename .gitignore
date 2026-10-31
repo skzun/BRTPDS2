@@ -1,6 +1,5 @@
 # Dependências
 node_modules/
-package-lock.json
 
 # Expo e builds
 .expo/
@@ -19,3 +18,6 @@ yarn-debug.log*
 # Sistema
 .DS_Store
 Thumbs.db
+
+# Verificação local de bundles
+.verification-build/

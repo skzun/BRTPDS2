@@ -1,0 +1,34 @@
+@startuml
+!pragma layout smetana
+skinparam backgroundColor white
+skinparam shadowing false
+skinparam defaultFontName SansSerif
+skinparam defaultFontSize 13
+skinparam ArrowColor #334155
+skinparam packageStyle rectangle
+skinparam classAttributeIconSize 0
+skinparam roundcorner 5
+skinparam dpi 130
+left to right direction
+title Casos de uso — consulta e operação
+actor "Usuário autenticado" as U
+actor "Administrador do sistema" as A
+U <|-- A
+rectangle "Synple" {
+usecase "RF14\nConsultar disponibilidade e detalhes" as RF14
+usecase "RF15\nConsultar contadores" as RF15
+usecase "RF16\nVerificar disponibilidade atual" as RF16
+usecase "RF17\nConsultar marcos de inicialização" as RF17
+usecase "RF25\nAtualizar dados autorizados" as RF25
+}
+A -- RF14
+A -- RF15
+A -- RF16
+A -- RF17
+U -- RF25
+note bottom of RF16
+O aplicativo consulta serviços.
+Reinício de processos é tarefa operacional
+externa no Docker, não caso de uso implementado.
+end note
+@enduml

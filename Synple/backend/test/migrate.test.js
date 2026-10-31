@@ -21,7 +21,11 @@ test('migração repetida preserva usuários e senhas sem executar dados de demo
       'INSERT INTO users (name, email, password_hash) VALUES ($1, $2, $3)',
       ['Usuário da migração', 'migration@example.test', originalHash]
     );
+    const owner = (await isolatedPool.query('SELECT id FROM users')).rows[0].id;
+    const org = await isolatedPool.query("INSERT INTO organizations (name, document, owner_id) VALUES ('Migração', '12345678000190', $1) RETURNING id", [owner]);
+    const commission = await isolatedPool.query("INSERT INTO commissions (name, organization_id) VALUES ('Sem coordenador', $1) RETURNING id", [org.rows[0].id]);
     await migrateSchema(isolatedPool);
+    assert.deepEqual((await isolatedPool.query('SELECT user_id, role FROM commission_members WHERE commission_id = $1', [commission.rows[0].id])).rows, [{ user_id: owner, role: 'COORDINATOR' }]);
     const result = await isolatedPool.query('SELECT email, password_hash FROM users');
     assert.deepEqual(result.rows, [{ email: 'migration@example.test', password_hash: originalHash }]);
     const tables = await isolatedPool.query(

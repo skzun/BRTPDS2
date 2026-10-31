@@ -13,7 +13,7 @@ services:
       POSTGRES_PASSWORD: 123
       POSTGRES_DB: Banco_synple
     ports:
-      - "5432:5432"
+      - "127.0.0.1:5432:5432"
     volumes:
       - synple_pg_data:/var/lib/postgresql/data
     healthcheck:
@@ -37,7 +37,8 @@ services:
       postgres:
         condition: service_healthy
     env_file:
-      - ./backend/.env
+      - path: ./backend/.env
+        required: false
     environment:
       PORT: 3001
       DB_HOST: postgres

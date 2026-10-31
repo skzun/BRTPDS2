@@ -1,0 +1,47 @@
+@startuml
+!pragma layout smetana
+skinparam backgroundColor white
+skinparam shadowing false
+skinparam defaultFontName SansSerif
+skinparam defaultFontSize 13
+skinparam ArrowColor #334155
+skinparam packageStyle rectangle
+skinparam classAttributeIconSize 0
+skinparam roundcorner 5
+skinparam dpi 130
+left to right direction
+title Casos de uso — contas, perfil e sessão
+actor Visitante as V
+actor "Usuário autenticado" as U
+actor "Provedor Google" as G
+actor "Servidor SMTP" as S
+actor "Serviço biométrico do SO" as B
+rectangle "Synple" {
+usecase "RF07\nCadastrar conta" as RF07
+usecase "RF21\nAtivar conta / reenviar código" as RF21
+usecase "RF19\nEntrar com e-mail e senha" as RF19
+usecase "RF20\nEntrar com Google" as RF20
+usecase "RF11\nRecuperar senha por código" as RF11
+usecase "RF10\nTrocar senha" as RF10
+usecase "RF12\nAlterar nome / telefone" as RF12
+usecase "RF13\nEscolher tema" as RF13
+usecase "RF26\nReabrir sessão com biometria" as RF26
+usecase "RF18\nSair e limpar cache" as RF18
+}
+V -- RF07
+V -- RF21
+V -- RF19
+V -- RF20
+V -- RF11
+V -- RF26
+U -- RF10
+U -- RF12
+U -- RF13
+U -- RF18
+G -- RF20
+S -- RF07
+S -- RF21
+S -- RF11
+B -- RF26
+B -- RF12
+@enduml

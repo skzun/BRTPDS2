@@ -1,0 +1,27 @@
+@startuml
+!pragma layout smetana
+skinparam backgroundColor white
+skinparam shadowing false
+skinparam defaultFontName SansSerif
+skinparam defaultFontSize 13
+skinparam ArrowColor #334155
+skinparam packageStyle rectangle
+skinparam classAttributeIconSize 0
+skinparam roundcorner 5
+skinparam dpi 130
+title SQ06 — convite para organização
+autonumber
+actor Pessoa
+participant "App Synple" as App
+participant "API Express" as API
+database PostgreSQL as DB
+Pessoa -> App : Proprietário informa e-mail e envia convite
+App -> API : POST /organizations/:id/invitations
+API -> DB : Confere proprietário e conta verificada
+API -> DB : INSERT vínculo PENDING, invited_by, accepted=false
+API --> App : 201 ou conflito
+Pessoa -> App : Destinatário atualiza e aceita/recusa
+App -> API : PATCH /organizations/:id/invitations/:requestId
+API -> DB : UPDATE somente vínculo do usuário da sessão
+API --> App : APPROVED/aceito ou REJECTED/recusado
+@enduml

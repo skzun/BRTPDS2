@@ -1,4 +1,4 @@
-import { useContext } from 'react';
+import { useContext, useEffect, useRef } from 'react';
 import { Text, TextInput, View } from 'react-native';
 import { Pressable } from './ActionPressable';
 
@@ -12,14 +12,18 @@ export function StatusBadge({ status }) {
 
 export function Field({ label, value, onChangeText, placeholder, keyboardType = 'default', secureTextEntry = false, autoCapitalize, multiline = false, maxLength, editable = true, accessibilityLabel }) {
   const { isDark, styles: themeStyles } = useContext(ThemeContext);
+  const inputRef = useRef(null);
+  const lastText = useRef(String(value ?? ''));
+  useEffect(() => { const text = String(value ?? ''); if (text !== lastText.current) { inputRef.current?.setNativeProps({ text }); lastText.current = text; } }, [value]);
   const resolvedAutoCapitalize = autoCapitalize || (secureTextEntry || keyboardType === 'email-address' ? 'none' : 'sentences');
   return (
     <View style={themeStyles.field}>
       <Text style={themeStyles.label}>{label}</Text>
       <TextInput
         accessibilityLabel={accessibilityLabel || label}
-        value={value}
-        onChangeText={onChangeText}
+        ref={inputRef}
+        defaultValue={String(value ?? '')}
+        onChangeText={text => { lastText.current = text; onChangeText?.(text); }}
         placeholder={placeholder}
         placeholderTextColor={isDark ? '#64748B' : '#94A3B8'}
         keyboardType={keyboardType}

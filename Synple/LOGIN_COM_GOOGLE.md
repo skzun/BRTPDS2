@@ -79,3 +79,7 @@ O código de recuperação redefine a senha local usada para entrar com e-mail n
 ## Segurança do fluxo
 
 O Client ID é público e pode ficar no `.env` do mobile. O backend recebe o ID token e só aceita tokens emitidos para os IDs listados em `GOOGLE_OAUTH_CLIENT_IDS`; também exige e-mail verificado. Não coloque Client Secret, senha do banco ou outra chave privada no aplicativo.
+
+## Atualização de segurança de 30/10/2026
+
+O backend emite uma sessão após validar o Google; o aplicativo envia Bearer token nas rotas privadas. Biometria e SecureStore foram adicionados: gere e instale novo development build. O mesmo APK Android compatível pode ser instalado em outros aparelhos. Client IDs Web/Android e SHA-1 devem corresponder a esse APK; copiar o checkout não configura automaticamente as credenciais. O Docker da raiz agora carrega Synple/backend/.env. Não envie esse arquivo com senhas SMTP a repositório público.

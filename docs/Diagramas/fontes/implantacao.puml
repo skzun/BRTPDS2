@@ -1,0 +1,46 @@
+@startuml
+!pragma layout smetana
+skinparam backgroundColor white
+skinparam shadowing false
+skinparam defaultFontName SansSerif
+skinparam defaultFontSize 13
+skinparam ArrowColor #334155
+skinparam packageStyle rectangle
+skinparam classAttributeIconSize 0
+skinparam roundcorner 5
+skinparam dpi 130
+title Implantação implementada — desenvolvimento
+node "Celular Android/iOS" {
+ artifact "Synple development build\nExpo 57 / React Native" as APP
+ artifact "SecureStore + biometria" as BIO
+ artifact "AsyncStorage sanitizado" as CACHE
+}
+node "Computador de desenvolvimento" {
+ artifact "Metro / Expo CLI\nporta 8081" as METRO
+ artifact "cloudflared" as CF
+ node "Docker Compose" {
+  artifact "API Express / Node 22\nporta 3001" as API
+  database "PostgreSQL 16\nvolume persistente" as PG
+ }
+}
+cloud "Túnel Expo" as ET
+cloud "Quick Tunnel Cloudflare" as CT
+cloud "Google OAuth" as GOOGLE
+cloud "SMTP configurado" as SMTP
+APP -- BIO
+APP -- CACHE
+APP --> ET : bundle de desenvolvimento
+ET --> METRO
+APP --> CT : HTTPS / API e Bearer
+CT --> CF
+CF --> API : HTTP local
+API --> PG : rede interna Docker
+APP --> GOOGLE : login nativo
+API --> GOOGLE : valida ID token
+API --> SMTP : códigos por e-mail
+note bottom of API
+LAN pode usar HTTP durante desenvolvimento.
+Produção exige HTTPS e URL estável;
+o quick tunnel não é hospedagem permanente.
+end note
+@enduml

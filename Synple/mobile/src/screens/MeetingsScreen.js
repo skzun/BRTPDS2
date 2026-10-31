@@ -5,6 +5,7 @@ import { Choice, DateTimeField, Field } from '../components/FormControls';
 import { buildAttendanceText, buildMeetingPayload, canManageMeetingCommission, getAccessibleMeetingCommissions, getMeetingAttendanceRows, getMinutesVotingSummary } from '../services/meetings';
 import { getApiBaseUrl } from '../services/api';
 import { prepareMinutesPdf } from '../services/meetingMinutesPdf';
+import { authenticatedFetch, authorizePdfDownload } from '../services/api';
 import { ThemeContext } from '../styles/theme';
 
 const INVITATION_LABELS = { INVITED: 'Aguardando resposta', ACCEPTED: 'Aceito', DECLINED: 'Recusado' };
@@ -91,10 +92,12 @@ function MeetingCard({ data, meeting, activeUser, isManager, onRespond, onAttend
     if (browserWindow) browserWindow.opener = null;
     await perform('pdf', async () => {
       try {
-        const url = await prepareMinutesPdf({
+        const pdfUrl = await prepareMinutesPdf({
+          fetchImpl: authenticatedFetch,
           apiBaseUrl: getApiBaseUrl(), meetingId: meeting.id,
           userId: activeUser.id, version: minutes.version,
         });
+        const url = await authorizePdfDownload(pdfUrl);
         if (browserWindow) browserWindow.location.replace(url);
         else await Linking.openURL(url);
         return true;

@@ -26,10 +26,10 @@ test('exige e-mail e senha no login', () => {
 });
 
 test('valida os dados necessários para cadastro', () => {
-  assert.equal(validateRegistration({ name: 'Ana', email: 'ana@example.com', password: 'senha1', confirmPassword: 'senha1' }), null);
-  assert.ok(validateRegistration({ name: '', email: 'ana@example.com', password: 'senha1', confirmPassword: 'senha1' }));
+  assert.equal(validateRegistration({ name: 'Ana', email: 'ana@example.com', password: 'senha123', confirmPassword: 'senha123' }), null);
+  assert.ok(validateRegistration({ name: '', email: 'ana@example.com', password: 'senha123', confirmPassword: 'senha123' }));
   assert.ok(validateRegistration({ name: 'Ana', email: 'ana@example.com', password: '12345', confirmPassword: '12345' }));
-  assert.ok(validateRegistration({ name: 'Ana', email: 'ana@example.com', password: 'senha1', confirmPassword: 'senha2' }));
+  assert.ok(validateRegistration({ name: 'Ana', email: 'ana@example.com', password: 'senha123', confirmPassword: 'senha456' }));
 });
 
 test('exige nome e CNPJ para organização', () => {
@@ -43,11 +43,11 @@ test('exige nome para comissão ou grupo de trabalho', () => {
   assert.ok(validateCommission({ name: '   ' }));
 });
 
-test('exige senha atual, mínimo de seis caracteres e confirmação', () => {
-  assert.equal(validatePassword({ current: 'atual', next: 'nova12', confirm: 'nova12' }), null);
-  assert.ok(validatePassword({ current: '', next: 'nova12', confirm: 'nova12' }));
+test('exige senha atual, mínimo de oito caracteres e confirmação', () => {
+  assert.equal(validatePassword({ current: 'atual', next: 'nova1234', confirm: 'nova1234' }), null);
+  assert.ok(validatePassword({ current: '', next: 'nova1234', confirm: 'nova1234' }));
   assert.ok(validatePassword({ current: 'atual', next: '12345', confirm: '12345' }));
-  assert.ok(validatePassword({ current: 'atual', next: 'nova12', confirm: 'outra12' }));
+  assert.ok(validatePassword({ current: 'atual', next: 'nova1234', confirm: 'outra123' }));
 });
 
 test('formata telefone corretamente', () => {

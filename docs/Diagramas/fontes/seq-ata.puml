@@ -1,0 +1,38 @@
+@startuml
+!pragma layout smetana
+skinparam backgroundColor white
+skinparam shadowing false
+skinparam defaultFontName SansSerif
+skinparam defaultFontSize 13
+skinparam ArrowColor #334155
+skinparam packageStyle rectangle
+skinparam classAttributeIconSize 0
+skinparam roundcorner 5
+skinparam dpi 130
+title SQ10 — ata, versão e unanimidade
+autonumber
+actor Pessoa
+participant "App Synple" as App
+participant "API Express" as API
+database PostgreSQL as DB
+Pessoa -> App : Gestor salva texto da ata
+App -> API : POST /meetings/:id/minutes
+API -> DB : Valida gestor; salva rascunho / nova versão
+Pessoa -> App : Gestor submete ata
+App -> API : POST /meetings/:id/minutes/submit
+API -> DB : BEGIN; lock da reunião/ata e presentes
+API -> DB : Fixa required_approver_ids; IN_REVIEW; COMMIT
+Pessoa -> App : Aprovador decide sobre versão lida
+App -> API : PATCH /meetings/:id/minutes/approval
+API -> DB : BEGIN; lock; confere ator, versão e conjunto
+API -> DB : Salva decisão atual
+alt rejeição
+ API -> DB : Situação REJECTED
+else unanimidade
+ API -> DB : Situação APPROVED e approved_at
+else decisões pendentes
+ API -> DB : Mantém IN_REVIEW
+end
+API -> DB : COMMIT
+API --> App : Ata e decisões atuais
+@enduml

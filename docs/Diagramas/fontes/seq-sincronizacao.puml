@@ -1,0 +1,29 @@
+@startuml
+!pragma layout smetana
+skinparam backgroundColor white
+skinparam shadowing false
+skinparam defaultFontName SansSerif
+skinparam defaultFontSize 13
+skinparam ArrowColor #334155
+skinparam packageStyle rectangle
+skinparam classAttributeIconSize 0
+skinparam roundcorner 5
+skinparam dpi 130
+title SQ05 — sincronização e cache
+autonumber
+actor Pessoa
+participant "App Synple" as App
+participant "API Express" as API
+database PostgreSQL as DB
+participant AsyncStorage
+Pessoa -> App : Atualizar
+App -> API : GET /sync com Bearer
+API -> DB : Consulta coleções e system_metadata
+API -> API : Filtra por papel, vínculo e histórico
+API --> App : Snapshot autorizado
+App -> App : Substitui snapshot e remove credenciais
+App -> AsyncStorage : setItem(@synple:incremento-1, JSON)
+alt indisponibilidade da API
+ App --> Pessoa : Estado offline; não confirma novas escritas
+end
+@enduml

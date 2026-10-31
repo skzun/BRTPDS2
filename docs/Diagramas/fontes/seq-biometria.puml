@@ -1,0 +1,40 @@
+@startuml
+!pragma layout smetana
+skinparam backgroundColor white
+skinparam shadowing false
+skinparam defaultFontName SansSerif
+skinparam defaultFontSize 13
+skinparam ArrowColor #334155
+skinparam packageStyle rectangle
+skinparam classAttributeIconSize 0
+skinparam roundcorner 5
+skinparam dpi 130
+title SQ12 — sessão protegida e perfil
+autonumber
+actor Pessoa
+participant "App Synple" as App
+participant "API Express" as API
+database PostgreSQL as DB
+participant "Biometria / SecureStore" as Bio
+Pessoa -> App : Reabre app após login anterior
+App -> Bio : Solicita token protegido
+Bio --> Pessoa : Solicita autenticação
+Pessoa --> Bio : Autoriza ou cancela
+Bio --> App : Token ou ausência
+App -> API : GET /auth/me com Bearer, quando disponível
+API -> DB : Confere validade da sessão
+API --> App : Perfil ou 401
+Pessoa -> App : Altera nome/telefone e toca Salvar dados
+App -> Bio : confirmBiometric()
+alt biometria forte autorizada
+ App -> API : PUT /users/:id com Bearer
+ API -> DB : Atualiza próprio perfil
+ API --> App : Perfil atualizado
+else indisponível ou cancelada
+ App --> Pessoa : Alteração não enviada
+end
+note right of API
+Biometria é proteção local;
+a API verifica sessão, não recebe prova biométrica.
+end note
+@enduml

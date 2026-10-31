@@ -1,0 +1,48 @@
+@startuml
+!pragma layout smetana
+skinparam backgroundColor white
+skinparam shadowing false
+skinparam defaultFontName SansSerif
+skinparam defaultFontSize 13
+skinparam ArrowColor #334155
+skinparam packageStyle rectangle
+skinparam classAttributeIconSize 0
+skinparam roundcorner 5
+skinparam dpi 130
+left to right direction
+title Casos de uso — organizações e comissões
+actor "Usuário autenticado" as U
+actor "Proprietário da organização" as O
+actor "Administrador do sistema" as A
+U <|-- O
+U <|-- A
+rectangle "Synple" {
+usecase "RF01\nCadastrar organização" as RF01
+usecase "RF02\nDecidir situação da organização" as RF02
+usecase "RF03\nListar / remover organizações" as RF03
+usecase "RF04\nCriar comissão" as RF04
+usecase "RF05\nEditar / inativar / excluir comissão" as RF05
+usecase "RF06\nGerenciar integrantes e coordenador" as RF06
+usecase "RF08\nSolicitar / decidir ingresso" as RF08
+usecase "RF09\nAlterar cargo / revogar vínculo" as RF09
+usecase "RF22\nTransferir propriedade" as RF22
+usecase "RF23\nConvidar conta existente" as RF23
+usecase "RF24\nAceitar / recusar convite" as RF24
+usecase "RF27\nExcluir conta administrativamente" as RF27
+usecase "RF28\nAlterar dados da organização" as RF28
+}
+U -- RF01
+U -- RF08
+U -- RF24
+O -- RF04
+O -- RF05
+O -- RF06
+O -- RF08
+O -- RF09
+O -- RF22
+O -- RF23
+A -- RF02
+A -- RF03
+A -- RF27
+O -- RF28
+@enduml

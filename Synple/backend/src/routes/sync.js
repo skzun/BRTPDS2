@@ -1,5 +1,6 @@
 const express = require('express');
 const db = require('../db/connection');
+const { scopeSnapshot } = require('../services/security');
 
 function createSyncRouter(db) {
   const router = express.Router();
@@ -9,7 +10,7 @@ function createSyncRouter(db) {
     try {
       const usersRes = await db.query('SELECT id, name, email, phone, system_role as "systemRole", theme FROM users ORDER BY created_at;');
       const orgsRes = await db.query('SELECT id, name, document, owner_id as "ownerId", status FROM organizations ORDER BY created_at;');
-      const reqsRes = await db.query('SELECT id, organization_id as "organizationId", user_id as "userId", status, organization_role as "organizationRole" FROM access_requests ORDER BY created_at;');
+      const reqsRes = await db.query('SELECT id, organization_id as "organizationId", user_id as "userId", status, organization_role as "organizationRole", invited_by AS "invitedBy", invitation_accepted AS "invitationAccepted" FROM access_requests ORDER BY created_at;');
       const commsRes = await db.query('SELECT id, organization_id as "organizationId", name, type, description, status FROM commissions ORDER BY created_at;');
       const membersRes = await db.query('SELECT commission_id as "commissionId", user_id as "userId", role FROM commission_members;');
       const meetingsRes = await db.query('SELECT id, commission_id as "commissionId", title, starts_at as "startsAt", ends_at as "endsAt", agenda, created_by as "createdBy" FROM meetings ORDER BY starts_at;');
@@ -23,7 +24,8 @@ function createSyncRouter(db) {
         version, decision, comment, decided_at AS "decidedAt" FROM meeting_minutes_approvals ORDER BY decided_at;`);
       const subsRes = await db.query('SELECT id, name, status FROM system_subsystems;');
 
-      return res.json({
+      const metadata = await db.query('SELECT initialized_at FROM system_metadata WHERE id = TRUE');
+      const snapshot = {
         users: usersRes.rows,
         organizations: orgsRes.rows,
         accessRequests: reqsRes.rows,
@@ -36,10 +38,11 @@ function createSyncRouter(db) {
         meetingMinutesApprovals: approvalsRes.rows,
         system: {
           initialized: true,
-          initializedAt: new Date().toISOString(),
-          subsystems: subsRes.rows,
+          initializedAt: metadata.rows[0]?.initialized_at,
+          subsystems: [{ id: 'api', name: 'API', status: 'ONLINE' }, { id: 'database', name: 'PostgreSQL', status: 'ONLINE' }],
         },
-      });
+      };
+      return res.json(req.auth ? scopeSnapshot(snapshot, req.auth) : snapshot);
     } catch (err) {
       console.error('Erro no endpoint /api/sync:', err);
       return res.status(500).json({ error: 'Falha ao sincronizar dados com o PostgreSQL.' });

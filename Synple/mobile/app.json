@@ -11,7 +11,7 @@
     ],
     "orientation": "portrait",
     "icon": "./assets/synple-icon.png",
-    "userInterfaceStyle": "light",
+    "userInterfaceStyle": "automatic",
     "splash": {
       "image": "./assets/synple-splash.png",
       "resizeMode": "contain",
@@ -51,6 +51,24 @@
         "@react-native-google-signin/google-signin",
         {
           "iosUrlScheme": "com.googleusercontent.apps.236318220270-fsjeskbvqq2rbfserqv6j1lh86f6f3k9"
+        }
+      ],
+      "expo-secure-store",
+      [
+        "expo-build-properties",
+        {
+          "android": {
+            "minSdkVersion": 24
+          },
+          "ios": {
+            "deploymentTarget": "16.4"
+          }
+        }
+      ],
+      [
+        "expo-local-authentication",
+        {
+          "faceIDPermission": "Permitir que o Synple confirme sua identidade para entrar e alterar seu perfil."
         }
       ]
     ],
