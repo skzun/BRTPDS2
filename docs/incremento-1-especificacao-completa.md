@@ -21,7 +21,7 @@ Cada ficha registra ator, gatilho, pré/pós-condições, fluxo, exceções, dad
 
 ## 2. Arquitetura, versões e configurações
 
-Cliente Expo SDK 57/React Native 0.86, JavaScript, componentes próprios; API Express 4/Node 22, SQL parametrizado com pg e PostgreSQL 16. Não há ORM Sequelize nem classes JavaScript de entidade declaradas. O modelo de classes abaixo é de análise/projeto; operações de módulos são identificadas separadamente.
+Cliente Expo SDK 58/React Native 0.88/React 19.3, JavaScript, componentes próprios; API Express 4/Node 22, SQL parametrizado com pg e PostgreSQL 16. Não há ORM Sequelize nem classes JavaScript de entidade declaradas. O modelo de classes abaixo é de análise/projeto; operações de módulos são identificadas separadamente. Requisitos e rastreabilidade do Incremento 3 estão em [documento complementar](INCREMENTO_3.md).
 
 Android mínimo 7/API 24; iOS mínimo 16.4; Node mínimo 22.13. [Tabela completa de tecnologias](tecnologias-versoes.md). Faixa semver do manifest, versão do lockfile e versão do processo/imagem são coisas distintas; tags Docker e CLI latest não fixam patch. A compatibilidade declarada não comprova teste em todos os aparelhos.
 

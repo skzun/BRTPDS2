@@ -1,0 +1,12 @@
+@startuml
+title RF03.05 — consultar manual digital
+actor Usuário
+participant "App mobile" as App
+Usuário -> App: Seleciona Manual
+App -> App: Renderiza tópicos incluídos no pacote mobile
+App --> Usuário: Exibe instruções de uso
+note over App
+Consulta local; não envia dados
+nem depende da API.
+end note
+@enduml

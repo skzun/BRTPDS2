@@ -1,0 +1,43 @@
+@startuml
+title Modelo físico — votação do Incremento 3
+hide methods
+entity "meetings" as meetings {
+ * id: uuid <<PK>>
+}
+entity "users" as users {
+ * id: uuid <<PK>>
+}
+entity "meeting_votes" as votes {
+ * id: uuid <<PK>>
+ * meeting_id: uuid <<FK>>
+ * question: varchar(500)
+ * status: varchar(10)
+ * created_by: uuid <<FK>>
+ * created_at: timestamptz
+ closed_at: timestamptz
+}
+entity "meeting_vote_options" as options {
+ * id: uuid <<PK>>
+ * vote_id: uuid <<FK>>
+ * label: varchar(160)
+ * position: smallint
+}
+entity "meeting_vote_ballots" as ballots {
+ * id: uuid <<PK>>
+ * vote_id: uuid <<FK>>
+ * option_id: uuid <<FK>>
+ * user_id: uuid <<FK>>
+ * cast_at: timestamptz
+}
+meetings ||--o{ votes
+users ||--o{ votes : created_by
+votes ||--|{ options
+votes ||--o{ ballots
+options ||--o{ ballots : option_id + vote_id
+users ||--o{ ballots
+note bottom of ballots
+UNIQUE (vote_id, user_id)
+UNIQUE (vote_id, position)
+UUIDs usam gen_random_uuid().
+end note
+@enduml

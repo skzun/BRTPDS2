@@ -392,6 +392,49 @@ Autorização curta para abrir PDF em navegador sem expor o Bearer token.
 
 - `download_tickets_pkey`: `CREATE UNIQUE INDEX download_tickets_pkey ON download_tickets USING btree (token_hash)`.
 
+## Incremento 3 — votações
+
+### Tabela `meeting_votes`
+
+Votação de escolha única ligada a uma reunião; não representa decisão de aprovação de ata.
+
+| Coluna | Tipo SQL | Aceita NULL | Default | Significado/domínio |
+| --- | --- | --- | --- | --- |
+| `id` | `uuid` | Não | `gen_random_uuid()` | Identificador da votação. |
+| `meeting_id` | `uuid` | Não | — | Reunião da votação; FK com exclusão em cascata. |
+| `question` | `character varying(500)` | Não | — | Pergunta da votação; não pode ficar vazia. |
+| `status` | `character varying(10)` | Não | `'OPEN'` | OPEN ou CLOSED; encerramento usa horário do servidor. |
+| `created_by` | `uuid` | Não | — | Usuário autenticado que abriu a votação. FK sem ação de exclusão explícita. |
+| `created_at` | `timestamp with time zone` | Não | `now()` | Instante de abertura. |
+| `closed_at` | `timestamp with time zone` | Sim | — | Instante de encerramento; nulo enquanto aberta. |
+
+Restrições: PK `id`; FKs para meetings e users; CHECK para pergunta não vazia e status; UNIQUE `(id, meeting_id)` para referências compostas.
+
+### Tabela `meeting_vote_options`
+
+| Coluna | Tipo SQL | Aceita NULL | Default | Significado/domínio |
+| --- | --- | --- | --- | --- |
+| `id` | `uuid` | Não | `gen_random_uuid()` | Identificador da opção. |
+| `vote_id` | `uuid` | Não | — | Votação; FK com cascata. |
+| `label` | `character varying(160)` | Não | — | Texto da opção; não pode ficar vazio. |
+| `position` | `smallint` | Não | — | Ordem de exibição, iniciando em 1; entre 2 e 8 opções são validadas pela rota. |
+
+Restrições: PK `id`; FK `vote_id` com cascata; CHECK para texto não vazio e `position > 0`; UNIQUE `(vote_id, position)` e `(id, vote_id)`.
+
+### Tabela `meeting_vote_ballots`
+
+| Coluna | Tipo SQL | Aceita NULL | Default | Significado/domínio |
+| --- | --- | --- | --- | --- |
+| `id` | `uuid` | Não | `gen_random_uuid()` | Identificador do voto. |
+| `vote_id` | `uuid` | Não | — | Votação a que o voto pertence. |
+| `option_id` | `uuid` | Não | — | Opção selecionada; FK composta com `vote_id`, garantindo opção da mesma votação. |
+| `user_id` | `uuid` | Não | — | Participante; FK com exclusão em cascata. |
+| `cast_at` | `timestamp with time zone` | Não | `now()` | Última gravação do voto. |
+
+Restrições: PK `id`; FKs para votação, opção composta `(option_id, vote_id)` e usuário; UNIQUE `(vote_id, user_id)` permite apenas um registro por pessoa/votação. Enquanto aberta, a rota atualiza esse registro; após fechamento, não aceita alterações. Índices adicionais: `idx_meeting_votes_meeting (meeting_id, created_at)` e `idx_meeting_vote_ballots_vote (vote_id)`.
+
+IDs UUID são gerados pelo PostgreSQL com `gen_random_uuid()`; seed/incremento numérico não se aplica.
+
 ## Limites e integridade entre camadas
 
 - Não existem triggers gerais de updated_at. Rotas precisam atualizar o campo explicitamente.

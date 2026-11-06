@@ -33,7 +33,7 @@ async function shareMeetingText(title, message) {
   // O texto selecionável permanece na tela nos navegadores sem compartilhamento/clipboard.
 }
 
-function MeetingCard({ data, meeting, activeUser, isManager, onRespond, onAttendance, onGenerateAttendance, onSaveMinutes, onSubmitMinutes, onApproveMinutes }) {
+function MeetingCard({ data, meeting, activeUser, isManager, onRespond, onAttendance, onGenerateAttendance, onSaveMinutes, onSubmitMinutes, onApproveMinutes, onCreateVote, onCastVote, onCloseVote }) {
   const { styles } = useContext(ThemeContext);
   const minutes = (data.meetingMinutes || []).find((item) => item.meetingId === meeting.id);
   const [content, setContent] = useState(minutes?.content || '');
@@ -42,6 +42,8 @@ function MeetingCard({ data, meeting, activeUser, isManager, onRespond, onAttend
   const [pending, setPending] = useState('');
   const [generatedRows, setGeneratedRows] = useState(null);
   const [sharePreview, setSharePreview] = useState('');
+  const [voteQuestion, setVoteQuestion] = useState('');
+  const [voteOptionsText, setVoteOptionsText] = useState('');
   const inFlight = useRef(false);
   const invitation = data.meetingInvitations.find((item) => item.meetingId === meeting.id && item.userId === activeUser.id);
   const attendance = data.meetingAttendance.find((item) => item.meetingId === meeting.id && item.userId === activeUser.id);
@@ -51,6 +53,7 @@ function MeetingCard({ data, meeting, activeUser, isManager, onRespond, onAttend
   const ownVote = votes.voters.find((item) => item.userId === activeUser.id);
   const canEdit = isManager && minutes?.status !== 'APPROVED';
   const lockedAttendance = ['IN_REVIEW', 'APPROVED'].includes(minutes?.status);
+  const meetingVotes = (data.meetingVotes || []).filter((item) => item.meetingId === meeting.id);
 
   useEffect(() => {
     if (!dirty) setContent(minutes?.content || '');
@@ -130,6 +133,13 @@ function MeetingCard({ data, meeting, activeUser, isManager, onRespond, onAttend
     if (saved) setDirty(false);
   }
 
+  async function openVote() {
+    const options = voteOptionsText.split('\n').map((option) => option.trim()).filter(Boolean);
+    if (!voteQuestion.trim() || options.length < 2) return Alert.alert('Votação incompleta', 'Informe uma pergunta e pelo menos duas opções, uma por linha.');
+    const saved = await perform('openVote', () => onCreateVote(meeting.id, voteQuestion.trim(), options));
+    if (saved) { setVoteQuestion(''); setVoteOptionsText(''); }
+  }
+
   function confirmSubmission() {
     Alert.alert('Enviar ata para aprovação', 'Todos os participantes com entrada registrada deverão aprovar esta versão, incluindo o presidente se estiver na lista. Novas entradas ficarão bloqueadas durante a aprovação.', [
       { text: 'Cancelar', style: 'cancel' },
@@ -187,6 +197,41 @@ function MeetingCard({ data, meeting, activeUser, isManager, onRespond, onAttend
         </View>
       ))}
       <Pressable disabled={!!pending} style={styles.secondaryButton} onPress={generateAttendance}><Text style={styles.secondaryButtonText}>{pending === 'list' ? 'Gerando…' : 'Gerar / compartilhar lista de presença'}</Text></Pressable>
+
+      <Text style={[styles.label, { marginTop: 14 }]}>Votações da reunião</Text>
+      {meetingVotes.map((vote) => {
+        const options = (data.meetingVoteOptions || []).filter((option) => option.voteId === vote.id).sort((a, b) => a.position - b.position);
+        const tallies = (data.meetingVoteTallies || []).filter((tally) => tally.voteId === vote.id);
+        const myBallot = (data.meetingVoteOwnBallots || []).find((ballot) => ballot.voteId === vote.id && ballot.userId === activeUser.id);
+        const totalBallots = tallies.reduce((sum, tally) => sum + tally.count, 0);
+        return (
+          <View key={vote.id} style={{ marginBottom: 12 }}>
+            <Text style={styles.memberDetail}>{vote.question} · {vote.status === 'OPEN' ? 'Aberta' : 'Encerrada'}</Text>
+            <Text style={styles.hint}>Votação aberta: participantes com entrada registrada podem votar uma vez e alterar a escolha enquanto estiver aberta.</Text>
+            {options.map((option) => {
+              const count = tallies.find((tally) => tally.optionId === option.id)?.count || 0;
+              return (
+                <View key={option.id} style={{ marginTop: 5 }}>
+                  {vote.status === 'OPEN' && !!attendance?.enteredAt
+                    ? <Choice label={`${option.label}${myBallot?.optionId === option.id ? ' · Sua escolha' : ''}`} active={myBallot?.optionId === option.id} onPress={() => perform(`ballot-${vote.id}`, () => onCastVote(meeting.id, vote.id, option.id))} />
+                    : <Text style={styles.memberDetail}>{option.label}</Text>}
+                  <Text style={styles.muted}>{count} voto(s)</Text>
+                </View>
+              );
+            })}
+            <Text style={styles.muted}>{totalBallots} voto(s) registrado(s)</Text>
+            {isManager && vote.status === 'OPEN' && <Pressable disabled={!!pending} style={styles.secondaryButton} onPress={() => Alert.alert('Encerrar votação', 'Depois de encerrada, ninguém poderá alterar o voto.', [{ text: 'Cancelar', style: 'cancel' }, { text: 'Encerrar', onPress: () => perform('closeVote', () => onCloseVote(meeting.id, vote.id)) }])}><Text style={styles.secondaryButtonText}>Encerrar votação</Text></Pressable>}
+          </View>
+        );
+      })}
+      {isManager && (
+        <>
+          <Field label="Pergunta da votação" value={voteQuestion} onChangeText={setVoteQuestion} placeholder="Ex.: Qual proposta devemos priorizar?" maxLength={500} />
+          <Field label="Opções (uma por linha)" value={voteOptionsText} onChangeText={setVoteOptionsText} placeholder={'Proposta A\nProposta B'} multiline maxLength={1400} />
+          <Pressable disabled={!!pending} style={styles.primaryButton} onPress={openVote}><Text style={styles.primaryButtonText}>{pending === 'openVote' ? 'Abrindo…' : 'Abrir votação'}</Text></Pressable>
+        </>
+      )}
+      {!isManager && meetingVotes.length === 0 && <Text style={styles.muted}>O presidente ainda não abriu votações.</Text>}
 
       <Text style={[styles.label, { marginTop: 14 }]}>Ata da reunião{minutes ? ` · versão ${minutes.version}` : ''}</Text>
       {minutes && <Text style={styles.memberDetail}>Situação: {MINUTES_LABELS[minutes.status] || minutes.status}</Text>}
@@ -250,7 +295,7 @@ function MeetingCard({ data, meeting, activeUser, isManager, onRespond, onAttend
   );
 }
 
-export function MeetingsScreen({ data, activeUser, meetings, onSchedule, onRespond, onAttendance, onGenerateAttendance, onSaveMinutes, onSubmitMinutes, onApproveMinutes, onRefresh, isRefreshing }) {
+export function MeetingsScreen({ data, activeUser, meetings, onSchedule, onRespond, onAttendance, onGenerateAttendance, onSaveMinutes, onSubmitMinutes, onApproveMinutes, onCreateVote, onCastVote, onCloseVote, onRefresh, isRefreshing }) {
   const { styles } = useContext(ThemeContext);
   const [selectedCommissionId, setSelectedCommissionId] = useState('');
   const [form, setForm] = useState(EMPTY_FORM);
@@ -322,7 +367,7 @@ export function MeetingsScreen({ data, activeUser, meetings, onSchedule, onRespo
         </View>
       )}
       {visibleMeetings.length === 0 && <Text style={styles.empty}>Não há reuniões para esta comissão.</Text>}
-      {visibleMeetings.map((meeting) => <MeetingCard key={meeting.id} data={data} meeting={meeting} activeUser={activeUser} isManager={isManager} onRespond={onRespond} onAttendance={onAttendance} onGenerateAttendance={onGenerateAttendance} onSaveMinutes={onSaveMinutes} onSubmitMinutes={onSubmitMinutes} onApproveMinutes={onApproveMinutes} />)}
+      {visibleMeetings.map((meeting) => <MeetingCard key={meeting.id} data={data} meeting={meeting} activeUser={activeUser} isManager={isManager} onRespond={onRespond} onAttendance={onAttendance} onGenerateAttendance={onGenerateAttendance} onSaveMinutes={onSaveMinutes} onSubmitMinutes={onSubmitMinutes} onApproveMinutes={onApproveMinutes} onCreateVote={onCreateVote} onCastVote={onCastVote} onCloseVote={onCloseVote} />)}
     </>
   );
 }

@@ -1,6 +1,6 @@
 # Tecnologias e versões — Synple
 
-Revisão: 30/10/2026. Faixas vêm dos manifests; versões resolvidas vêm dos lockfiles versionados. Não representam prova de instalação em outro PC.
+Revisão: 06/11/2026. Faixas vêm dos manifests; versões resolvidas vêm dos lockfiles versionados. Não representam prova de instalação em outro PC ou de build publicado.
 
 ## mobile
 
@@ -8,19 +8,19 @@ Revisão: 30/10/2026. Faixas vêm dos manifests; versões resolvidas vêm dos lo
 | --- | --- | --- | --- |
 | `@react-native-async-storage/async-storage` | `2.2.0` | `2.2.0` | Aplicação |
 | `@react-native-google-signin/google-signin` | `^16.1.5` | `16.2.0` | Aplicação |
-| `expo` | `~57.0.24` | `57.0.31` | Aplicação |
-| `expo-auth-session` | `~57.0.15` | `57.0.15` | Aplicação |
-| `expo-build-properties` | `~57.0.22` | `57.0.22` | Aplicação |
-| `expo-dev-client` | `~57.0.20` | `57.0.20` | Aplicação |
-| `expo-local-authentication` | `~57.0.3` | `57.0.3` | Aplicação |
-| `expo-secure-store` | `~57.0.4` | `57.0.4` | Aplicação |
-| `expo-splash-screen` | `~57.0.9` | `57.0.9` | Aplicação |
-| `expo-status-bar` | `~57.0.1` | `57.0.1` | Aplicação |
-| `expo-web-browser` | `~57.0.3` | `57.0.3` | Aplicação |
-| `react` | `19.2.3` | `19.2.3` | Aplicação |
-| `react-dom` | `19.2.3` | `19.2.3` | Aplicação |
-| `react-native` | `0.86.3` | `0.86.3` | Aplicação |
-| `react-native-safe-area-context` | `~5.7.0` | `5.7.0` | Aplicação |
+| `expo` | `^58.0.23` | `58.0.23` | Aplicação |
+| `expo-auth-session` | `~58.0.17` | `58.0.17` | Aplicação |
+| `expo-build-properties` | `~58.0.12` | `58.0.12` | Aplicação |
+| `expo-dev-client` | `~58.0.18` | `58.0.18` | Aplicação |
+| `expo-local-authentication` | `~58.0.2` | `58.0.2` | Aplicação |
+| `expo-secure-store` | `~58.0.2` | `58.0.2` | Aplicação |
+| `expo-splash-screen` | `~58.0.13` | `58.0.13` | Aplicação |
+| `expo-status-bar` | `~58.0.4` | `58.0.4` | Aplicação |
+| `expo-web-browser` | `~58.0.7` | `58.0.7` | Aplicação |
+| `react` | `^19.3.0` | `19.3.0` | Aplicação |
+| `react-dom` | `^19.3.0` | `19.3.0` | Aplicação |
+| `react-native` | `^0.88.0` | `0.88.0` | Aplicação |
+| `react-native-safe-area-context` | `~5.11.1` | `5.11.1` | Aplicação |
 | `react-native-web` | `^0.21.2` | `0.21.4` | Aplicação |
 | `@expo/ngrok` | `^4.1.3` | `4.1.3` | Desenvolvimento |
 
@@ -41,7 +41,7 @@ Revisão: 30/10/2026. Faixas vêm dos manifests; versões resolvidas vêm dos lo
 
 | Item | Configuração/requisito | Evidência |
 | --- | --- | --- |
-| Node.js | Mínimo 22.13; imagem backend node:22-alpine (tag flutuante, patch não fixado) | README, Dockerfile e compatibilidade Expo SDK 57 |
+| Node.js | Mínimo 22.13; imagem backend node:22-alpine (tag flutuante, patch não fixado) | README, Dockerfile e compatibilidade Expo SDK 58 |
 | Android | 7.0/API 24 ou superior | app.json, expo-build-properties.minSdkVersion=24 |
 | iOS | 16.4 ou superior | app.json, deploymentTarget=16.4 |
 | PostgreSQL | Imagem postgres:16-alpine; versão menor não fixada | Ambos os docker-compose.yml |
@@ -53,4 +53,4 @@ Revisão: 30/10/2026. Faixas vêm dos manifests; versões resolvidas vêm dos lo
 
 Não há Sequelize, Lucia Auth, JWT de sessão, WatermelonDB, Redis, MinIO, TanStack Query, Zustand, React Native Paper ou React Navigation nas dependências atuais. Não confundir ID token Google com o token opaco de sessão do Synple.
 
-Referências: [Expo SDK 57](https://docs.expo.dev/versions/v57.0.0/), [ciclo PostgreSQL](https://www.postgresql.org/support/versioning/). Manter PostgreSQL 16 é uma escolha compatível com dados existentes e suporte até novembro de 2028; tags flutuantes exigem registrar a versão efetiva em cada execução de teste/implantação.
+Referências: [Expo SDK 58](https://docs.expo.dev/versions/v58.0.0/), [upgrade Expo](https://docs.expo.dev/workflow/upgrading-expo-sdk-walkthrough/), [ciclo PostgreSQL](https://www.postgresql.org/support/versioning/). SDK 58 usa React Native 0.88, React 19.3 e Node 22.13 ou superior. As faixas do manifesto e versões do lockfile foram alinhadas às recomendações oficiais consultadas em 06/11/2026. PostgreSQL 16 permanece para compatibilidade com os dados existentes.

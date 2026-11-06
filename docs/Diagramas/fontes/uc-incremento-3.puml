@@ -1,0 +1,25 @@
+@startuml
+left to right direction
+title Casos de uso — Incremento 3
+actor "Usuário autenticado" as U
+actor "Coordenador / proprietário" as M
+actor "Participante com presença" as P
+U <|-- M
+U <|-- P
+rectangle "Synple" {
+ usecase "RF03.01\nAbrir votação" as OPEN
+ usecase "RF03.02\nVotar / alterar voto" as CAST
+ usecase "RF03.03\nEncerrar votação" as CLOSE
+ usecase "RF03.04\nConsultar relatório individual" as REPORT
+ usecase "RF03.05\nConsultar manual digital" as MANUAL
+}
+M -- OPEN
+M -- CLOSE
+P -- CAST
+U -- REPORT
+U -- MANUAL
+note bottom of CAST
+Somente pessoa com entrada registrada;
+escolha única enquanto a votação estiver aberta.
+end note
+@enduml

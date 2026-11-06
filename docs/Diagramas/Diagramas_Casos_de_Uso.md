@@ -1,10 +1,21 @@
-# Diagramas do Synple — revisão de 30/10/2026
+# Diagramas do Synple — revisão de 06/11/2026
 
 Notação UML para casos de uso, classes, sequências e implantação. O modelo físico é relacional, com entidades/tabelas, e não é apresentado como UML. Fontes PlantUML versionadas em `fontes/`; SVGs renderizados localmente em `renderizados/`. Não dependem de servidor externo para abrir.
 
 Atores estão fora da fronteira Synple. As associações ator/caso de uso são linhas; especializações usam triângulo vazio voltado ao ator geral. Autenticação é pré-condição de operações privadas; não foi inserido `include` de login em todos os casos. Os papéis de proprietário/coordenador são contextuais. Campos que não aparecem nos recortes de classes constam no dicionário físico completo.
 
 [Especificação principal](../incremento-1-especificacao-completa.md) · [Dicionário físico](../dicionario-banco-dados.md) · [Dicionário de classes e operações](../dicionario-classes.md).
+
+## Incremento 3
+
+Fontes PlantUML editáveis adicionadas para os casos de uso, modelo de classes, modelo relacional, votação e relatório individual. SVGs renderizados dessas fontes ainda não foram gerados.
+
+- [Casos de uso](fontes/uc-incremento-3.puml)
+- [Modelo de classes](fontes/classes-incremento-3.puml)
+- [Modelo relacional](fontes/relacional-incremento-3.puml)
+- [Sequência de votação](fontes/seq-votacoes.puml)
+- [Sequência do relatório individual](fontes/seq-relatorio-participacao.puml)
+- [Sequência do manual digital](fontes/seq-manual-consulta.puml)
 
 ## uc-autenticacao
 

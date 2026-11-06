@@ -51,6 +51,9 @@ import {
   saveMeetingMinutesWithApi,
   submitMeetingMinutesWithApi,
   approveMeetingMinutesWithApi,
+  createMeetingVoteWithApi,
+  castMeetingVoteWithApi,
+  closeMeetingVoteWithApi,
   updateUserWithApi,
 } from './src/services/api';
 import { getThemeStyles, ThemeContext } from './src/styles/theme';
@@ -69,6 +72,8 @@ import { AdminManagementScreen } from './src/screens/AdminManagementScreen';
 import { SystemScreen } from './src/screens/SystemScreen';
 import { ProfileScreen } from './src/screens/ProfileScreen';
 import { MeetingsScreen } from './src/screens/MeetingsScreen';
+import { MeetingParticipationScreen } from './src/screens/MeetingParticipationScreen';
+import { ManualScreen } from './src/screens/ManualScreen';
 
 const createId = (prefix) => `${prefix}-${Date.now()}`;
 
@@ -429,6 +434,27 @@ export default function App() {
     return true;
   }
 
+  async function createMeetingVote(meetingId, question, options) {
+    const result = await createMeetingVoteWithApi(meetingId, activeUserId, question, options);
+    if (!result.success) { Alert.alert('Votação não aberta', result.error); return false; }
+    await syncWithRemote();
+    return true;
+  }
+
+  async function castMeetingVote(meetingId, voteId, optionId) {
+    const result = await castMeetingVoteWithApi(meetingId, voteId, activeUserId, optionId);
+    if (!result.success) { Alert.alert('Voto não confirmado', result.error); return false; }
+    await syncWithRemote();
+    return true;
+  }
+
+  async function closeMeetingVote(meetingId, voteId) {
+    const result = await closeMeetingVoteWithApi(meetingId, voteId, activeUserId);
+    if (!result.success) { Alert.alert('Votação não encerrada', result.error); return false; }
+    await syncWithRemote();
+    return true;
+  }
+
   async function createCommission() {
     if (!isOrgAdmin || selectedOrganization?.ownerId !== activeUserId || selectedOrganization.status !== 'APPROVED') return;
     const validationError = validateCommission(commissionForm);
@@ -688,6 +714,8 @@ export default function App() {
             isOrgAdmin={isOrgAdmin}
             hasMeetingsAccess={hasMeetingsAccess}
             onOpenMeetings={() => setScreen('meetings')}
+            onOpenReport={() => setScreen('meeting-report')}
+            onOpenManual={() => setScreen('manual')}
             onOpenProfile={openProfile}
           />
 
@@ -788,10 +816,16 @@ export default function App() {
               onSaveMinutes={saveMeetingMinutes}
               onSubmitMinutes={submitMeetingMinutes}
               onApproveMinutes={approveMeetingMinutes}
+              onCreateVote={createMeetingVote}
+              onCastVote={castMeetingVote}
+              onCloseVote={closeMeetingVote}
               onRefresh={refreshData}
               isRefreshing={isRefreshing}
             />
           )}
+
+          {hasMeetingsAccess && screen === 'meeting-report' && <MeetingParticipationScreen />}
+          {screen === 'manual' && <ManualScreen />}
 
           {screen === 'profile' && (
             <ProfileScreen

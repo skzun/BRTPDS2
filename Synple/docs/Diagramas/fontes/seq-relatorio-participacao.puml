@@ -1,0 +1,14 @@
+@startuml
+title RF03.04 — relatório individual de participação
+actor Usuário
+participant "App mobile" as App
+participant "meetings.js" as API
+database PostgreSQL as DB
+Usuário -> App: Abre Meu relatório
+App -> API: GET /participation/report
+API -> API: Lê req.auth.id da sessão
+API -> DB: JOIN attendance, meetings, commissions, organizations, minutes
+DB --> API: Apenas linhas com attendance.user_id = req.auth.id
+API --> App: reuniões, organização, comissão, entrada/saída, status da ata
+App --> Usuário: Exibe reuniões em ordem decrescente
+@enduml

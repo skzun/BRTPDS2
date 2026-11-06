@@ -5,7 +5,7 @@ import { fetchRemoteData } from '../services/api';
 import { getSessionToken } from '../services/session';
 import { removeCredentials } from '../services/cacheSafety';
 
-export const EMPTY_DATA = { ...removeCredentials(INITIAL_DATA), users: [], organizations: [], commissions: [], commissionMembers: [], accessRequests: [], meetings: [], meetingInvitations: [], meetingAttendance: [], meetingMinutes: [], meetingMinutesApprovals: [] };
+export const EMPTY_DATA = { ...removeCredentials(INITIAL_DATA), users: [], organizations: [], commissions: [], commissionMembers: [], accessRequests: [], meetings: [], meetingInvitations: [], meetingAttendance: [], meetingMinutes: [], meetingMinutesApprovals: [], meetingVotes: [], meetingVoteOptions: [], meetingVoteTallies: [], meetingVoteOwnBallots: [] };
 export function useSynpleData() {
   const [data, setData] = useState(EMPTY_DATA);
   const [isReady, setIsReady] = useState(false);

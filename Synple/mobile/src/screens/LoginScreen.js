@@ -42,7 +42,7 @@ export function LoginScreen({ onLogin, onGoogleLogin, onRegister, onRecoverAccou
     default: googleClientIds.webClientId,
   });
   const googleRedirectUri = makeRedirectUri({ scheme: 'synple', path: 'oauthredirect' });
-  // Expo Go cannot register the app's synple:// callback. SDK 57 resolves its
+  // Expo Go cannot register the app's synple:// callback. SDK 58 resolves its
   // redirect to exp://... instead, which is not a valid native OAuth client
   // configuration for this app.
   const isExpoGo = googleRedirectUri.startsWith('exp://');

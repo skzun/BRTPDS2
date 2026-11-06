@@ -151,6 +151,85 @@ function createMeetingsRouter(database, { renderMinutesPdf = generateMeetingMinu
     return reply(result.rows);
   }, 'Não foi possível consultar a lista de presença.'));
 
+  router.get('/participation/report', async (req, res) => {
+    try {
+      const result = await database.pool.query(`SELECT m.id AS "meetingId", m.title, m.starts_at AS "startsAt", m.ends_at AS "endsAt",
+          c.id AS "commissionId", c.name AS "commissionName", o.id AS "organizationId", o.name AS "organizationName",
+          a.entered_at AS "enteredAt", a.left_at AS "leftAt", mm.status AS "minutesStatus"
+        FROM meeting_attendance a JOIN meetings m ON m.id = a.meeting_id
+        JOIN commissions c ON c.id = m.commission_id JOIN organizations o ON o.id = c.organization_id
+        LEFT JOIN meeting_minutes mm ON mm.meeting_id = m.id
+        WHERE a.user_id = $1 AND a.entered_at IS NOT NULL
+        ORDER BY m.starts_at DESC, m.id`, [req.auth.id]);
+      return res.json({ meetings: result.rows });
+    } catch (err) {
+      console.error('Não foi possível gerar o relatório individual de reuniões.', err.message);
+      return res.status(500).json({ error: 'Não foi possível consultar seu histórico de participação.' });
+    }
+  });
+
+  const voteColumns = `id, meeting_id AS "meetingId", question, status, created_by AS "createdBy",
+    created_at AS "createdAt", closed_at AS "closedAt"`;
+
+  router.post('/:meetingId/votes', transaction(async (req, client) => {
+    const { userId: identifier, question, options } = req.body;
+    if (typeof question !== 'string' || !question.trim() || question.trim().length > 500 ||
+        !Array.isArray(options) || options.length < 2 || options.length > 8 ||
+        options.some(option => typeof option !== 'string' || !option.trim() || option.trim().length > 160) ||
+        new Set(options.map(option => option.trim().toLocaleLowerCase('pt-BR'))).size !== options.length) {
+      throw new RequestError(400, 'Informe uma pergunta e de duas a oito opções diferentes (até 160 caracteres cada).');
+    }
+    const userId = await resolveUserId(client, identifier);
+    if (!userId) throw new RequestError(400, 'Responsável pela votação não encontrado.');
+    const meeting = await getMeeting(client, req.params.meetingId, userId);
+    requireManager(meeting);
+    const attendees = await client.query('SELECT 1 FROM meeting_attendance WHERE meeting_id = $1 AND entered_at IS NOT NULL LIMIT 1', [meeting.id]);
+    if (!attendees.rowCount) throw new RequestError(409, 'Registre a presença de pelo menos um participante antes de abrir a votação.');
+    const vote = await client.query(`INSERT INTO meeting_votes (meeting_id, question, created_by)
+      VALUES ($1, $2, $3) RETURNING ${voteColumns}`, [meeting.id, question.trim(), userId]);
+    const createdOptions = [];
+    for (const [index, label] of options.entries()) {
+      const option = await client.query(`INSERT INTO meeting_vote_options (vote_id, label, position)
+        VALUES ($1, $2, $3) RETURNING id, vote_id AS "voteId", label, position`, [vote.rows[0].id, label.trim(), index + 1]);
+      createdOptions.push(option.rows[0]);
+    }
+    return reply({ ...vote.rows[0], options: createdOptions }, 201);
+  }, 'Não foi possível abrir a votação.'));
+
+  router.post('/:meetingId/votes/:voteId/ballot', transaction(async (req, client) => {
+    const { userId: identifier, optionId } = req.body;
+    if (typeof optionId !== 'string') throw new RequestError(400, 'Selecione uma opção para votar.');
+    const userId = await resolveUserId(client, identifier);
+    if (!userId) throw new RequestError(400, 'Participante não encontrado.');
+    const meeting = await getMeeting(client, req.params.meetingId, userId);
+    const vote = await client.query(`SELECT id, status FROM meeting_votes WHERE id::text = $1 AND meeting_id = $2 FOR UPDATE`, [req.params.voteId, meeting.id]);
+    if (!vote.rowCount) throw new RequestError(404, 'Votação não encontrada nesta reunião.');
+    if (vote.rows[0].status !== 'OPEN') throw new RequestError(409, 'Esta votação já foi encerrada.');
+    const attendance = await client.query('SELECT 1 FROM meeting_attendance WHERE meeting_id = $1 AND user_id = $2 AND entered_at IS NOT NULL', [meeting.id, userId]);
+    if (!attendance.rowCount) throw new RequestError(403, 'Somente participantes com entrada registrada podem votar.');
+    const result = await client.query(`INSERT INTO meeting_vote_ballots (vote_id, option_id, user_id)
+      SELECT v.id, o.id, $3 FROM meeting_votes v JOIN meeting_vote_options o ON o.vote_id = v.id
+      WHERE v.id = $1 AND o.id::text = $2
+      ON CONFLICT (vote_id, user_id) DO UPDATE SET option_id = EXCLUDED.option_id, cast_at = NOW()
+      RETURNING id, vote_id AS "voteId", option_id AS "optionId", user_id AS "userId", cast_at AS "castAt"`,
+    [vote.rows[0].id, optionId, userId]);
+    if (!result.rowCount) throw new RequestError(400, 'A opção escolhida não pertence a esta votação.');
+    return reply(result.rows[0]);
+  }, 'Não foi possível registrar o voto.'));
+
+  router.patch('/:meetingId/votes/:voteId/close', transaction(async (req, client) => {
+    const { userId: identifier } = req.body;
+    const userId = await resolveUserId(client, identifier);
+    if (!userId) throw new RequestError(400, 'Responsável pela votação não encontrado.');
+    const meeting = await getMeeting(client, req.params.meetingId, userId);
+    requireManager(meeting);
+    const result = await client.query(`UPDATE meeting_votes SET status = 'CLOSED', closed_at = NOW()
+      WHERE id::text = $1 AND meeting_id = $2 AND status = 'OPEN' RETURNING ${voteColumns}`,
+    [req.params.voteId, meeting.id]);
+    if (!result.rowCount) throw new RequestError(409, 'A votação não existe ou já foi encerrada.');
+    return reply(result.rows[0]);
+  }, 'Não foi possível encerrar a votação.'));
+
   // O HEAD faz a mesma validação de acesso e versão, sem gerar um documento.
   // O lock é liberado antes da renderização: o PDF recebe somente o snapshot lido.
   const minutesPdf = async (req, res) => {

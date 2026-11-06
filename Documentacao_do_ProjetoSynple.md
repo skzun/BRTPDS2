@@ -1,16 +1,17 @@
 # Documentação do projeto Synple
 
-Revisão consolidada: 30/10/2026. Este é o índice da documentação; a especificação técnica principal e os anexos abaixo substituem os diagramas/contratos antigos. O conteúdo descreve a implementação presente no checkout, inclusive limites conhecidos.
+Revisão consolidada: 06/11/2026. Este é o índice da documentação; a especificação técnica principal e os anexos abaixo descrevem a implementação presente no checkout, inclusive limites conhecidos.
 
 ## Documento principal e anexos
 
 | Artefato | Conteúdo |
 | --- | --- |
 | [Relatório do dia e plano do Incremento 3](docs/RELATORIO_2026-10-30_E_PLANO_INCREMENTO_3.md) | Trabalho de 30/10/2026, evidências, pendências por comentário do professor e critérios propostos |
+| [Especificação do Incremento 3](docs/INCREMENTO_3.md) | Votações independentes, relatório individual de participação, manual digital, persistência, API e rastreabilidade |
 | [Especificação principal](docs/incremento-1-especificacao-completa.md) | Atores, arquitetura, 38 RFs, 17 RNFs, fluxos, exceções, dados, contratos e rastreabilidade |
-| [Diagramas UML e modelo relacional](docs/Diagramas/Diagramas_Casos_de_Uso.md) | 24 diagramas renderizados em SVG, com fontes PlantUML editáveis: casos de uso, classes, sequências, implantação e recortes relacionais |
-| [Dicionário de classes e operações](docs/dicionario-classes.md) | 15 modelos de dados e 60 operações exportadas com parâmetros, retornos, efeitos e correspondência com o código |
-| [Dicionário físico](docs/dicionario-banco-dados.md) | 15 tabelas, 99 colunas, 53 restrições, 39 índices; nulabilidade, defaults e ações de exclusão reais |
+| [Diagramas UML e modelo relacional](docs/Diagramas/Diagramas_Casos_de_Uso.md) | Diagramas anteriores renderizados em SVG e novas fontes PlantUML do Incremento 3 |
+| [Dicionário de classes e operações](docs/dicionario-classes.md) | Modelos de dados e operações exportadas com parâmetros, retornos, efeitos e correspondência com o código |
+| [Dicionário físico](docs/dicionario-banco-dados.md) | Tabelas, colunas, restrições, índices, nulabilidade, defaults e ações de exclusão |
 | [Tecnologias e versões](docs/tecnologias-versoes.md) | Todas as dependências diretas, faixas declaradas, versões resolvidas e requisitos de SO/runtime |
 | [Verificação documental](docs/VERIFICACAO_DOCUMENTACAO.md) | Procedimentos executados nesta revisão e atividades não comprovadas |
 | [Incremento 2](Synple/docs/INCREMENTO_2.md) | Índice do módulo de reuniões/atas e roteiro CA01–CA20, referenciando a especificação canônica |
@@ -21,7 +22,7 @@ Synple associa sincronização e pessoas para gerir organizações, comissões, 
 
 ## Arquitetura vigente
 
-Aplicativo Expo SDK 57 / React Native 0.86 / React 19.2.3, JavaScript; API Node.js 22 e Express 4 com pg/SQL parametrizado; PostgreSQL 16; bcryptjs, Google OAuth, Nodemailer e PDFKit. Sessões opacas verificadas no servidor; SecureStore/biometria no aparelho; cache AsyncStorage sanitizado sem senha/token. Não há Sequelize, Lucia Auth ou MMKV no código atual.
+Aplicativo Expo SDK 58 / React Native 0.88 / React 19.3, JavaScript; API Node.js 22 e Express 4 com pg/SQL parametrizado; PostgreSQL 16; bcryptjs, Google OAuth, Nodemailer e PDFKit. Sessões opacas verificadas no servidor; SecureStore/biometria no aparelho; cache AsyncStorage sanitizado sem senha/token. Não há Sequelize, Lucia Auth ou MMKV no código atual.
 
 Android mínimo 7/API24; iOS16.4+; Node22.13+. Consultar a tabela de versões para faixas, lockfiles e tags flutuantes. PostgreSQL16 permanece em suporte até novembro de 2028 segundo a [política oficial](https://www.postgresql.org/support/versioning/); a escolha preserva compatibilidade e não dispensa atualizações menores/backup.
 

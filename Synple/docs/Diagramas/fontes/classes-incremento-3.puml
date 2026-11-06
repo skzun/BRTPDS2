@@ -1,0 +1,32 @@
+@startuml
+title Classes de análise — votação e relatório individual
+class Reuniao { +id: UUID }
+class Usuario { +id: UUID }
+class Votacao {
+ +id: UUID
+ +question: String {maxLength=500}
+ +status: OPEN | CLOSED
+ +createdAt: DateTime
+ +closedAt: DateTime[0..1]
+}
+class OpcaoVotacao {
+ +id: UUID
+ +label: String {maxLength=160}
+ +position: Integer
+}
+class Voto {
+ +id: UUID
+ +castAt: DateTime
+}
+Reuniao "1" -- "0..*" Votacao
+Usuario "1" -- "0..*" Votacao : autoria
+Votacao "1" -- "2..8" OpcaoVotacao
+Votacao "1" -- "0..*" Voto
+Usuario "1" -- "0..*" Voto
+OpcaoVotacao "1" -- "0..*" Voto
+note bottom of Voto
+No máximo um voto por usuário e votação.
+O relatório de participação é uma consulta,
+não uma entidade persistida nova.
+end note
+@enduml

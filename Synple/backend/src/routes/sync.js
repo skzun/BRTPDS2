@@ -22,6 +22,18 @@ function createSyncRouter(db) {
         FROM meeting_minutes ORDER BY created_at;`);
       const approvalsRes = await db.query(`SELECT id, minutes_id AS "minutesId", meeting_id AS "meetingId", user_id AS "userId",
         version, decision, comment, decided_at AS "decidedAt" FROM meeting_minutes_approvals ORDER BY decided_at;`);
+      const meetingVotesRes = await db.query(`SELECT id, meeting_id AS "meetingId", question, status,
+        created_by AS "createdBy", created_at AS "createdAt", closed_at AS "closedAt" FROM meeting_votes ORDER BY created_at;`);
+      const meetingVoteOptionsRes = await db.query(`SELECT o.id, o.vote_id AS "voteId", v.meeting_id AS "meetingId", o.label, o.position
+        FROM meeting_vote_options o JOIN meeting_votes v ON v.id = o.vote_id ORDER BY o.vote_id, o.position;`);
+      const meetingVoteTalliesRes = await db.query(`SELECT v.meeting_id AS "meetingId", b.vote_id AS "voteId", b.option_id AS "optionId", COUNT(*)::int AS count
+        FROM meeting_vote_ballots b JOIN meeting_votes v ON v.id = b.vote_id
+        GROUP BY v.meeting_id, b.vote_id, b.option_id;`);
+      const meetingVoteOwnBallotsRes = req.auth?.id
+        ? await db.query(`SELECT b.id, b.vote_id AS "voteId", v.meeting_id AS "meetingId", b.option_id AS "optionId",
+            b.user_id AS "userId", b.cast_at AS "castAt" FROM meeting_vote_ballots b
+            JOIN meeting_votes v ON v.id = b.vote_id WHERE b.user_id = $1 ORDER BY b.cast_at;`, [req.auth.id])
+        : { rows: [] };
       const subsRes = await db.query('SELECT id, name, status FROM system_subsystems;');
 
       const metadata = await db.query('SELECT initialized_at FROM system_metadata WHERE id = TRUE');
@@ -36,6 +48,10 @@ function createSyncRouter(db) {
         meetingAttendance: attendanceRes.rows,
         meetingMinutes: minutesRes.rows,
         meetingMinutesApprovals: approvalsRes.rows,
+        meetingVotes: meetingVotesRes.rows,
+        meetingVoteOptions: meetingVoteOptionsRes.rows,
+        meetingVoteTallies: meetingVoteTalliesRes.rows,
+        meetingVoteOwnBallots: meetingVoteOwnBallotsRes.rows,
         system: {
           initialized: true,
           initializedAt: metadata.rows[0]?.initialized_at,

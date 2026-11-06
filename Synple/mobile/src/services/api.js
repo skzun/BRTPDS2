@@ -478,6 +478,46 @@ export async function approveMeetingMinutesWithApi(meetingId, userId, decision, 
   } catch { return { success: false, error: 'Servidor offline. Sua decisão não foi confirmada; atualize a ata ao reconectar.' }; }
 }
 
+export async function createMeetingVoteWithApi(meetingId, userId, question, options) {
+  try {
+    const response = await fetchWithTimeout(`${getApiBaseUrl()}/meetings/${encodeURIComponent(meetingId)}/votes`, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ userId, question, options }),
+    }, 10000);
+    const result = await response.json();
+    return response.ok ? { success: true, vote: result } : { success: false, error: result.error || 'Não foi possível abrir a votação.' };
+  } catch { return { success: false, error: 'Servidor offline. A votação não foi aberta.' }; }
+}
+
+export async function castMeetingVoteWithApi(meetingId, voteId, userId, optionId) {
+  try {
+    const response = await fetchWithTimeout(`${getApiBaseUrl()}/meetings/${encodeURIComponent(meetingId)}/votes/${encodeURIComponent(voteId)}/ballot`, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ userId, optionId }),
+    }, 10000);
+    const result = await response.json();
+    return response.ok ? { success: true, ballot: result } : { success: false, error: result.error || 'Não foi possível registrar seu voto.' };
+  } catch { return { success: false, error: 'Servidor offline. Seu voto não foi confirmado.' }; }
+}
+
+export async function closeMeetingVoteWithApi(meetingId, voteId, userId) {
+  try {
+    const response = await fetchWithTimeout(`${getApiBaseUrl()}/meetings/${encodeURIComponent(meetingId)}/votes/${encodeURIComponent(voteId)}/close`, {
+      method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ userId }),
+    }, 10000);
+    const result = await response.json();
+    return response.ok ? { success: true, vote: result } : { success: false, error: result.error || 'Não foi possível encerrar a votação.' };
+  } catch { return { success: false, error: 'Servidor offline. A votação continua aberta.' }; }
+}
+
+export async function fetchMeetingParticipationReportWithApi() {
+  try {
+    const response = await fetchWithTimeout(`${getApiBaseUrl()}/meetings/participation/report`, { method: 'GET' }, 10000);
+    const result = await response.json();
+    return response.ok ? { success: true, meetings: result.meetings || [] } : { success: false, error: result.error || 'Não foi possível consultar o relatório.' };
+  } catch { return { success: false, error: 'Servidor offline. O relatório não foi atualizado.' }; }
+}
+
 /**
  * Altera status de solicitação de acesso no PostgreSQL
  */

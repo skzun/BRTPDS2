@@ -17,6 +17,10 @@ const INITIAL_DATA = {
   meetingAttendance: [],
   meetingMinutes: [],
   meetingMinutesApprovals: [],
+  meetingVotes: [],
+  meetingVoteOptions: [],
+  meetingVoteTallies: [],
+  meetingVoteOwnBallots: [],
   system: {
     initialized: false,
     initializedAt: null,

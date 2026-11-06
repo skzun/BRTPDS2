@@ -79,7 +79,8 @@ function scopeSnapshot(data, actor) {
   data.accessRequests = data.accessRequests.filter(r => r.userId === actor.id || own.some(o => o.id === r.organizationId));
   data.commissions = data.commissions.filter(c => commissionIds.has(c.id));
   data.commissionMembers = data.commissionMembers.filter(m => commissionIds.has(m.commissionId));
-  for (const key of ['meetings', 'meetingInvitations', 'meetingAttendance', 'meetingMinutes', 'meetingMinutesApprovals']) {
+  for (const key of ['meetings', 'meetingInvitations', 'meetingAttendance', 'meetingMinutes', 'meetingMinutesApprovals',
+    'meetingVotes', 'meetingVoteOptions', 'meetingVoteTallies', 'meetingVoteOwnBallots']) {
     data[key] = data[key].filter(item => meetingIds.has(key === 'meetings' ? item.id : item.meetingId));
   }
   const userIds = new Set([actor.id, ...data.accessRequests.map(r => r.userId), ...data.commissionMembers.map(m => m.userId), ...data.meetingInvitations.map(i => i.userId)]);

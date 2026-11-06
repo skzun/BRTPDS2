@@ -383,8 +383,21 @@ Fonte: [Synple/backend/src/routes/sync.js](../Synple/backend/src/routes/sync.js)
 | --- | --- | --- |
 | `createSyncRouter(db)` | `Router` | Cria Router de snapshot. No app real a sessão é exigida antes do router. |
 
+## Incremento 3 — votações e relatório
+
+O código continua usando objetos JSON e funções, sem classes JavaScript/ORM para estes conceitos.
+
+| Modelo de análise | Persistência | Responsabilidade |
+| --- | --- | --- |
+| `Votacao` | `meeting_votes` | Pergunta, status e autoria de uma votação independente da ata. |
+| `OpcaoVotacao` | `meeting_vote_options` | Uma alternativa ordenada de escolha única. |
+| `Voto` | `meeting_vote_ballots` | Escolha de um participante para uma votação; pode ser atualizada antes do fechamento. |
+| `RelatorioParticipacao` | Consulta, sem tabela própria | Projeção de reuniões em que a sessão autenticada tem presença registrada. |
+
+Operações implementadas: `createMeetingVoteWithApi(meetingId, userId, question, options)`, `castMeetingVoteWithApi(meetingId, voteId, userId, optionId)`, `closeMeetingVoteWithApi(meetingId, voteId, userId)` e `fetchMeetingParticipationReportWithApi()`. As três primeiras chamam rotas transacionais em `backend/src/routes/meetings.js`; o relatório é filtrado pela sessão do servidor e não por um userId arbitrário no cliente.
+
 ## Responsabilidades dos callbacks HTTP e validação
 
-Cadastro/login/Google/ativação/recuperação: backend/src/routes/auth.js. Organização/ingresso/convites/transferência: organizations.js. Comissão/equipe: commissions.js. Perfil/exclusão: users.js. Reuniões/presença/atas/PDF: meetings.js. Condições de cada callback constam nas fichas RF, com telas, parâmetros, pós-condição, respostas e limites. Não há uma operação Usuario.salvarNoAsyncStorage no domínio.
+Cadastro/login/Google/ativação/recuperação: backend/src/routes/auth.js. Organização/ingresso/convites/transferência: organizations.js. Comissão/equipe: commissions.js. Perfil/exclusão: users.js. Reuniões/presença/atas/votações/relatório/PDF: meetings.js. Condições de cada callback constam nas fichas RF, com telas, parâmetros, pós-condição, respostas e limites. Não há uma operação Usuario.salvarNoAsyncStorage no domínio.
 
 Exceções: wrappers API retornam Resultado/linha/null conforme tabela; fetchSystemInfo e authorizePdfDownload podem lançar. Middleware usa next(error) ou resposta HTTP. SQL não comprova biometria; confirmBiometric é proteção local. Observação de documentação: as funções não são polimorfismo/herança implementados; multiplicidades do domínio e herança dos atores UML representam papéis/relações de análise.

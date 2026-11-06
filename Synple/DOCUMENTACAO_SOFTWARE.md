@@ -1,10 +1,10 @@
 # Documentação técnica — Synple
 
-Revisão consolidada: 30/10/2026. A referência técnica única é a [especificação principal](../docs/incremento-1-especificacao-completa.md). Esta página funciona como índice operacional e não repete contratos antigos.
+Revisão consolidada: 06/11/2026. A referência técnica é a [especificação principal](../docs/incremento-1-especificacao-completa.md), complementada pelo [Incremento 3](../docs/INCREMENTO_3.md). Esta página funciona como índice operacional.
 
 ## Estrutura implementada
 
-- mobile: Expo57/React Native0.86, JavaScript, componentes próprios, API cliente, cache sanitizado e sessão protegida quando disponível.
+- mobile: Expo58/React Native0.88, JavaScript, componentes próprios, API cliente, cache sanitizado e sessão protegida quando disponível.
 - backend: Express4/Node22, pg/SQL parametrizado, bcryptjs, Google OAuth, SMTP e PDFKit.
 - PostgreSQL16: esquema/migrações idempotentes e volume Docker persistente.
 - scripts: detecção de IP, inicialização e dois túneis de desenvolvimento.
@@ -22,6 +22,8 @@ Biometria confirma a liberação local da sessão e o formulário de perfil; nã
 Sistema mostra marco persistido da instalação, início do processo, uptime e consulta real ao banco. Não reinicia processos nem restaura backup. Limpar cache e sair preserva o PostgreSQL. A tabela system_subsystems é legado, não monitor de disponibilidade.
 
 Reuniões/atas usam transações, presença do servidor, conjunto fixado de aprovadores e voto por versão. PDF usa HEAD autenticado e ticket curto ligado à sessão/rota; não tem assinatura digital nem altera a ata. [Incremento2](docs/INCREMENTO_2.md).
+
+Votações independentes da ata permitem ao coordenador/proprietário abrir e encerrar perguntas de escolha única; participantes com entrada registrada podem votar enquanto a votação estiver aberta. O relatório individual consulta apenas presenças da sessão autenticada. O manual de utilização também está disponível no aplicativo.
 
 ## Guias e evidências
 

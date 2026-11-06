@@ -134,6 +134,38 @@ CREATE TABLE IF NOT EXISTS meeting_minutes_approvals (
     CONSTRAINT uq_minutes_approval_user UNIQUE (minutes_id, user_id)
 );
 
+-- Votações independentes da aprovação de atas (Incremento 3).
+CREATE TABLE IF NOT EXISTS meeting_votes (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    meeting_id UUID NOT NULL REFERENCES meetings(id) ON DELETE CASCADE,
+    question VARCHAR(500) NOT NULL CHECK (LENGTH(TRIM(question)) > 0),
+    status VARCHAR(10) NOT NULL DEFAULT 'OPEN' CHECK (status IN ('OPEN', 'CLOSED')),
+    created_by UUID NOT NULL REFERENCES users(id),
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    closed_at TIMESTAMPTZ,
+    CONSTRAINT uq_meeting_votes_id_meeting UNIQUE (id, meeting_id)
+);
+
+CREATE TABLE IF NOT EXISTS meeting_vote_options (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    vote_id UUID NOT NULL REFERENCES meeting_votes(id) ON DELETE CASCADE,
+    label VARCHAR(160) NOT NULL CHECK (LENGTH(TRIM(label)) > 0),
+    position SMALLINT NOT NULL CHECK (position > 0),
+    CONSTRAINT uq_meeting_vote_option_position UNIQUE (vote_id, position),
+    CONSTRAINT uq_meeting_vote_option_id_vote UNIQUE (id, vote_id)
+);
+
+CREATE TABLE IF NOT EXISTS meeting_vote_ballots (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    vote_id UUID NOT NULL REFERENCES meeting_votes(id) ON DELETE CASCADE,
+    option_id UUID NOT NULL,
+    user_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    cast_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    CONSTRAINT fk_meeting_vote_ballot_option FOREIGN KEY (option_id, vote_id)
+      REFERENCES meeting_vote_options(id, vote_id) ON DELETE CASCADE,
+    CONSTRAINT uq_meeting_vote_ballot_user UNIQUE (vote_id, user_id)
+);
+
 -- 9. Tabela: system_subsystems (Monitoramento de Subsistemas Operacionais)
 CREATE TABLE IF NOT EXISTS system_subsystems (
     id VARCHAR(50) PRIMARY KEY,
@@ -153,6 +185,8 @@ CREATE INDEX IF NOT EXISTS idx_meetings_commission ON meetings(commission_id, st
 CREATE INDEX IF NOT EXISTS idx_meeting_invitations_user ON meeting_invitations(user_id, status);
 CREATE INDEX IF NOT EXISTS idx_meeting_attendance_meeting ON meeting_attendance(meeting_id);
 CREATE INDEX IF NOT EXISTS idx_minutes_approvals_meeting ON meeting_minutes_approvals(meeting_id);
+CREATE INDEX IF NOT EXISTS idx_meeting_votes_meeting ON meeting_votes(meeting_id, created_at);
+CREATE INDEX IF NOT EXISTS idx_meeting_vote_ballots_vote ON meeting_vote_ballots(vote_id);
 
 -- Segurança: migração preserva contas existentes; novos cadastros exigem ativação.
 ALTER TABLE users ADD COLUMN IF NOT EXISTS email_verified BOOLEAN NOT NULL DEFAULT TRUE;

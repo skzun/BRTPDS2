@@ -1,0 +1,27 @@
+@startuml
+title RF03.01–RF03.03 — abrir, votar e encerrar
+actor Gestor
+actor Participante
+participant "App mobile" as App
+participant "meetings.js" as API
+database PostgreSQL as DB
+Gestor -> App: Informa pergunta e opções
+App -> API: POST /:meetingId/votes
+API -> API: transaction(handler)
+API -> DB: getMeeting(client, meetingId, userId)
+API -> API: requireManager(meeting)
+API -> DB: INSERT meeting_votes e meeting_vote_options
+DB --> API: votação e opções persistidas
+API --> App: 201 votação criada
+Participante -> App: Seleciona opção
+App -> API: POST /:meetingId/votes/:voteId/ballot
+API -> DB: Confirma reunião, status OPEN e presença
+API -> DB: INSERT ou UPDATE meeting_vote_ballots
+DB --> API: voto confirmado
+API --> App: 200 voto confirmado
+Gestor -> App: Encerra votação
+App -> API: PATCH /:meetingId/votes/:voteId/close
+API -> DB: Confirma gestão e atualiza status=CLOSED
+DB --> API: closed_at do servidor
+API --> App: 200 votação encerrada
+@enduml
