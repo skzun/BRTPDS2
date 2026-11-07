@@ -2,15 +2,17 @@ import { useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { Alert, Linking, Platform, Share, Text, View } from 'react-native';
 import { Pressable } from '../components/ActionPressable';
 import { Choice, DateTimeField, Field } from '../components/FormControls';
-import { buildAttendanceText, buildMeetingPayload, canManageMeetingCommission, getAccessibleMeetingCommissions, getMeetingAttendanceRows, getMinutesVotingSummary } from '../services/meetings';
+import { buildAttendanceText, canManageMeetingCommission, getAccessibleMeetingCommissions, getMeetingAttendanceRows, getMinutesVotingSummary } from '../services/meetings';
 import { getApiBaseUrl } from '../services/api';
 import { prepareMinutesPdf } from '../services/meetingMinutesPdf';
 import { authenticatedFetch, authorizePdfDownload } from '../services/api';
 import { ThemeContext } from '../styles/theme';
+import { MeetingEditor } from '../components/MeetingEditor';
+import { MeetingResources } from '../components/MeetingResources';
+import { meetingRequest } from '../services/api';
 
 const INVITATION_LABELS = { INVITED: 'Aguardando resposta', ACCEPTED: 'Aceito', DECLINED: 'Recusado' };
 const MINUTES_LABELS = { DRAFT: 'Rascunho', IN_REVIEW: 'Em aprovação', APPROVED: 'Aprovada', REJECTED: 'Rejeitada · correção necessária' };
-const EMPTY_FORM = { title: '', startsAt: '', endsAt: '', agenda: '' };
 
 function formatDate(value) {
   const date = new Date(value);
@@ -33,7 +35,7 @@ async function shareMeetingText(title, message) {
   // O texto selecionável permanece na tela nos navegadores sem compartilhamento/clipboard.
 }
 
-function MeetingCard({ data, meeting, activeUser, isManager, onRespond, onAttendance, onGenerateAttendance, onSaveMinutes, onSubmitMinutes, onApproveMinutes, onCreateVote, onCastVote, onCloseVote }) {
+function MeetingCard({ data, meeting, activeUser, isManager, onRespond, onAttendance, onGenerateAttendance, onSaveMinutes, onSubmitMinutes, onApproveMinutes, onCreateVote, onCastVote, onCloseVote, onRefresh }) {
   const { styles } = useContext(ThemeContext);
   const minutes = (data.meetingMinutes || []).find((item) => item.meetingId === meeting.id);
   const [content, setContent] = useState(minutes?.content || '');
@@ -44,6 +46,13 @@ function MeetingCard({ data, meeting, activeUser, isManager, onRespond, onAttend
   const [sharePreview, setSharePreview] = useState('');
   const [voteQuestion, setVoteQuestion] = useState('');
   const [voteOptionsText, setVoteOptionsText] = useState('');
+  const [expanded, setExpanded] = useState(false);
+  const [section, setSection] = useState('presence');
+  const [editing, setEditing] = useState(false);
+  const [operationError, setOperationError] = useState('');
+  const currentTime = Date.now();
+  const ongoing = currentTime >= new Date(meeting.startsAt).getTime() && currentTime < new Date(meeting.endsAt).getTime();
+  const ended = currentTime >= new Date(meeting.endsAt).getTime();
   const inFlight = useRef(false);
   const invitation = data.meetingInvitations.find((item) => item.meetingId === meeting.id && item.userId === activeUser.id);
   const attendance = data.meetingAttendance.find((item) => item.meetingId === meeting.id && item.userId === activeUser.id);
@@ -165,23 +174,33 @@ function MeetingCard({ data, meeting, activeUser, isManager, onRespond, onAttend
       <Text style={styles.cardTitle}>{meeting.title}</Text>
       <Text style={styles.memberDetail}>Início: {formatDate(meeting.startsAt)}</Text>
       <Text style={styles.memberDetail}>Término: {formatDate(meeting.endsAt)}</Text>
+      <Pressable style={styles.secondaryButton} onPress={() => setExpanded(!expanded)}><Text style={styles.secondaryButtonText}>{expanded ? 'Fechar detalhes' : 'Abrir reunião'}</Text></Pressable>
+      {expanded && <>
+      {!!meeting.allDay && <Text style={styles.hint}>Reunião de dia todo</Text>}
+      {!!meeting.location && <Text style={styles.memberDetail}>Local: {meeting.location}</Text>}
+      {!!meeting.details && <Text style={styles.memberDetail}>{meeting.details}</Text>}
+      {isManager && currentTime < new Date(meeting.startsAt).getTime() && <Pressable style={styles.secondaryButton} onPress={()=>setEditing(!editing)}><Text style={styles.secondaryButtonText}>Editar agendamento</Text></Pressable>}
+      {editing && <MeetingEditor meeting={meeting} commissionId={meeting.commissionId} onCancel={()=>setEditing(false)} onSaved={async()=>{setEditing(false); await onRefresh();}} />}
       <Text style={styles.label}>Pauta</Text>
       <Text style={styles.muted}>{meeting.agenda}</Text>
+      <View style={styles.actionRow}>{[['presence','Presença'],['resources','Arquivos'],['votes','Votações'],['minutes','Ata']].map(([id,label])=><Choice key={id} label={label} active={section===id} onPress={()=>setSection(id)} />)}</View>
+      {section === 'resources' && <MeetingResources meeting={meeting} isManager={isManager} onRefresh={onRefresh} />}
+      {section === 'presence' && <>
       {!!invitation && <Text style={styles.memberDetail}>Seu convite: {INVITATION_LABELS[invitation.status] || invitation.status}</Text>}
-      {invitation && !attendance?.enteredAt && invitation.status !== 'ACCEPTED' && !lockedAttendance && (
+      {invitation && !ended && !attendance?.enteredAt && invitation.status !== 'ACCEPTED' && !lockedAttendance && (
         <View style={styles.actionRow}>
           <Pressable disabled={!!pending} style={styles.approveButton} onPress={() => perform('invite', () => onRespond(meeting.id, 'ACCEPTED'))}><Text style={styles.actionText}>Aceitar convite</Text></Pressable>
           {invitation.status !== 'DECLINED' && <Pressable disabled={!!pending} style={styles.rejectButton} onPress={() => perform('invite', () => onRespond(meeting.id, 'DECLINED'))}><Text style={styles.rejectText}>Recusar</Text></Pressable>}
         </View>
       )}
-      {invitation?.status === 'ACCEPTED' && !attendance?.enteredAt && !lockedAttendance && (
+      {invitation?.status === 'ACCEPTED' && !ended && !attendance?.enteredAt && !lockedAttendance && (
         <View style={styles.actionRow}>
-          <Pressable disabled={!!pending} style={styles.primaryButton} onPress={() => perform('attendance', () => onAttendance(meeting.id, 'ENTER'))}><Text style={styles.primaryButtonText}>Registrar entrada</Text></Pressable>
+          <Pressable disabled={!!pending || !ongoing} style={styles.primaryButton} onPress={() => perform('attendance', () => onAttendance(meeting.id, 'ENTER'))}><Text style={styles.primaryButtonText}>Entrada com biometria</Text></Pressable>
           <Pressable disabled={!!pending} style={styles.rejectButton} onPress={() => perform('invite', () => onRespond(meeting.id, 'DECLINED'))}><Text style={styles.rejectText}>Recusar convite</Text></Pressable>
         </View>
       )}
       {attendance?.enteredAt && !attendance.leftAt && (
-        <Pressable disabled={!!pending} style={styles.secondaryButton} onPress={() => perform('attendance', () => onAttendance(meeting.id, 'EXIT'))}><Text style={styles.secondaryButtonText}>Registrar saída</Text></Pressable>
+        <Pressable disabled={!!pending || !ongoing} style={styles.secondaryButton} onPress={() => perform('attendance', () => onAttendance(meeting.id, 'EXIT'))}><Text style={styles.secondaryButtonText}>Saída com biometria</Text></Pressable>
       )}
       {!!attendance?.leftAt && <Text style={styles.memberDetail}>Sua saída foi registrada em {formatDate(attendance.leftAt)}.</Text>}
       {lockedAttendance && !attendance?.enteredAt && <Text style={styles.hint}>A lista de votantes desta ata já foi definida. Novas entradas estão bloqueadas.</Text>}
@@ -194,10 +213,18 @@ function MeetingCard({ data, meeting, activeUser, isManager, onRespond, onAttend
           <Text style={styles.muted}>Convite: {INVITATION_LABELS[row.invitationStatus] || 'Organizador'}</Text>
           <Text style={styles.muted}>{row.enteredAt ? `Entrada: ${formatDate(row.enteredAt)}` : 'Entrada: não registrada'}</Text>
           {!!row.enteredAt && <Text style={styles.muted}>{row.leftAt ? `Saída: ${formatDate(row.leftAt)}` : 'Saída: ainda presente'}</Text>}
+          {isManager && ongoing && row.invitationStatus === 'ACCEPTED' && !row.leftAt && <Pressable disabled={!!pending} style={styles.smallButton} onPress={()=>perform('chair',async()=>{
+            const r=await meetingRequest(`/${meeting.id}/attendance/${row.userId}`,'PATCH',{action:row.enteredAt ? 'EXIT':'ENTER'});
+            setOperationError(r.success ? '' : r.error); if(r.success) await onRefresh();
+          })}><Text style={styles.smallButtonText}>{row.enteredAt ? 'Registrar saída deste participante' : 'Registrar entrada deste participante'}</Text></Pressable>}
         </View>
       ))}
       <Pressable disabled={!!pending} style={styles.secondaryButton} onPress={generateAttendance}><Text style={styles.secondaryButtonText}>{pending === 'list' ? 'Gerando…' : 'Gerar / compartilhar lista de presença'}</Text></Pressable>
+      {!ongoing && <Text style={styles.hint}>Entrada e saída ficam disponíveis somente durante o horário da reunião. Atualize a lista ao iniciar.</Text>}
+      {!!operationError && <Text accessibilityRole="alert" style={styles.hint}>{operationError}</Text>}
+      </>}
 
+      {section === 'votes' && <>
       <Text style={[styles.label, { marginTop: 14 }]}>Votações da reunião</Text>
       {meetingVotes.map((vote) => {
         const options = (data.meetingVoteOptions || []).filter((option) => option.voteId === vote.id).sort((a, b) => a.position - b.position);
@@ -232,7 +259,9 @@ function MeetingCard({ data, meeting, activeUser, isManager, onRespond, onAttend
         </>
       )}
       {!isManager && meetingVotes.length === 0 && <Text style={styles.muted}>O presidente ainda não abriu votações.</Text>}
+      </>}
 
+      {section === 'minutes' && <>
       <Text style={[styles.label, { marginTop: 14 }]}>Ata da reunião{minutes ? ` · versão ${minutes.version}` : ''}</Text>
       {minutes && <Text style={styles.memberDetail}>Situação: {MINUTES_LABELS[minutes.status] || minutes.status}</Text>}
       {!minutes && !canEdit && <Text style={styles.muted}>O presidente ainda não criou a ata.</Text>}
@@ -289,8 +318,10 @@ function MeetingCard({ data, meeting, activeUser, isManager, onRespond, onAttend
           {minutes.status === 'APPROVED' && <Pressable disabled={!!pending} style={styles.secondaryButton} onPress={shareMinutes}><Text style={styles.secondaryButtonText}>Compartilhar ata aprovada</Text></Pressable>}
         </>
       )}
+      </>}
       {!!sharePreview && <><Text style={[styles.label, { marginTop: 14 }]}>Texto para compartilhar</Text><Text selectable style={styles.muted}>{sharePreview}</Text><Pressable style={styles.secondaryButton} onPress={() => setSharePreview('')}><Text style={styles.secondaryButtonText}>Fechar texto</Text></Pressable></>}
       {!!pending && <Text style={styles.hint}>{pending === 'pdf' ? 'Aguarde, preparando o PDF…' : 'Aguarde, salvando no servidor…'}</Text>}
+      </>}
     </View>
   );
 }
@@ -298,10 +329,7 @@ function MeetingCard({ data, meeting, activeUser, isManager, onRespond, onAttend
 export function MeetingsScreen({ data, activeUser, meetings, onSchedule, onRespond, onAttendance, onGenerateAttendance, onSaveMinutes, onSubmitMinutes, onApproveMinutes, onCreateVote, onCastVote, onCloseVote, onRefresh, isRefreshing }) {
   const { styles } = useContext(ThemeContext);
   const [selectedCommissionId, setSelectedCommissionId] = useState('');
-  const [form, setForm] = useState(EMPTY_FORM);
-  const [excludedInviteeIds, setExcludedInviteeIds] = useState([]);
-  const [isScheduling, setIsScheduling] = useState(false);
-  const scheduleInFlight = useRef(false);
+  const [creating, setCreating] = useState(false);
   const commissions = useMemo(() => getAccessibleMeetingCommissions(data, activeUser.id), [data.commissions, data.commissionMembers, data.organizations, data.meetings, data.meetingInvitations, activeUser.id]);
   const commissionId = commissions.some((item) => item.id === selectedCommissionId) ? selectedCommissionId : commissions[0]?.id;
   const commission = commissions.find((item) => item.id === commissionId);
@@ -311,63 +339,24 @@ export function MeetingsScreen({ data, activeUser, meetings, onSchedule, onRespo
     isManager || data.meetingInvitations.some((invite) => invite.meetingId === meeting.id && invite.userId === activeUser.id)
   )).sort((a, b) => new Date(b.startsAt) - new Date(a.startsAt));
 
-  async function submitMeeting() {
-    if (scheduleInFlight.current) return;
-    const inviteeIds = commissionMembers.filter((member) => !excludedInviteeIds.includes(member.userId)).map((member) => member.userId);
-    const payload = buildMeetingPayload(form, commissionId, inviteeIds);
-    if (payload.error) return Alert.alert('Confira o agendamento', payload.error);
-    scheduleInFlight.current = true;
-    setIsScheduling(true);
-    try {
-      const saved = await onSchedule(payload.meeting);
-      if (saved) { setForm(EMPTY_FORM); setExcludedInviteeIds([]); }
-    } catch {
-      Alert.alert('Reunião não agendada', 'Confira sua conexão e tente novamente. Os campos foram preservados.');
-    } finally {
-      scheduleInFlight.current = false;
-      setIsScheduling(false);
-    }
-  }
-
   if (!commission) return <Text style={styles.empty}>Você ainda não participa de uma comissão com reuniões disponíveis.</Text>;
 
   return (
     <>
       <Text style={styles.sectionTitle}>Reuniões</Text>
-      <Pressable disabled={isRefreshing || isScheduling} style={styles.secondaryButton} onPress={onRefresh}><Text style={styles.secondaryButtonText}>{isRefreshing ? 'Atualizando…' : 'Atualizar reuniões e aprovações'}</Text></Pressable>
+      <Pressable disabled={isRefreshing} style={styles.secondaryButton} onPress={onRefresh}><Text style={styles.secondaryButtonText}>{isRefreshing ? 'Atualizando…' : 'Atualizar reuniões e aprovações'}</Text></Pressable>
       {commissions.length > 1 && (
         <View style={styles.card}>
           <Text style={styles.label}>Comissão</Text>
           <View style={styles.userChoices}>
-            {commissions.map((item) => <Choice key={item.id} label={item.name} active={commissionId === item.id} onPress={() => { if (!isScheduling) { setSelectedCommissionId(item.id); setExcludedInviteeIds([]); } }} />)}
+            {commissions.map((item) => <Choice key={item.id} label={item.name} active={commissionId === item.id} onPress={() => { setSelectedCommissionId(item.id); setCreating(false); }} />)}
           </View>
         </View>
       )}
-      {isManager && (
-        <View style={styles.card}>
-          <Text style={styles.cardTitle}>Agendar reunião</Text>
-          <Text style={styles.hint}>O presidente da comissão ou proprietário agenda e convida os membros. Você participa automaticamente.</Text>
-          <Field label="Título" value={form.title} onChangeText={(title) => { if (!isScheduling) setForm((current) => ({ ...current, title })); }} placeholder="Ex.: Planejamento mensal" maxLength={160} />
-          <DateTimeField label="Início" value={form.startsAt} onChangeText={(startsAt) => setForm((current) => ({ ...current, startsAt }))} editable={!isScheduling} />
-          <DateTimeField label="Término" value={form.endsAt} onChangeText={(endsAt) => setForm((current) => ({ ...current, endsAt }))} editable={!isScheduling} />
-          <Text style={styles.hint}>Use o horário local do seu aparelho.</Text>
-          <Field label="Pauta" value={form.agenda} onChangeText={(agenda) => { if (!isScheduling) setForm((current) => ({ ...current, agenda })); }} placeholder="Assuntos que serão discutidos" multiline maxLength={10000} />
-          <Text style={styles.label}>Membros convidados</Text>
-          <Text style={styles.hint}>Toque em um membro para incluir ou retirar do convite.</Text>
-          <View style={styles.userChoices}>
-            {commissionMembers.map((member) => {
-              const person = data.users.find((user) => user.id === member.userId);
-              return <Choice key={member.userId} label={person?.name || person?.email || 'Membro'} active={!excludedInviteeIds.includes(member.userId)} onPress={() => {
-                if (!isScheduling) setExcludedInviteeIds((current) => current.includes(member.userId) ? current.filter((id) => id !== member.userId) : [...current, member.userId]);
-              }} />;
-            })}
-          </View>
-          {commissionMembers.length === 0 && <Text style={styles.muted}>A comissão ainda não possui outros membros.</Text>}
-          <Pressable disabled={isScheduling} style={styles.primaryButton} onPress={submitMeeting}><Text style={styles.primaryButtonText}>{isScheduling ? 'Agendando…' : 'Agendar e convidar'}</Text></Pressable>
-        </View>
-      )}
+      {isManager && <Pressable style={styles.primaryButton} onPress={()=>setCreating(!creating)}><Text style={styles.primaryButtonText}>{creating ? 'Fechar agendamento' : 'Nova reunião'}</Text></Pressable>}
+      {creating && isManager && <MeetingEditor commissionId={commissionId} inviteeIds={commissionMembers.map(m=>m.userId)} invitees={commissionMembers.map(m=>({id:m.userId,name:data.users.find(u=>u.id===m.userId)?.name || 'Integrante'}))} onCancel={()=>setCreating(false)} onSaved={async()=>{setCreating(false); await onRefresh();}} />}
       {visibleMeetings.length === 0 && <Text style={styles.empty}>Não há reuniões para esta comissão.</Text>}
-      {visibleMeetings.map((meeting) => <MeetingCard key={meeting.id} data={data} meeting={meeting} activeUser={activeUser} isManager={isManager} onRespond={onRespond} onAttendance={onAttendance} onGenerateAttendance={onGenerateAttendance} onSaveMinutes={onSaveMinutes} onSubmitMinutes={onSubmitMinutes} onApproveMinutes={onApproveMinutes} onCreateVote={onCreateVote} onCastVote={onCastVote} onCloseVote={onCloseVote} />)}
+      {visibleMeetings.map((meeting) => <MeetingCard key={meeting.id} data={data} meeting={meeting} activeUser={activeUser} isManager={isManager} onRespond={onRespond} onAttendance={onAttendance} onGenerateAttendance={onGenerateAttendance} onSaveMinutes={onSaveMinutes} onSubmitMinutes={onSubmitMinutes} onApproveMinutes={onApproveMinutes} onCreateVote={onCreateVote} onCastVote={onCastVote} onCloseVote={onCloseVote} onRefresh={onRefresh} />)}
     </>
   );
 }

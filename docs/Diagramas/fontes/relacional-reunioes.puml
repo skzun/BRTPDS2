@@ -48,6 +48,9 @@ entity "meetings" as meetings {
 {field} * created_by: uuid <<FK>>
 {field} * created_at: timestamp with time zone
 {field} * updated_at: timestamp with time zone
+{field} * all_day: boolean
+{field} * location: character varying(300)
+{field} * details: character varying(4000)
 }
 entity "meeting_invitations" as meeting_invitations {
 {field} * id: uuid <<PK>>
@@ -63,6 +66,8 @@ entity "meeting_attendance" as meeting_attendance {
 {field} * user_id: uuid <<FK>>
 {field} entered_at: timestamp with time zone
 {field} left_at: timestamp with time zone
+{field} recorded_by: uuid <<FK>>
+{field} * method: character varying(20)
 }
 entity "meeting_minutes" as meeting_minutes {
 {field} * id: uuid <<PK>>
@@ -89,6 +94,7 @@ entity "meeting_minutes_approvals" as meeting_minutes_approvals {
 {field} * decided_at: timestamp with time zone
 }
 meetings ||--o{ meeting_attendance : "meeting_id"
+users |o--o{ meeting_attendance : "recorded_by"
 users ||--o{ meeting_attendance : "user_id"
 meetings ||--o{ meeting_invitations : "meeting_id"
 users ||--o{ meeting_invitations : "user_id"

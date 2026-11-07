@@ -1,0 +1,98 @@
+@startuml
+!pragma layout smetana
+skinparam backgroundColor white
+skinparam shadowing false
+skinparam defaultFontName SansSerif
+skinparam defaultFontSize 13
+skinparam ArrowColor #334155
+skinparam packageStyle rectangle
+skinparam classAttributeIconSize 0
+skinparam roundcorner 5
+skinparam dpi 130
+title Modelo físico relacional — incremento-3
+hide methods
+entity "users" as users {
+{field} * id: uuid <<PK>>
+{field} * name: character varying(120)
+{field} * email: character varying(150)
+{field} phone: character varying(20)
+{field} * password_hash: character varying(255)
+{field} google_id: character varying(255)
+{field} * system_role: character varying(30)
+{field} * theme: character varying(10)
+{field} reset_token: character varying(255)
+{field} reset_token_expires: timestamp with time zone
+{field} * created_at: timestamp with time zone
+{field} * updated_at: timestamp with time zone
+{field} * email_verified: boolean
+{field} activation_hash: text
+{field} activation_expires: timestamp with time zone
+}
+entity "meetings" as meetings {
+{field} * id: uuid <<PK>>
+{field} * commission_id: uuid <<FK>>
+{field} * title: character varying(160)
+{field} * starts_at: timestamp with time zone
+{field} * ends_at: timestamp with time zone
+{field} * agenda: text
+{field} * created_by: uuid <<FK>>
+{field} * created_at: timestamp with time zone
+{field} * updated_at: timestamp with time zone
+{field} * all_day: boolean
+{field} * location: character varying(300)
+{field} * details: character varying(4000)
+}
+entity "meeting_votes" as meeting_votes {
+{field} * id: uuid <<PK>>
+{field} * meeting_id: uuid <<FK>>
+{field} * question: character varying(500)
+{field} * status: character varying(10)
+{field} * created_by: uuid <<FK>>
+{field} * created_at: timestamp with time zone
+{field} closed_at: timestamp with time zone
+}
+entity "meeting_vote_options" as meeting_vote_options {
+{field} * id: uuid <<PK>>
+{field} * vote_id: uuid <<FK>>
+{field} * label: character varying(160)
+{field} * position: smallint
+}
+entity "meeting_vote_ballots" as meeting_vote_ballots {
+{field} * id: uuid <<PK>>
+{field} * vote_id: uuid <<FK>>
+{field} * option_id: uuid <<FK>>
+{field} * user_id: uuid <<FK>>
+{field} * cast_at: timestamp with time zone
+}
+entity "meeting_attendance_codes" as meeting_attendance_codes {
+{field} * meeting_id: uuid <<PK>> <<FK>>
+{field} * code_hash: text
+{field} * expires_at: timestamp with time zone
+{field} * created_by: uuid <<FK>>
+}
+entity "meeting_attachments" as meeting_attachments {
+{field} * id: uuid <<PK>>
+{field} * meeting_id: uuid <<FK>>
+{field} * name: character varying(160)
+{field} * mime_type: character varying(100)
+{field} * content: bytea
+{field} * created_by: uuid <<FK>>
+{field} * created_at: timestamp with time zone
+}
+users ||--o{ meeting_attachments : "created_by"
+meetings ||--o{ meeting_attachments : "meeting_id"
+users ||--o{ meeting_attendance_codes : "created_by"
+meetings ||--o{ meeting_attendance_codes : "meeting_id"
+meeting_vote_options ||--o{ meeting_vote_ballots : "option_id, vote_id"
+users ||--o{ meeting_vote_ballots : "user_id"
+meeting_votes ||--o{ meeting_vote_ballots : "vote_id"
+meeting_votes ||--o{ meeting_vote_options : "vote_id"
+users ||--o{ meeting_votes : "created_by"
+meetings ||--o{ meeting_votes : "meeting_id"
+users ||--o{ meetings : "created_by"
+legend bottom
+* = NOT NULL; PK/FK = chaves.
+Unicidades, CHECK, defaults e ações de exclusão:
+ver dicionário físico, extraído do DDL.
+endlegend
+@enduml

@@ -10,21 +10,25 @@ function parseMeetingDate(value = '') {
   return date;
 }
 
-function buildMeetingPayload(form, commissionId, inviteeIds = []) {
-  if (!form.title.trim() || !form.agenda.trim() || !form.startsAt.trim() || !form.endsAt.trim()) {
-    return { error: 'Informe título, pauta, início e término.' };
-  }
-  if (form.title.trim().length > 160) return { error: 'O título deve ter até 160 caracteres.' };
-  const start = parseMeetingDate(form.startsAt);
-  const end = parseMeetingDate(form.endsAt);
-  if (!start || !end || end <= start) {
-    return { error: 'Use DD/MM/AAAA HH:mm e informe um término depois do início.' };
-  }
+function buildMeetingPayload(form, commissionId, inviteeIds = [], now = new Date()) {
+  const fields = {};
+  if (!form.title?.trim() || form.title.trim().length > 160) fields.title = 'Informe um título de até 160 caracteres.';
+  if (!form.agenda?.trim() || form.agenda.length > 10000) fields.agenda = 'Informe a pauta (até 10.000 caracteres).';
+  let start = parseMeetingDate(form.startsAt), end = parseMeetingDate(form.endsAt);
+  if (form.allDay && start && end) { start.setHours(0, 0, 0, 0); end.setHours(0, 0, 0, 0); end.setDate(end.getDate() + 1); }
+  if (!start || start <= new Date(now)) fields.startsAt = 'Escolha uma data e horário futuros.';
+  if (!end || (start && end <= start)) fields.endsAt = 'O término deve ser posterior ao início.';
+  if ((form.location || '').length > 300) fields.location = 'Use até 300 caracteres.';
+  if ((form.details || '').length > 4000) fields.details = 'Use até 4.000 caracteres.';
+  if (Object.keys(fields).length) return { fields, error: Object.values(fields).join('\n') };
   return {
     meeting: {
       commissionId,
       title: form.title.trim(),
       agenda: form.agenda.trim(),
+      allDay: !!form.allDay,
+      location: (form.location || '').trim(),
+      details: (form.details || '').trim(),
       startsAt: start.toISOString(),
       endsAt: end.toISOString(),
       inviteeIds: [...new Set(inviteeIds)],

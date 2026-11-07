@@ -1,0 +1,31 @@
+@startuml
+!pragma layout smetana
+skinparam shadowing false
+skinparam defaultFontSize 13
+title Abrir, votar e encerrar votação
+autonumber
+actor "Usuário autenticado" as U
+participant "App / API cliente" as App
+participant "routes/meetings.js" as API
+database PostgreSQL as DB
+U -> App: createMeetingVoteWithApi(meetingId, userId, question, options)
+App -> API: POST /meetings/:meetingId/votes
+API -> DB: query("BEGIN")
+API -> API: getMeeting(client, meetingId, userId)
+API -> API: requireManager(meeting)
+API -> DB: query("INSERT INTO meeting_votes ...", params)
+API -> DB: query("INSERT INTO meeting_vote_options ...", params)
+API -> DB: query("COMMIT")
+API --> App: 201 votação e opções
+U -> App: castMeetingVoteWithApi(meetingId, voteId, userId, optionId)
+App -> API: POST /meetings/:meetingId/votes/:voteId/ballot
+API -> DB: query("SELECT id,status FROM meeting_votes ... FOR UPDATE", params)
+API -> DB: query("SELECT 1 FROM meeting_attendance ...", params)
+API -> DB: query("INSERT INTO meeting_vote_ballots ... ON CONFLICT ...", params)
+API --> App: 200 voto
+U -> App: closeMeetingVoteWithApi(meetingId, voteId, userId)
+App -> API: PATCH /meetings/:meetingId/votes/:voteId/close
+API -> API: requireManager(meeting)
+API -> DB: query("UPDATE meeting_votes SET status=CLOSED ...", params)
+API --> App: 200 votação encerrada
+@enduml

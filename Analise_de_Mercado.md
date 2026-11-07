@@ -61,7 +61,7 @@ O objetivo desta análise de mercado é mapear e avaliar as principais soluçõe
 | **Calendly** | Proprietário / Pago | Web / Mobile App | UX impecável, facilidade de uso | Custos elevados, código fechado |
 | **Doodle** | Proprietário / Freemium | Web / Mobile | Votação em grupo eficiente | Interface poluída e ruim no mobile |
 | **Rallly** | Open-Source / Gratuito | Web | Simplicidade, foco em consenso | Sem aplicativo móvel nativo |
-| **Nosso App** | Open-Source / Custo Zero | Mobile (Android/iOS) | UX mobile limpa, integração local, 100% gratuito | Em fase de definição de arquitetura |
+| **Nosso App** | Open-Source / Custo Zero | Mobile (Android/iOS) | UX mobile limpa, integração local, 100% gratuito | Implementado; validação em aparelhos e com usuários pendente |
 
 ## 4. Oportunidades e Diferenciais para o Synple
 
@@ -69,22 +69,19 @@ A análise das soluções avaliadas evidencia uma oportunidade para desenvolver 
 A proposta do Synple será baseada nos seguintes diferenciais:
 
 ### 4.1 Mobile-first multiplataforma
-O Synple será desenvolvido especificamente para dispositivos móveis utilizando React Native CLI, com suporte a Android e iOS.
+O Synple será desenvolvido especificamente para dispositivos móveis utilizando Expo SDK 58 e React Native, com suporte a Android e iOS.
 A interface será projetada considerando as características de telas menores, navegação por toque e utilização rápida durante a rotina do usuário.
 
 ### 4.2 Open-source e infraestrutura própria
 O sistema será disponibilizado como software open-source e poderá ser executado em infraestrutura própria.
-O backend será hospedado em servidor controlado pelo responsável pela implantação, utilizando tecnologias open-source como PostgreSQL, Redis, MinIO, Node.js e Nginx.
+O backend será hospedado em servidor controlado pelo responsável pela implantação, utilizando tecnologias open-source como PostgreSQL e Node.js/Express.
 Dessa forma, o projeto não dependerá de serviços proprietários de nuvem para seu funcionamento básico.
 
-### 4.3 Arquitetura offline-first
-O aplicativo utilizará armazenamento local para manter os dados necessários ao funcionamento do sistema mesmo quando não houver conexão com a Internet.
-As alterações realizadas offline serão armazenadas localmente e posteriormente sincronizadas com o servidor quando a conectividade estiver disponível.
-Essa abordagem busca proporcionar maior continuidade de uso e reduzir a dependência de conectividade constante.
+### 4.3 Persistência confirmada pelo servidor
+O servidor PostgreSQL é a fonte dos dados. O aplicativo confirma escritas somente após resposta da API. O cache AsyncStorage é sanitizado e não autentica por senha nem garante gravações offline. Durante uma sessão aberta, uma perda de rede pode manter o último estado em memória; reabrir a sessão exige validação no servidor.
 
-### 4.4 Comunicação integrada
-Além do gerenciamento de reuniões e disponibilidade dos participantes, o Synple terá um chat associado às reuniões.
-Dessa forma, informações relacionadas à organização de uma reunião poderão permanecer concentradas no próprio contexto do evento, reduzindo a necessidade de utilizar diferentes ferramentas para organizar e conversar sobre a mesma reunião.
+### 4.4 Conteúdo associado à reunião
+O Synple oferece pauta, local/detalhes opcionais, anexos PDF/imagem/texto, votações independentes e ata com aprovação. Não há chat ou mensagens em tempo real implementados. A avaliação de utilidade e facilidade desses recursos com a comunidade ainda precisa ser registrada.
 
 ### 4.5 Interface simples e sem anúncios
 A interface será desenvolvida com foco em simplicidade, legibilidade e redução da quantidade de etapas necessárias para realizar as principais tarefas.

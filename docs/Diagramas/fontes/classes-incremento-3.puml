@@ -1,0 +1,40 @@
+@startuml
+!pragma layout smetana
+skinparam shadowing false
+skinparam defaultFontSize 13
+title Classes de projeto — operações de módulos JavaScript
+class ClienteAPI <<module>> {
+ +meetingRequest(path, method, payload): Promise
+ +createMeetingVoteWithApi(meetingId, userId, question, options): Promise
+ +castMeetingVoteWithApi(meetingId, voteId, userId, optionId): Promise
+ +closeMeetingVoteWithApi(meetingId, voteId, userId): Promise
+ +fetchMeetingParticipationReportWithApi(): Promise
+ +authorizePdfDownload(url): Promise
+}
+class RotasReuniao <<module>> {
+ +createMeetingsRouter(database, options): Router
+}
+class PresencaPDF <<module>> {
+ +generateAttendancePdf(snapshot): Promise
+}
+class SessaoDispositivo <<module>> {
+ +rememberSession(value): Promise
+ +restoreSession(): Promise
+ +confirmBiometric(): Promise
+}
+class EditorReuniao <<ReactComponent>> {
+ +MeetingEditor(props): JSX
+}
+class RecursosReuniao <<ReactComponent>> {
+ +MeetingResources(props): JSX
+}
+EditorReuniao ..> ClienteAPI
+RecursosReuniao ..> ClienteAPI
+ClienteAPI ..> RotasReuniao : HTTP autenticado
+RotasReuniao ..> PresencaPDF
+ClienteAPI ..> SessaoDispositivo
+note bottom of RotasReuniao
+Classificadores representam módulos funcionais JS.
+Dados e restrições estão no dicionário físico.
+end note
+@enduml

@@ -1,0 +1,17 @@
+@startuml
+!pragma layout smetana
+skinparam shadowing false
+skinparam defaultFontSize 13
+title Relatório da sessão autenticada
+autonumber
+actor "Usuário autenticado" as U
+participant "App / API cliente" as App
+participant "routes/meetings.js" as API
+database PostgreSQL as DB
+U -> App: fetchMeetingParticipationReportWithApi()
+App -> API: GET /meetings/participation/report
+API -> DB: query("SELECT ... WHERE a.user_id=$1 AND a.entered_at IS NOT NULL", [req.auth.id])
+DB --> API: rows
+API --> App: 200 {meetings: rows}
+App --> U: MeetingParticipationScreen()
+@enduml

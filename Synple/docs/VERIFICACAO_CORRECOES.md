@@ -1,3 +1,5 @@
+> Registro histórico, anterior às correções atuais. Para o estado verificado, consulte [Entrega do incremento 3](../../docs/ENTREGA_INCREMENTO_3.md).
+
 # Verificação das correções — 30/10/2026
 
 ## Executado nesta revisão

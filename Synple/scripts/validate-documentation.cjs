@@ -1,7 +1,7 @@
 const fs=require('fs');const path=require('path');
 const root=path.resolve(__dirname,'../..');
 const errors=[];
-const files=['Documentacao_do_ProjetoSynple.md','docs/incremento-1-especificacao-completa.md','docs/dicionario-banco-dados.md','docs/dicionario-classes.md','docs/tecnologias-versoes.md','docs/VERIFICACAO_DOCUMENTACAO.md','docs/Diagramas/Diagramas_Casos_de_Uso.md','docs/incremento-2-reunioes.md','Synple/DOCUMENTACAO_SOFTWARE.md','Synple/docs/INCREMENTO_2.md'];
+const files=['docs/INCREMENTO_3.md','docs/ENTREGA_INCREMENTO_3.md','docs/VALIDACAO_EM_APARELHOS.md','Documentacao_do_ProjetoSynple.md','docs/incremento-1-especificacao-completa.md','docs/dicionario-banco-dados.md','docs/dicionario-classes.md','docs/tecnologias-versoes.md','docs/VERIFICACAO_DOCUMENTACAO.md','docs/Diagramas/Diagramas_Casos_de_Uso.md','docs/incremento-2-reunioes.md','Synple/DOCUMENTACAO_SOFTWARE.md','Synple/docs/INCREMENTO_2.md'];
 function anchors(file) {
  const source=fs.readFileSync(file,'utf8');const ids=new Set();const seen=new Map();
  for(const m of source.matchAll(/<a\s+id="([^"]+)"/g))ids.add(m[1]);

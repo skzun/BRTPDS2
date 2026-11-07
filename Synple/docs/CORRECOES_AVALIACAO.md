@@ -1,3 +1,5 @@
+> Registro histórico, anterior às correções atuais. Para o estado verificado, consulte [Entrega do incremento 3](../../docs/ENTREGA_INCREMENTO_3.md).
+
 # Correções da avaliação do professor
 
 Revisão em 30/10/2026. Este registro diferencia código implementado de validação em dispositivo e levantamento com pessoas. Não comprova entrevistas, testes manuais de concorrentes ou execução em celulares.

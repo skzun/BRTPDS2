@@ -11,7 +11,7 @@ async function issueSession(userId) {
 
 async function authenticate(req, res, next) {
   try {
-    if (['GET', 'HEAD'].includes(req.method) && /^\/meetings\/[^/]+\/minutes\/pdf$/.test(req.path) && typeof req.query.download === 'string') {
+    if (['GET', 'HEAD'].includes(req.method) && /^\/meetings\/[a-f0-9-]+\/(?:(?:minutes|attendance)\/pdf|attachments\/[a-f0-9-]+)$/i.test(req.path) && typeof req.query.download === 'string') {
       const ticket = await db.query(`SELECT u.id, u.system_role AS "systemRole", u.email FROM download_tickets t
         JOIN auth_sessions s ON s.token_hash = t.session_hash JOIN users u ON u.id = s.user_id
         WHERE t.token_hash = $1 AND t.path = $2 AND t.expires_at > NOW() AND s.expires_at > NOW()`, [digest(req.query.download), req.path]);
@@ -31,14 +31,14 @@ async function authenticate(req, res, next) {
 }
 
 // Limites persistentes por IP E conta, compartilhados entre processos da API.
-function rateLimit(limit, seconds) {
+function rateLimit(limit, seconds, database = db) {
   return async (req, res, next) => {
     try {
       const email = String(req.body?.email || '').trim().toLowerCase();
       const route = req.baseUrl + req.path;
       const keys = [`${route}:ip:${req.ip}`, ...(email ? [`${route}:email:${email}`] : [])];
       for (const key of keys) {
-        const result = await db.query(`INSERT INTO auth_rate_limits (key, attempts, expires_at)
+        const result = await database.query(`INSERT INTO auth_rate_limits (key, attempts, expires_at)
           VALUES ($1, 1, NOW() + $2 * INTERVAL '1 second') ON CONFLICT (key) DO UPDATE
           SET attempts = CASE WHEN auth_rate_limits.expires_at <= NOW() THEN 1 ELSE auth_rate_limits.attempts + 1 END,
           expires_at = CASE WHEN auth_rate_limits.expires_at <= NOW() THEN EXCLUDED.expires_at ELSE auth_rate_limits.expires_at END

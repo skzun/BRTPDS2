@@ -1,8 +1,8 @@
 # Especificação principal de engenharia de software — Synple
 
-**Revisão:** 30/10/2026. **Escopo:** cadastro, organizações, comissões, contas, configuração, operação e incremento 2 (reuniões/atas). **Base:** código presente neste checkout, DDL e relatórios de teste identificados; não presume implantação em outro computador.
+**Revisão:** 06/11/2026. **Escopo:** cadastro, organizações, comissões, contas, configuração, operação e incremento 2 (reuniões/atas). **Base:** código presente neste checkout, DDL e relatórios de teste identificados; não presume implantação em outro computador.
 
-Esta revisão substitui integralmente a especificação anterior. Não descreve como implementados chat, calendário gráfico, disponibilidade, edição/cancelamento de reunião, restauração de backup ou reinício de processos pelo celular. O levantamento de requisitos com a comunidade e os testes físicos ainda dependem de evidências externas.
+Esta revisão substitui integralmente a especificação anterior. Não descreve como implementados chat, calendário gráfico, disponibilidade, cancelamento de reunião, restauração de backup ou reinício de processos pelo celular. O levantamento de requisitos com a comunidade e os testes físicos ainda dependem de evidências externas.
 
 ## 1. Fontes, convenções e rastreabilidade
 
@@ -112,6 +112,71 @@ Fontes editáveis e todas as imagens: [catálogo dos diagramas](Diagramas/Diagra
 | [RF02.08](#rf0208) | Submeter ata para aprovação | Gestor atual |
 | [RF02.09](#rf0209) | Aprovar ou solicitar correção da versão da ata | Aprovador fixado na submissão |
 | [RF02.10](#rf0210) | Gerar PDF da ata salva | Gestor atual ou convidado histórico |
+| [RF03.01](#rf0301) | Abrir votação independente da ata | Coordenador ou proprietário |
+| [RF03.02](#rf0302) | Votar ou alterar a opção | Participante com entrada registrada |
+| [RF03.03](#rf0303) | Encerrar votação | Coordenador ou proprietário |
+| [RF03.04](#rf0304) | Consultar relatório individual | Usuário autenticado |
+| [RF03.05](#rf0305) | Consultar manual digital | Usuário autenticado |
+| [RF03.06](#rf0306) | Editar reunião futura | Coordenador ou proprietário |
+| [RF03.07](#rf0307) | Agendar por dias de calendário e informar local/detalhes | Coordenador ou proprietário |
+| [RF03.08](#rf0308) | Compartilhar anexos com convidados | Gestor envia; convidados e gestor consultam |
+| [RF03.09](#rf0309) | Registrar presença por código temporário | Gestor emite; convidado aceito utiliza |
+| [RF03.10](#rf0310) | Registrar entrada/saída de convidado pelo presidente | Coordenador ou proprietário |
+| [RF03.11](#rf0311) | Exportar lista de presença em PDF | Convidado histórico ou gestor |
+
+## Requisitos funcionais declarativos
+
+| ID | Requisito |
+| --- | --- |
+| RF01 | O sistema deve oferecer a função cadastrar organização ao ator usuário autenticado, respeitando as condições e resultados da ficha correspondente. |
+| RF02 | O sistema deve oferecer a função decidir situação da organização ao ator administrador do sistema, respeitando as condições e resultados da ficha correspondente. |
+| RF03 | O sistema deve oferecer a função listar e remover organizações ao ator administrador do sistema, respeitando as condições e resultados da ficha correspondente. |
+| RF04 | O sistema deve oferecer a função criar comissão ao ator proprietário da organização, respeitando as condições e resultados da ficha correspondente. |
+| RF05 | O sistema deve oferecer a função editar, ativar/inativar e excluir comissão ao ator proprietário da organização, respeitando as condições e resultados da ficha correspondente. |
+| RF06 | O sistema deve oferecer a função gerenciar integrantes e transferir coordenação ao ator proprietário da organização, respeitando as condições e resultados da ficha correspondente. |
+| RF07 | O sistema deve oferecer a função cadastrar conta local pendente de ativação ao ator visitante, respeitando as condições e resultados da ficha correspondente. |
+| RF08 | O sistema deve oferecer a função solicitar e decidir ingresso na organização ao ator usuário autenticado / proprietário; administrador autorizado na api, respeitando as condições e resultados da ficha correspondente. |
+| RF09 | O sistema deve oferecer a função alterar cargo e revogar vínculo organizacional ao ator proprietário da organização, respeitando as condições e resultados da ficha correspondente. |
+| RF10 | O sistema deve oferecer a função trocar senha autenticada ao ator usuário autenticado, respeitando as condições e resultados da ficha correspondente. |
+| RF11 | O sistema deve oferecer a função recuperar senha com código por e-mail ao ator visitante, respeitando as condições e resultados da ficha correspondente. |
+| RF12 | O sistema deve oferecer a função alterar nome e telefone com confirmação biométrica local ao ator usuário autenticado, respeitando as condições e resultados da ficha correspondente. |
+| RF13 | O sistema deve oferecer a função definir tema do perfil ao ator usuário autenticado, respeitando as condições e resultados da ficha correspondente. |
+| RF14 | O sistema deve oferecer a função consultar informação operacional real ao ator administrador do sistema, respeitando as condições e resultados da ficha correspondente. |
+| RF15 | O sistema deve oferecer a função consultar contadores administrativos ao ator administrador do sistema, respeitando as condições e resultados da ficha correspondente. |
+| RF16 | O sistema deve oferecer a função verificar disponibilidade atual ao ator administrador do sistema, respeitando as condições e resultados da ficha correspondente. |
+| RF17 | O sistema deve oferecer a função consultar marcos de inicialização ao ator administrador do sistema, respeitando as condições e resultados da ficha correspondente. |
+| RF18 | O sistema deve oferecer a função sair e limpar o cache local ao ator usuário autenticado, respeitando as condições e resultados da ficha correspondente. |
+| RF19 | O sistema deve oferecer a função entrar com e-mail e senha ao ator visitante, respeitando as condições e resultados da ficha correspondente. |
+| RF20 | O sistema deve oferecer a função entrar/cadastrar com google ao ator visitante, respeitando as condições e resultados da ficha correspondente. |
+| RF21 | O sistema deve oferecer a função ativar conta local e reenviar código ao ator visitante, respeitando as condições e resultados da ficha correspondente. |
+| RF22 | O sistema deve oferecer a função transferir propriedade da organização ao ator proprietário atual, respeitando as condições e resultados da ficha correspondente. |
+| RF23 | O sistema deve oferecer a função convidar conta existente para organização ao ator proprietário da organização, respeitando as condições e resultados da ficha correspondente. |
+| RF24 | O sistema deve oferecer a função aceitar/recusar convite de organização ao ator destinatário autenticado, respeitando as condições e resultados da ficha correspondente. |
+| RF25 | O sistema deve oferecer a função sincronizar snapshot autorizado e manter cache sanitizado ao ator usuário autenticado, respeitando as condições e resultados da ficha correspondente. |
+| RF26 | O sistema deve oferecer a função reabrir sessão com biometria ao ator pessoa com sessão previamente guardada, respeitando as condições e resultados da ficha correspondente. |
+| RF27 | O sistema deve oferecer a função excluir conta administrativamente ao ator administrador do sistema, respeitando as condições e resultados da ficha correspondente. |
+| RF28 | O sistema deve oferecer a função alterar nome/cnpj da organização ao ator proprietário da organização, respeitando as condições e resultados da ficha correspondente. |
+| RF02.01 | O sistema deve oferecer a função agendar reunião da comissão ao ator coordenador atual ou proprietário, respeitando as condições e resultados da ficha correspondente. |
+| RF02.02 | O sistema deve oferecer a função selecionar e convidar integrantes no agendamento ao ator gestor da reunião, respeitando as condições e resultados da ficha correspondente. |
+| RF02.03 | O sistema deve oferecer a função responder convite de reunião ao ator convidado autenticado, respeitando as condições e resultados da ficha correspondente. |
+| RF02.04 | O sistema deve oferecer a função registrar entrada ao ator convidado com convite aceito, respeitando as condições e resultados da ficha correspondente. |
+| RF02.05 | O sistema deve oferecer a função registrar saída ao ator participante com entrada registrada, respeitando as condições e resultados da ficha correspondente. |
+| RF02.06 | O sistema deve oferecer a função consultar e compartilhar lista de presença ao ator gestor atual ou convidado histórico, respeitando as condições e resultados da ficha correspondente. |
+| RF02.07 | O sistema deve oferecer a função criar ou corrigir ata ao ator gestor atual, respeitando as condições e resultados da ficha correspondente. |
+| RF02.08 | O sistema deve oferecer a função submeter ata para aprovação ao ator gestor atual, respeitando as condições e resultados da ficha correspondente. |
+| RF02.09 | O sistema deve oferecer a função aprovar ou solicitar correção da versão da ata ao ator aprovador fixado na submissão, respeitando as condições e resultados da ficha correspondente. |
+| RF02.10 | O sistema deve oferecer a função gerar pdf da ata salva ao ator gestor atual ou convidado histórico, respeitando as condições e resultados da ficha correspondente. |
+| RF03.01 | O sistema deve oferecer a função abrir votação independente da ata ao ator coordenador ou proprietário, respeitando as condições e resultados da ficha correspondente. |
+| RF03.02 | O sistema deve oferecer a função votar ou alterar a opção ao ator participante com entrada registrada, respeitando as condições e resultados da ficha correspondente. |
+| RF03.03 | O sistema deve oferecer a função encerrar votação ao ator coordenador ou proprietário, respeitando as condições e resultados da ficha correspondente. |
+| RF03.04 | O sistema deve oferecer a função consultar relatório individual ao ator usuário autenticado, respeitando as condições e resultados da ficha correspondente. |
+| RF03.05 | O sistema deve oferecer a função consultar manual digital ao ator usuário autenticado, respeitando as condições e resultados da ficha correspondente. |
+| RF03.06 | O sistema deve oferecer a função editar reunião futura ao ator coordenador ou proprietário, respeitando as condições e resultados da ficha correspondente. |
+| RF03.07 | O sistema deve oferecer a função agendar por dias de calendário e informar local/detalhes ao ator coordenador ou proprietário, respeitando as condições e resultados da ficha correspondente. |
+| RF03.08 | O sistema deve oferecer a função compartilhar anexos com convidados ao ator gestor envia; convidados e gestor consultam, respeitando as condições e resultados da ficha correspondente. |
+| RF03.09 | O sistema deve oferecer a função registrar presença por código temporário ao ator gestor emite; convidado aceito utiliza, respeitando as condições e resultados da ficha correspondente. |
+| RF03.10 | O sistema deve oferecer a função registrar entrada/saída de convidado pelo presidente ao ator coordenador ou proprietário, respeitando as condições e resultados da ficha correspondente. |
+| RF03.11 | O sistema deve oferecer a função exportar lista de presença em pdf ao ator convidado histórico ou gestor, respeitando as condições e resultados da ficha correspondente. |
 
 <a id="rf01"></a>
 
@@ -799,7 +864,7 @@ Fontes editáveis e todas as imagens: [catálogo dos diagramas](Diagramas/Diagra
 | Campo | Especificação |
 | --- | --- |
 | Ator | Coordenador atual ou proprietário |
-| Tela e gatilho | Reuniões → título, início, término, pauta → Agendar e convidar |
+| Tela e gatilho | Reuniões → Nova reunião → Salvar reunião |
 | Pré-condições | Comissão existente; gestor com sessão válida. |
 | Entradas e contrato | POST /meetings; prefixo /api em todas as rotas |
 | Dados/pós-condição de sucesso | meetings e meeting_invitations na mesma transação. |
@@ -813,7 +878,7 @@ Fontes editáveis e todas as imagens: [catálogo dos diagramas](Diagramas/Diagra
 4. Criar reunião e convites; organizador entra como ACCEPTED.
 5. Confirmar reunião após commit.
 
-**Alternativas, exceções e limites:** Término não posterior/início inválido: 400; não gestor: 403; convidados inválidos abortam toda a transação. Não há edição/cancelamento do agendamento implementados.
+**Alternativas, exceções e limites:** Início não futuro, término inválido e campos vazios: 400 com fields; não gestor: 403. Edição de reunião futura está em RF03.06.
 
 **Critério de aceite:** executar o fluxo principal com as pré-condições indicadas, conferir os dados/pós-condição no servidor e repetir as exceções descritas. Aprovar somente se a interface e a resposta HTTP coincidirem com os resultados registrados. A existência desta ficha não é evidência de execução.
 
@@ -824,7 +889,7 @@ Fontes editáveis e todas as imagens: [catálogo dos diagramas](Diagramas/Diagra
 | Campo | Especificação |
 | --- | --- |
 | Ator | Gestor da reunião |
-| Tela e gatilho | Reuniões → Membros convidados no formulário Agendar e convidar |
+| Tela e gatilho | Reuniões → Nova reunião → Convidados da comissão |
 | Pré-condições | Mesmo contexto de RF02.01; integrantes pertencentes à comissão. |
 | Entradas e contrato | POST /meetings, campo inviteeIds; prefixo /api em todas as rotas |
 | Dados/pós-condição de sucesso | meeting_invitations, UNIQUE(meeting_id,user_id). |
@@ -832,10 +897,9 @@ Fontes editáveis e todas as imagens: [catálogo dos diagramas](Diagramas/Diagra
 
 **Fluxo principal**
 
-1. Selecionar pessoas da comissão no formulário.
-2. Enviar inviteeIds junto ao agendamento.
-3. Resolver IDs, rejeitar pessoas não integrantes e deduplicar; incluir organizador.
-4. Persistir INVITED para demais pessoas e ACCEPTED para organizador.
+1. Selecionar integrantes; todos começam selecionados e o gestor pode retirar pessoas.
+2. Enviar inviteeIds; validar elegibilidade e deduplicar no servidor.
+3. Persistir convites e incluir organizador aceito.
 
 **Alternativas, exceções e limites:** Não há endpoint/tela para convidar pessoas avulsas após criar a reunião. O proprietário pode ser organizador sem integrar a comissão; demais convidados precisam ser integrantes.
 
@@ -860,7 +924,7 @@ Fontes editáveis e todas as imagens: [catálogo dos diagramas](Diagramas/Diagra
 2. API usa identidade da sessão e valida estado enviado.
 3. Atualizar status e responded_at pelo relógio do servidor.
 
-**Alternativas, exceções e limites:** Recusa após registrar entrada é bloqueada: 409. Usuário sem convite não responde pelo de outra pessoa.
+**Alternativas, exceções e limites:** Após término, ou recusa após entrada, retorna 409. Usuário sem convite não responde por outro.
 
 **Critério de aceite:** executar o fluxo principal com as pré-condições indicadas, conferir os dados/pós-condição no servidor e repetir as exceções descritas. Aprovar somente se a interface e a resposta HTTP coincidirem com os resultados registrados. A existência desta ficha não é evidência de execução.
 
@@ -871,19 +935,19 @@ Fontes editáveis e todas as imagens: [catálogo dos diagramas](Diagramas/Diagra
 | Campo | Especificação |
 | --- | --- |
 | Ator | Convidado com convite aceito |
-| Tela e gatilho | Cartão da reunião → Registrar entrada |
-| Pré-condições | Convite ACCEPTED e ausência de entrada anterior; ata ainda permite novas entradas. |
+| Tela e gatilho | Abrir reunião → Presença → Entrada/Saída com biometria, ou Arquivos → código |
+| Pré-condições | Convite ACCEPTED e ausência de entrada anterior; ata ainda permite novas entradas. Reunião em andamento. |
 | Entradas e contrato | PATCH /meetings/:meetingId/attendance com action=ENTER; prefixo /api em todas as rotas |
 | Dados/pós-condição de sucesso | meeting_attendance, UNIQUE(meeting_id,user_id). |
 | Sequência UML | [seq-presenca](Diagramas/renderizados/seq-presenca.svg) |
 
 **Fluxo principal**
 
-1. Acionar Registrar entrada.
-2. API bloqueia reunião em transação e verifica convite/presença/ata.
-3. Registrar entered_at pelo servidor e confirmar.
+1. Confirmar biometria local, ou usar código temporário válido, ou solicitar registro ao gestor.
+2. PATCH valida identidade, convite, período e estado de presença.
+3. Gravar horários pelo servidor e confirmar resultado.
 
-**Alternativas, exceções e limites:** Não se registra por outro participante. Após submissão para revisão e aprovação final, novas entradas ficam bloqueadas. Registro é da primeira entrada; não existe fluxo de múltiplas reentradas.
+**Alternativas, exceções e limites:** Fora do período: 409; sem convite: 403; novas entradas bloqueadas durante revisão/aprovação da ata. Gestor pode atuar por convidado pela rota própria (RF03.10). Biometria é verificação local, sem atestado remoto.
 
 **Critério de aceite:** executar o fluxo principal com as pré-condições indicadas, conferir os dados/pós-condição no servidor e repetir as exceções descritas. Aprovar somente se a interface e a resposta HTTP coincidirem com os resultados registrados. A existência desta ficha não é evidência de execução.
 
@@ -894,19 +958,19 @@ Fontes editáveis e todas as imagens: [catálogo dos diagramas](Diagramas/Diagra
 | Campo | Especificação |
 | --- | --- |
 | Ator | Participante com entrada registrada |
-| Tela e gatilho | Cartão da reunião → Registrar saída |
-| Pré-condições | Entrada existente e saída ainda não registrada. |
+| Tela e gatilho | Abrir reunião → Presença → Entrada/Saída com biometria, ou Arquivos → código |
+| Pré-condições | Entrada existente e saída ainda não registrada. Reunião em andamento. |
 | Entradas e contrato | PATCH /meetings/:meetingId/attendance com action=EXIT; prefixo /api em todas as rotas |
 | Dados/pós-condição de sucesso | meeting_attendance.left_at. |
 | Sequência UML | [seq-presenca](Diagramas/renderizados/seq-presenca.svg) |
 
 **Fluxo principal**
 
-1. Acionar Registrar saída.
-2. API confere própria presença em transação.
-3. Gravar left_at com relógio do servidor e devolver presença.
+1. Confirmar biometria local, ou usar código temporário válido, ou solicitar registro ao gestor.
+2. PATCH valida identidade, convite, período e estado de presença.
+3. Gravar horários pelo servidor e confirmar resultado.
 
-**Alternativas, exceções e limites:** Sem entrada, negar operação; saída não apaga presença nem retira voto obrigatório. Saídas continuam disponíveis após submissão/aprovação da ata.
+**Alternativas, exceções e limites:** Fora do período: 409; sem convite: 403; novas entradas bloqueadas durante revisão/aprovação da ata. Gestor pode atuar por convidado pela rota própria (RF03.10). Biometria é verificação local, sem atestado remoto.
 
 **Critério de aceite:** executar o fluxo principal com as pré-condições indicadas, conferir os dados/pós-condição no servidor e repetir as exceções descritas. Aprovar somente se a interface e a resposta HTTP coincidirem com os resultados registrados. A existência desta ficha não é evidência de execução.
 
@@ -1031,6 +1095,257 @@ Fontes editáveis e todas as imagens: [catálogo dos diagramas](Diagramas/Diagra
 
 **Critério de aceite:** executar o fluxo principal com as pré-condições indicadas, conferir os dados/pós-condição no servidor e repetir as exceções descritas. Aprovar somente se a interface e a resposta HTTP coincidirem com os resultados registrados. A existência desta ficha não é evidência de execução.
 
+<a id="rf0301"></a>
+
+### RF03.01 — Abrir votação independente da ata
+
+| Campo | Especificação |
+| --- | --- |
+| Ator | Coordenador ou proprietário |
+| Tela e gatilho | Reunião → Votações → Abrir votação |
+| Pré-condições | Sessão válida, gestão da reunião e ao menos uma entrada registrada. |
+| Entradas e contrato | POST /meetings/:meetingId/votes; prefixo /api em todas as rotas |
+| Dados/pós-condição de sucesso | meeting_votes e meeting_vote_options; status OPEN. |
+| Sequência UML | [seq-votacoes](Diagramas/renderizados/seq-votacoes.svg) |
+
+**Fluxo principal**
+
+1. Preencher pergunta e de duas a oito opções distintas.
+2. POST cria votação e opções na mesma transação.
+3. Atualizar a apuração pelo snapshot autorizado.
+
+**Alternativas, exceções e limites:** Pergunta vazia, opção duplicada/inválida: 400; não gestor: 403; sem presentes: 409.
+
+**Critério de aceite:** executar o fluxo principal com as pré-condições indicadas, conferir os dados/pós-condição no servidor e repetir as exceções descritas. Aprovar somente se a interface e a resposta HTTP coincidirem com os resultados registrados. A existência desta ficha não é evidência de execução.
+
+<a id="rf0302"></a>
+
+### RF03.02 — Votar ou alterar a opção
+
+| Campo | Especificação |
+| --- | --- |
+| Ator | Participante com entrada registrada |
+| Tela e gatilho | Reunião → Votações → opção |
+| Pré-condições | Votação OPEN e presença registrada. |
+| Entradas e contrato | POST /meetings/:meetingId/votes/:voteId/ballot; prefixo /api em todas as rotas |
+| Dados/pós-condição de sucesso | meeting_vote_ballots; UNIQUE(vote_id,user_id). |
+| Sequência UML | [seq-votacoes](Diagramas/renderizados/seq-votacoes.svg) |
+
+**Fluxo principal**
+
+1. Selecionar uma opção.
+2. Servidor usa a identidade da sessão e verifica a presença.
+3. Inserir ou atualizar o voto único e sincronizar a contagem.
+
+**Alternativas, exceções e limites:** Sem presença: 403; encerrada: 409; opção de outra votação: 400.
+
+**Critério de aceite:** executar o fluxo principal com as pré-condições indicadas, conferir os dados/pós-condição no servidor e repetir as exceções descritas. Aprovar somente se a interface e a resposta HTTP coincidirem com os resultados registrados. A existência desta ficha não é evidência de execução.
+
+<a id="rf0303"></a>
+
+### RF03.03 — Encerrar votação
+
+| Campo | Especificação |
+| --- | --- |
+| Ator | Coordenador ou proprietário |
+| Tela e gatilho | Reunião → Votações → Encerrar votação → confirmação |
+| Pré-condições | Gestor autenticado e votação aberta. |
+| Entradas e contrato | PATCH /meetings/:meetingId/votes/:voteId/close; prefixo /api em todas as rotas |
+| Dados/pós-condição de sucesso | meeting_votes.status e closed_at; apuração fica imutável. |
+| Sequência UML | [seq-votacoes](Diagramas/renderizados/seq-votacoes.svg) |
+
+**Fluxo principal**
+
+1. Confirmar encerramento.
+2. Servidor bloqueia a reunião e grava CLOSED e closed_at.
+
+**Alternativas, exceções e limites:** Não gestor: 403; já encerrada: 409.
+
+**Critério de aceite:** executar o fluxo principal com as pré-condições indicadas, conferir os dados/pós-condição no servidor e repetir as exceções descritas. Aprovar somente se a interface e a resposta HTTP coincidirem com os resultados registrados. A existência desta ficha não é evidência de execução.
+
+<a id="rf0304"></a>
+
+### RF03.04 — Consultar relatório individual
+
+| Campo | Especificação |
+| --- | --- |
+| Ator | Usuário autenticado |
+| Tela e gatilho | Meu relatório → Atualizar relatório |
+| Pré-condições | Sessão válida. |
+| Entradas e contrato | GET /meetings/participation/report; prefixo /api em todas as rotas |
+| Dados/pós-condição de sucesso | Consulta de meeting_attendance, meetings, commissions, organizations e meeting_minutes. |
+| Sequência UML | [seq-relatorio-participacao](Diagramas/renderizados/seq-relatorio-participacao.svg) |
+
+**Fluxo principal**
+
+1. Consultar o endpoint sem enviar outra identidade.
+2. Filtrar attendance.user_id pela sessão e entered_at não nulo.
+3. Exibir reuniões, organizações, comissões, presença e situação de ata.
+
+**Alternativas, exceções e limites:** Sem sessão: 401; falha de rede exibida na tela; convite sem entrada não compõe relatório.
+
+**Critério de aceite:** executar o fluxo principal com as pré-condições indicadas, conferir os dados/pós-condição no servidor e repetir as exceções descritas. Aprovar somente se a interface e a resposta HTTP coincidirem com os resultados registrados. A existência desta ficha não é evidência de execução.
+
+<a id="rf0305"></a>
+
+### RF03.05 — Consultar manual digital
+
+| Campo | Especificação |
+| --- | --- |
+| Ator | Usuário autenticado |
+| Tela e gatilho | Manual na navegação |
+| Pré-condições | Aplicativo aberto. |
+| Entradas e contrato | Sem endpoint; ManualScreen(); prefixo /api em todas as rotas |
+| Dados/pós-condição de sucesso | Conteúdo empacotado em ManualScreen.js. |
+| Sequência UML | [seq-manual-consulta](Diagramas/renderizados/seq-manual-consulta.svg) |
+
+**Fluxo principal**
+
+1. Abrir Manual.
+2. Renderizar instruções locais de acesso, organizações, comissão, reunião, presença, arquivos, votação, atas e relatório.
+
+**Alternativas, exceções e limites:** Consulta do conteúdo não depende da API.
+
+**Critério de aceite:** executar o fluxo principal com as pré-condições indicadas, conferir os dados/pós-condição no servidor e repetir as exceções descritas. Aprovar somente se a interface e a resposta HTTP coincidirem com os resultados registrados. A existência desta ficha não é evidência de execução.
+
+<a id="rf0306"></a>
+
+### RF03.06 — Editar reunião futura
+
+| Campo | Especificação |
+| --- | --- |
+| Ator | Coordenador ou proprietário |
+| Tela e gatilho | Abrir reunião → Editar agendamento → Salvar reunião |
+| Pré-condições | Reunião ainda não iniciada e sem presença. |
+| Entradas e contrato | PATCH /meetings/:meetingId; prefixo /api em todas as rotas |
+| Dados/pós-condição de sucesso | meetings atualizada; convites voltam a INVITED, mantendo organizador aceito. |
+| Sequência UML | [seq-editar-reuniao](Diagramas/renderizados/seq-editar-reuniao.svg) |
+
+**Fluxo principal**
+
+1. Alterar título, período, pauta, local/detalhes e dia todo.
+2. Validar todos os campos e exibir mensagens junto aos campos.
+3. Atualizar a reunião em transação e solicitar nova confirmação aos convidados.
+
+**Alternativas, exceções e limites:** Não gestor: 403; já iniciada/com presença: 409; datas inválidas/passadas: 400.
+
+**Critério de aceite:** executar o fluxo principal com as pré-condições indicadas, conferir os dados/pós-condição no servidor e repetir as exceções descritas. Aprovar somente se a interface e a resposta HTTP coincidirem com os resultados registrados. A existência desta ficha não é evidência de execução.
+
+<a id="rf0307"></a>
+
+### RF03.07 — Agendar por dias de calendário e informar local/detalhes
+
+| Campo | Especificação |
+| --- | --- |
+| Ator | Coordenador ou proprietário |
+| Tela e gatilho | Nova reunião → Dia todo, Início, Término, Local, Detalhes |
+| Pré-condições | Mesmo acesso de agendamento. |
+| Entradas e contrato | POST /meetings ou PATCH /meetings/:meetingId; prefixo /api em todas as rotas |
+| Dados/pós-condição de sucesso | meetings.all_day, location, details e timestamps ISO. |
+| Sequência UML | [seq-editar-reuniao](Diagramas/renderizados/seq-editar-reuniao.svg) |
+
+**Fluxo principal**
+
+1. Escolher primeiro/último dia e ativar Dia todo, ou informar horas.
+2. Converter dias em intervalo com término exclusivo na meia-noite seguinte no fuso do aparelho.
+3. Preencher local até 300 e detalhes até 4000 caracteres opcionais.
+
+**Alternativas, exceções e limites:** Início passado e intervalo inválido recusados; dia todo atual já iniciado não é novo agendamento futuro.
+
+**Critério de aceite:** executar o fluxo principal com as pré-condições indicadas, conferir os dados/pós-condição no servidor e repetir as exceções descritas. Aprovar somente se a interface e a resposta HTTP coincidirem com os resultados registrados. A existência desta ficha não é evidência de execução.
+
+<a id="rf0308"></a>
+
+### RF03.08 — Compartilhar anexos com convidados
+
+| Campo | Especificação |
+| --- | --- |
+| Ator | Gestor envia; convidados e gestor consultam |
+| Tela e gatilho | Abrir reunião → Arquivos → Anexar / nome do arquivo |
+| Pré-condições | Sessão válida e acesso à reunião. |
+| Entradas e contrato | GET/POST /meetings/:meetingId/attachments; GET /meetings/:meetingId/attachments/:attachmentId; prefixo /api em todas as rotas |
+| Dados/pós-condição de sucesso | meeting_attachments com BYTEA; conteúdo não compõe /sync. |
+| Sequência UML | [seq-anexos](Diagramas/renderizados/seq-anexos.svg) |
+
+**Fluxo principal**
+
+1. Selecionar PDF, PNG, JPEG ou TXT.
+2. Enviar base64; servidor verifica tamanho, tipo, autoria e limite por reunião.
+3. Convidado consulta metadados e baixa via ticket curto vinculado à rota e sessão.
+
+**Alternativas, exceções e limites:** Até 5 MB por arquivo e dez por reunião; outro usuário: 403; arquivo inválido: 400; ticket expirado: 401.
+
+**Critério de aceite:** executar o fluxo principal com as pré-condições indicadas, conferir os dados/pós-condição no servidor e repetir as exceções descritas. Aprovar somente se a interface e a resposta HTTP coincidirem com os resultados registrados. A existência desta ficha não é evidência de execução.
+
+<a id="rf0309"></a>
+
+### RF03.09 — Registrar presença por código temporário
+
+| Campo | Especificação |
+| --- | --- |
+| Ator | Gestor emite; convidado aceito utiliza |
+| Tela e gatilho | Arquivos → Gerar código / Entrada com código / Saída com código |
+| Pré-condições | Reunião em andamento; convite aceito; primeira entrada/saída. |
+| Entradas e contrato | POST /meetings/:meetingId/attendance-code; PATCH /meetings/:meetingId/attendance; prefixo /api em todas as rotas |
+| Dados/pós-condição de sucesso | meeting_attendance_codes guarda SHA-256; meeting_attendance.method=CODE. |
+| Sequência UML | [seq-presenca](Diagramas/renderizados/seq-presenca.svg) |
+
+**Fluxo principal**
+
+1. Gestor gera código de seis dígitos válido por até dez minutos e nunca além do término.
+2. Participante informa o código com sessão própria.
+3. Servidor compara hash/validade e registra horário e ator.
+
+**Alternativas, exceções e limites:** Código inválido/expirado: 403; cinco tentativas por 15 minutos por endpoint/IP: 429; fora do período: 409.
+
+**Critério de aceite:** executar o fluxo principal com as pré-condições indicadas, conferir os dados/pós-condição no servidor e repetir as exceções descritas. Aprovar somente se a interface e a resposta HTTP coincidirem com os resultados registrados. A existência desta ficha não é evidência de execução.
+
+<a id="rf0310"></a>
+
+### RF03.10 — Registrar entrada/saída de convidado pelo presidente
+
+| Campo | Especificação |
+| --- | --- |
+| Ator | Coordenador ou proprietário |
+| Tela e gatilho | Presença → Registrar entrada/saída deste participante |
+| Pré-condições | Gestor autenticado, convidado aceito e reunião em andamento. |
+| Entradas e contrato | PATCH /meetings/:meetingId/attendance/:participantId; prefixo /api em todas as rotas |
+| Dados/pós-condição de sucesso | meeting_attendance; recorded_by, method e horários do servidor. |
+| Sequência UML | [seq-presenca](Diagramas/renderizados/seq-presenca.svg) |
+
+**Fluxo principal**
+
+1. Selecionar participante.
+2. Servidor autoriza o gestor sem aceitar troca de identidade no JSON.
+3. Registrar presença do alvo com recorded_by do gestor e method CHAIR.
+
+**Alternativas, exceções e limites:** Não gestor: 403; convite não aceito: 403; fora do horário ou saída sem entrada: 409; ata em revisão bloqueia novas entradas.
+
+**Critério de aceite:** executar o fluxo principal com as pré-condições indicadas, conferir os dados/pós-condição no servidor e repetir as exceções descritas. Aprovar somente se a interface e a resposta HTTP coincidirem com os resultados registrados. A existência desta ficha não é evidência de execução.
+
+<a id="rf0311"></a>
+
+### RF03.11 — Exportar lista de presença em PDF
+
+| Campo | Especificação |
+| --- | --- |
+| Ator | Convidado histórico ou gestor |
+| Tela e gatilho | Arquivos → Baixar lista de presença em PDF |
+| Pré-condições | Sessão e acesso à reunião; não exige ata. |
+| Entradas e contrato | GET /meetings/:meetingId/attendance/pdf; POST /auth/download-ticket; prefixo /api em todas as rotas |
+| Dados/pós-condição de sucesso | Consulta sem persistir PDF; fontes Unicode incorporadas. |
+| Sequência UML | [seq-presenca-pdf](Diagramas/renderizados/seq-presenca-pdf.svg) |
+
+**Fluxo principal**
+
+1. Solicitar ticket de download.
+2. Servidor confere novamente o acesso e consulta snapshot de convidados/presenças.
+3. Gerar PDF com nomes, status, entradas, saídas e fuso.
+
+**Alternativas, exceções e limites:** Sem acesso: 403; ticket expirado/rota diferente: 401; geração falha não indica sucesso.
+
+**Critério de aceite:** executar o fluxo principal com as pré-condições indicadas, conferir os dados/pós-condição no servidor e repetir as exceções descritas. Aprovar somente se a interface e a resposta HTTP coincidirem com os resultados registrados. A existência desta ficha não é evidência de execução.
+
 ## 6. Modelo de classes e dicionário
 
 Os classificadores de domínio representam responsabilidades/dados, não classes JavaScript inexistentes. Não foi atribuída a Usuario uma operação login que, no código, pertence ao módulo de API/rotas. Os módulos de projeto têm operações com parâmetros/retornos reais e dicionário próprio. Associação não implica exclusão em cascata; esta é especificada no modelo físico.
@@ -1053,7 +1368,7 @@ O modelo relacional representa tabelas, PKs, FKs e cardinalidades de referência
 
 ![Segurança e operação relacionais](Diagramas/renderizados/relacional-seguranca.svg)
 
-[Dicionário físico completo](dicionario-banco-dados.md): 15 tabelas, 99 colunas, 53 restrições e 39 índices extraídos do DDL. Inclui tipos, nulabilidade, defaults, PK/FK/UNIQUE/CHECK, índices parciais/expressões e ações de exclusão. [Snapshot estruturado](modelo-fisico.snapshot.json) permite conferir o inventário.
+[Dicionário físico completo](dicionario-banco-dados.md): inventário de tabelas, colunas, restrições e índices extraído do DDL atual. Inclui tipos, nulabilidade, defaults, PK/FK/UNIQUE/CHECK, índices parciais/expressões e ações de exclusão. [Snapshot estruturado](modelo-fisico.snapshot.json) permite conferir o inventário.
 
 **Distinção entre regra e garantia:** enums de tema/papel/situação em várias tabelas são validados por rotas, mas não têm CHECK SQL. Nome de comissão não tem UNIQUE SQL. E-mail tem unicidade textual, não índice de minúsculas. Ao contrário, nome/CNPJ de organização têm índices normalizados. Presença/voto/unanimidade e validade de credenciais exigem lógica de serviço e transações; não são garantidos apenas pela existência de uma tabela.
 
@@ -1114,8 +1429,8 @@ Cada RF está ligado a um contrato e a uma sequência no próprio formulário. P
 
 ## 11. Limitações e lacunas verificadas
 
-1. A documentação não corrige código: na recuperação, a checagem local ainda menciona seis caracteres, enquanto servidor exige oito. Descrever o mínimo efetivo do servidor e registrar a divergência até sua correção.
-2. Recuperação valida preenchimento do e-mail nessa etapa, não um formato completo; outras telas usam validador de formato. Não afirmar validação uniforme inexistente.
+1. Recuperação exige pelo menos oito caracteres no aplicativo e no servidor; o código é consumido uma única vez.
+2. Recuperação valida formato de e-mail no cliente e no servidor. SMTP real e recebimento de mensagens continuam exigindo teste operacional.
 3. Domínios de papel/tema/situação em várias tabelas dependem da API. UNIQUE de nome de comissão por organização não existe. Mínimo de coordenador não é uma restrição CHECK do banco.
 4. Revogação de vínculo organizacional não apaga automaticamente os vínculos de comissão. Nem todas as rotas repetem a checagem de organização APPROVED da interface. Revisar consistência de autorização antes de produção.
 5. Exclusão de organização segue cascatas SQL e não tem uma proteção histórica geral implementada. As proteções de exclusão de conta/ata não podem ser generalizadas a todas as entidades.

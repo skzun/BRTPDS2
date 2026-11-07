@@ -102,6 +102,29 @@ CREATE TABLE IF NOT EXISTS meeting_attendance (
     CONSTRAINT uq_meeting_attendance UNIQUE (meeting_id, user_id)
 );
 
+-- Evolução aditiva: preserva reuniões e presenças existentes.
+ALTER TABLE meetings ADD COLUMN IF NOT EXISTS all_day BOOLEAN NOT NULL DEFAULT FALSE;
+ALTER TABLE meetings ADD COLUMN IF NOT EXISTS location VARCHAR(300) NOT NULL DEFAULT '';
+ALTER TABLE meetings ADD COLUMN IF NOT EXISTS details VARCHAR(4000) NOT NULL DEFAULT '';
+ALTER TABLE meeting_attendance ADD COLUMN IF NOT EXISTS recorded_by UUID REFERENCES users(id);
+ALTER TABLE meeting_attendance ADD COLUMN IF NOT EXISTS method VARCHAR(20) NOT NULL DEFAULT 'SELF';
+CREATE TABLE IF NOT EXISTS meeting_attendance_codes (
+    meeting_id UUID PRIMARY KEY REFERENCES meetings(id) ON DELETE CASCADE,
+    code_hash TEXT NOT NULL,
+    expires_at TIMESTAMPTZ NOT NULL,
+    created_by UUID NOT NULL REFERENCES users(id)
+);
+CREATE TABLE IF NOT EXISTS meeting_attachments (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    meeting_id UUID NOT NULL REFERENCES meetings(id) ON DELETE CASCADE,
+    name VARCHAR(160) NOT NULL,
+    mime_type VARCHAR(100) NOT NULL,
+    content BYTEA NOT NULL CHECK (octet_length(content) BETWEEN 1 AND 5242880),
+    created_by UUID NOT NULL REFERENCES users(id),
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+CREATE INDEX IF NOT EXISTS idx_meeting_attachments_meeting ON meeting_attachments(meeting_id);
+
 -- 7. Atas com lista de aprovadores congelada no envio para revisão.
 CREATE TABLE IF NOT EXISTS meeting_minutes (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),

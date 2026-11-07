@@ -1,5 +1,6 @@
 import { useContext, useEffect, useRef, useState } from 'react';
-import { Alert, Image, KeyboardAvoidingView, Platform, ScrollView, Text, View } from 'react-native';
+import { Alert, Image, KeyboardAvoidingView, Platform, Text, View } from 'react-native';
+import { KeyboardScrollView as ScrollView } from '../components/KeyboardScrollView';
 import { Pressable } from '../components/ActionPressable';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import * as Google from 'expo-auth-session/providers/google';
@@ -28,6 +29,8 @@ export function LoginScreen({ onLogin, onGoogleLogin, onRegister, onRecoverAccou
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [registrationErrors, setRegistrationErrors] = useState({});
+  const [registrationError, setRegistrationError] = useState('');
   const [isGoogleSubmitting, setIsGoogleSubmitting] = useState(false);
   const processedGoogleTokenRef = useRef(null);
   const googleClientIds = {
@@ -200,18 +203,30 @@ export function LoginScreen({ onLogin, onGoogleLogin, onRegister, onRecoverAccou
             <>
               <Text style={styles.cardTitle}>Criar conta</Text>
               <Text style={styles.hint}>Informe seus dados para criar o acesso de usuário.</Text>
-              <Field label="Nome completo" value={registration.name} onChangeText={(name) => setRegistration({ ...registration, name })} placeholder="Seu nome" />
-              <Field label="E-mail" value={registration.email} onChangeText={(email) => setRegistration({ ...registration, email })} placeholder="voce@email.com" keyboardType="email-address" />
+              <Field label="Nome completo" value={registration.name} error={registrationErrors.name} onChangeText={(name) => setRegistration({ ...registration, name })} placeholder="Seu nome" />
+              <Field label="E-mail" value={registration.email} error={registrationErrors.email} onChangeText={(email) => setRegistration({ ...registration, email })} placeholder="voce@email.com" keyboardType="email-address" />
               <Field label="Telefone" value={registration.phone} onChangeText={(phone) => setRegistration({ ...registration, phone: formatPhone(phone) })} placeholder="(00) 00000-0000" keyboardType="phone-pad" />
-              <Field label="Senha" value={registration.password} onChangeText={(password) => setRegistration({ ...registration, password })} placeholder="Mínimo de 8 caracteres" secureTextEntry />
-              <Field label="Confirmar senha" value={registration.confirmPassword} onChangeText={(confirmPassword) => setRegistration({ ...registration, confirmPassword })} placeholder="Repita a senha" secureTextEntry />
+              <Field label="Senha" value={registration.password} error={registrationErrors.password} onChangeText={(password) => setRegistration({ ...registration, password })} placeholder="Mínimo de 8 caracteres" secureTextEntry />
+              <Field label="Confirmar senha" value={registration.confirmPassword} error={registrationErrors.confirmPassword} onChangeText={(confirmPassword) => setRegistration({ ...registration, confirmPassword })} placeholder="Repita a senha" secureTextEntry />
               <Pressable style={styles.primaryButton} disabled={isSubmitting} onPress={async () => {
                 setIsSubmitting(true);
-                try { if (await onRegister(registration)) { setActivationEmail(registration.email); setRegistration({ ...registration, password: '', confirmPassword: '' }); setTab('VERIFY'); } }
+                try {
+                  const fields = {};
+                  if (!registration.name.trim()) fields.name = 'Informe seu nome.';
+                  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(registration.email.trim())) fields.email = 'Informe um e-mail válido.';
+                  if (registration.password.length < 8) fields.password = 'Use pelo menos 8 caracteres.';
+                  if (registration.confirmPassword !== registration.password) fields.confirmPassword = 'As senhas devem coincidir.';
+                  setRegistrationErrors(fields); setRegistrationError('');
+                  if (Object.keys(fields).length) return;
+                  const result = await onRegister(registration);
+                  if (result.success) { setActivationEmail(registration.email); setRegistration({ ...registration, password: '', confirmPassword: '' }); setTab('VERIFY'); }
+                  else setRegistrationError(result.error);
+                }
                 finally { setIsSubmitting(false); }
               }}>
                 <Text style={styles.primaryButtonText}>Criar conta</Text>
               </Pressable>
+              {!!registrationError && <Text accessibilityRole="alert" style={styles.hint}>{registrationError}</Text>}
               <GoogleLoginButton
                 disabled={(Platform.OS === 'web' && !googleRequest) || !isGoogleConfigured || (isExpoGo && Platform.OS !== 'web') || isGoogleSubmitting}
                 isLoading={isGoogleSubmitting}

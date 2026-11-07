@@ -7,7 +7,7 @@ if (-not (Get-Command node -ErrorAction SilentlyContinue)) { throw 'Instale Node
 $nodeVersion = [version]((& node --version).TrimStart('v'))
 if ($nodeVersion -lt [version]'22.13.0') { throw 'Este projeto requer Node.js 22.13 ou superior.' }
 if (-not (Get-Command docker -ErrorAction SilentlyContinue)) { throw 'Instale o Docker Desktop e abra novamente o PowerShell.' }
-docker info *> $null
+cmd /c "docker info >nul 2>&1"
 if ($LASTEXITCODE -ne 0) {
     $dockerDesktop = Join-Path $env:ProgramFiles 'Docker\Docker\Docker Desktop.exe'
     if (-not (Test-Path -LiteralPath $dockerDesktop)) { throw 'Abra o Docker Desktop antes de iniciar.' }
@@ -15,7 +15,7 @@ if ($LASTEXITCODE -ne 0) {
     $pronto = $false
     for ($tentativa = 0; $tentativa -lt 60; $tentativa++) {
         Start-Sleep -Seconds 2
-        docker info *> $null
+        cmd /c "docker info >nul 2>&1"
         if ($LASTEXITCODE -eq 0) { $pronto = $true; break }
     }
     if (-not $pronto) { throw 'Docker não iniciou. Confira o Docker Desktop/WSL.' }

@@ -1,102 +1,64 @@
-# 🐳 Como Rodar o Synple via CMD com Docker
+# Rodar o Synple com Docker e acesso externo
 
-> **Procedimento atualizado em 30/10/2026:** use o [README](README.md) e `iniciar.ps1` na raiz. O inicializador sobe banco/API e túneis; não para serviços PostgreSQL de outros projetos. O backend carrega `Synple/backend/.env`. O boot atual aplica migrações, mas **não executa seeds**. Para uma instalação nova de demonstração, os dados fictícios são preparados explicitamente por `docker compose exec backend npm run init-db`. As instruções históricas abaixo sobre seed automático e Expo Go não se aplicam à atualização de segurança: Google/biometria exigem novo development build e `npm run tunnel` em `Synple/mobile`.
+O modo padrão usa o Synple instalado (development build SDK 58), ngrok para o aplicativo e Cloudflare para a API. O celular pode estar em outra rede ou no 4G/5G.
 
-Este guia contém **todos os comandos e passos necessários** para rodar o Banco de Dados (PostgreSQL) e o Backend (API Node.js) em qualquer computador utilizando Docker via CMD (Prompt de Comando).
+## Windows: iniciar tudo
 
----
+Instale Node.js 22.13+ e Docker Desktop. No PowerShell, entre na pasta raiz onde baixou o projeto e execute:
 
-## ⚡ Opção Rápida (1 Clique)
-
-Você pode simplesmente dar dois cliques ou rodar no CMD o script automático criado na pasta:
-```cmd
-iniciar_docker.bat
-```
-Ele faz todas as verificações, sobe os containers e deixa tudo pronto automaticamente!
-
----
-
-## 📋 Passo a Passo Manual no CMD
-
-### 1. Abrir o Docker Desktop
-Certifique-se de que o **Docker Desktop** está aberto na barra de tarefas (ícone da baleinha).
-
----
-
-### 2. Abrir o Prompt de Comando (CMD)
-Pressione `Win + R`, digite `cmd` e pressione `Enter`.
-
-Navegue até a pasta do projeto:
-```cmd
-cd /d C:\Users\Conra\OneDrive\Documentos\GitHub\BRTPDS2\Synple
-```
-*(Se estiver em outro computador, use o caminho onde você clonou ou descompactou a pasta `Synple`).*
-
----
-
-### 3. Subir o Banco e o Backend
-Execute o comando de build e inicialização em segundo plano:
-```cmd
-docker compose up -d --build
+```powershell
+.\iniciar.ps1
 ```
 
-> **O que esse comando faz sozinho:**
-> 1. Baixa o PostgreSQL 16 oficial.
-> 2. Cria o banco `Banco_synple`.
-> 3. Constrói e inicia o servidor da API Node.js.
-> 4. Executa a criação de todas as tabelas e dados de teste iniciais.
+No CMD, execute `iniciar_docker.bat` na mesma pasta. Esse arquivo chama o mesmo inicializador.
 
----
+O inicializador prepara banco/API no Docker, instala as dependências do mobile, baixa cloudflared se necessário e abre os dois túneis. Docker Compose 2.24+ é necessário. Configure OAuth e SMTP nos arquivos `.env` para usar Google e e-mails.
 
-### 4. Verificar se os Containers estão Rodando
-Execute:
-```cmd
-docker compose ps
-```
-Você verá dois containers com status **Up** (verde):
-* `synple-postgres` (porta 5432)
-* `synple-backend` (porta 3001)
+## Com os serviços já preparados
 
----
+Na raiz do repositório:
 
-### 5. Ver os Logs do Backend (Opcional)
-Para acompanhar as requisições em tempo real:
-```cmd
-docker compose logs -f backend
-```
-*(Para sair da visualização dos logs, pressione `Ctrl + C`).*
-
----
-
-### 6. Iniciar o Aplicativo Celular (Expo)
-Abra uma **nova janela do CMD** e execute:
-```cmd
-cd /d C:\Users\Conra\OneDrive\Documentos\GitHub\BRTPDS2\Synple\mobile
+```powershell
+docker compose up -d
+cd Synple\mobile
 npm start
 ```
-Aponte a câmera do seu celular no aplicativo **Expo Go** para escanear o QR Code e usar o app!
 
----
+`npm start`, `npm run start:dev-client` e `npm run tunnel` usam o mesmo modo externo para o Synple instalado. Deixe o computador ligado e o terminal aberto. Os endereços são públicos e temporários, próprios para desenvolvimento, e podem mudar a cada execução.
 
-## 🛑 Comandos de Gerenciamento
+## Abrir no Synple
 
-| Ação | Comando no CMD |
-| :--- | :--- |
-| **Parar tudo** | `docker compose down` |
-| **Ligar novamente** | `docker compose up -d` |
-| **Ver logs do backend** | `docker compose logs backend` |
-| **Resetar banco do zero** | `docker compose down -v && docker compose up -d --build` |
+Use a câmera do celular para abrir o QR do terminal no Synple. No campo **Enter URL manually** do aplicativo, informe somente a URL HTTP/HTTPS do servidor Expo exibida na execução atual. Não cole `exp+synple://`, `synple://` ou o link completo `expo-development-client/?url=...` nesse campo.
 
----
+O APK instalado precisa ser compatível com SDK 58 e os módulos nativos atuais. Para gerar outro APK, em `Synple/mobile`:
 
-## ⚠️ Resolução de Problemas
-
-### 1. Erro: *"port is already allocated" (porta 5432 ocupada)*
-Ocorre se o Windows já tiver o serviço local do PostgreSQL rodando. Pare o serviço com:
-```cmd
-net stop postgresql-x64-18
+```powershell
+npx.cmd eas-cli@latest build --platform android --profile development
 ```
-*(ou pelo Gerenciador de Tarefas do Windows, aba "Serviços").*
 
-### 2. Erro: *"error during connect: ... docker daemon is not running"*
-O Docker Desktop está fechado. Abra o **Docker Desktop** no menu Iniciar do Windows e aguarde 15 segundos antes de rodar o comando novamente.
+## Parar e reiniciar
+
+Pressione **Ctrl+C** no terminal dos túneis antes de iniciar novamente. A porta 8081 fica reservada ao Expo; se estiver ocupada, o inicializador pede para encerrar o antigo, em vez de criar outro servidor na 8082. API e banco usam 3001 e 5432.
+
+Para parar os containers preservando os dados:
+
+```powershell
+docker compose down
+```
+
+Para conferir serviços e logs:
+
+```powershell
+docker compose ps
+docker compose logs backend
+```
+
+O boot aplica migrações e preserva dados. Somente para criar dados fictícios de demonstração numa instalação nova, execute explicitamente `docker compose exec backend npm run init-db`.
+
+## Modos opcionais
+
+- `npm run start:go`: túneis com Expo Go, sem Google nativo.
+- `npm run start:local`: Synple instalado pela rede local.
+- `npm run start:local:go`: Expo Go pela rede local.
+
+Somente os modos locais exigem computador e celular na mesma rede. Veja também o [README](README.md).

@@ -1,0 +1,24 @@
+@startuml
+!pragma layout smetana
+skinparam shadowing false
+skinparam defaultFontSize 13
+title Anexar e baixar arquivo privado
+autonumber
+actor "Usuário autenticado" as U
+participant "App / API cliente" as App
+participant "routes/meetings.js" as API
+database PostgreSQL as DB
+U -> App: getDocumentAsync(options)
+App -> App: new File(uri).base64()
+App -> API: POST /meetings/:meetingId/attachments
+API -> API: requireManager(meeting)
+API -> DB: query("INSERT INTO meeting_attachments ...", params)
+API --> App: 201 metadados
+U -> App: authorizePdfDownload(url)
+App -> API: POST /auth/download-ticket
+API --> App: ticket restrito
+App -> API: GET /meetings/:meetingId/attachments/:attachmentId?download=ticket
+API -> API: requireMeetingAccess(client, meetingId, userId)
+API -> DB: query("SELECT name,content FROM meeting_attachments ...", params)
+API --> App: application/octet-stream
+@enduml

@@ -21,6 +21,7 @@ describe('Incremento 2: reuniões, presença e aprovação de atas', { concurren
   let ids;
   let pdfRenderCalls;
   let pdfRenderFailure;
+  let clock = new Date('2026-10-22T12:00:00Z');
 
   async function request(method, route, body) {
     const response = await fetch(`${base}${route}`, {
@@ -37,7 +38,9 @@ describe('Incremento 2: reuniões, presença e aprovação de atas', { concurren
     inviteeIds: [ids.member, ids.late], ...extra,
   });
   async function createMeeting(extra) {
+    clock = new Date('2026-10-22T12:00:00Z');
     const result = await request('POST', '/', meetingBody(extra));
+    clock = new Date('2026-10-22T13:30:00Z');
     assert.equal(result.status, 201, JSON.stringify(result.data));
     return result.data.id;
   }
@@ -56,7 +59,7 @@ describe('Incremento 2: reuniões, presença e aprovação de atas', { concurren
     await pool.query(ddl);
     const app = express();
     app.use(express.json());
-    app.use('/meetings', createMeetingsRouter({ pool }, { renderMinutesPdf: async snapshot => {
+    app.use('/meetings', createMeetingsRouter({ pool }, { now: () => clock, renderMinutesPdf: async snapshot => {
       pdfRenderCalls++;
       if (pdfRenderFailure) throw new Error('Falha de renderização isolada');
       // Se a rota ainda segurasse o lock durante a geração, esta consulta falharia.
@@ -78,6 +81,7 @@ describe('Incremento 2: reuniões, presença e aprovação de atas', { concurren
   });
 
   beforeEach(async () => {
+    clock = new Date('2026-10-22T12:00:00Z');
     pdfRenderCalls = 0;
     pdfRenderFailure = false;
     await pool.query(`TRUNCATE TABLE "${schema}".users CASCADE`);
@@ -262,6 +266,7 @@ describe('Incremento 2: reuniões, presença e aprovação de atas', { concurren
     assert.equal(added.status, 201, JSON.stringify(added.data));
     assert.deepEqual(added.data, { commissionId: ids.commission, userId: ids.outsider, role: 'MEMBER' });
     await createMeeting({ inviteeIds: [ids.outsider] });
+    clock = new Date('2026-10-22T12:00:00Z');
     assert.equal((await request('POST', '/', meetingBody({ createdBy: ids.outsider }))).status, 403);
     const promoted = await request('PATCH', `${memberRoute}/${ids.outsider}`, { actorId: ids.owner, role: 'COORDINATOR' });
     assert.equal(promoted.status, 200);
@@ -273,6 +278,7 @@ describe('Incremento 2: reuniões, presença e aprovação de atas', { concurren
     assert.equal((await request('DELETE', `${memberRoute}/${ids.outsider}`, { actorId: ids.owner })).status, 409);
     assert.equal((await request('POST', memberRoute, { actorId: ids.owner, userId: ids.owner, role: 'COORDINATOR' })).status, 201);
     assert.equal((await pool.query("SELECT COUNT(*)::int AS count FROM commission_members WHERE role = 'COORDINATOR'")).rows[0].count, 1);
+    clock = new Date('2026-10-22T12:00:00Z');
     assert.equal((await request('POST', '/', meetingBody({ createdBy: ids.outsider }))).status, 403);
     const removed = await request('DELETE', `${memberRoute}/${ids.outsider}`, { actorId: ids.owner });
     assert.equal(removed.status, 200);
@@ -419,5 +425,80 @@ describe('Incremento 2: reuniões, presença e aprovação de atas', { concurren
     assert.equal(response.headers.get('content-disposition'), null);
     assert.match((await response.json()).error, /Não foi possível gerar/);
     assert.equal(pdfRenderCalls, 1);
+  });
+
+  test('bloqueia passado, convite/entrada tardios e saída antecipada no relógio do servidor', async () => {
+    const invalid = await request('POST', '/', meetingBody({startsAt:'2001-01-01T10:00:00Z', endsAt:'2001-01-01T11:00:00Z', title:'', agenda:''}));
+    assert.equal(invalid.status,400); assert.ok(invalid.data.fields.startsAt); assert.ok(invalid.data.fields.title); assert.ok(invalid.data.fields.agenda);
+    const id = await createMeeting();
+    clock = new Date('2026-10-22T12:30:00Z');
+    assert.equal((await attend(id,ids.chair)).status,409);
+    assert.equal((await attend(id,ids.chair,'EXIT')).status,409);
+    clock = new Date('2026-10-22T14:00:00Z');
+    assert.equal((await invite(id,ids.member)).status,409);
+    assert.equal((await invite(id,ids.member,'DECLINED')).status,409);
+    assert.equal((await attend(id,ids.chair)).status,409);
+  });
+
+  test('edita reunião futura com detalhes e redefine convites; bloqueia não gestor ou reunião iniciada', async () => {
+    const id = await createMeeting();
+    clock = new Date('2026-10-22T12:30:00Z');
+    const payload = { ...meetingBody(), userId:ids.chair, allDay:true, startsAt:'2026-10-24T03:00:00Z',endsAt:'2026-10-25T03:00:00Z',location:'Sala 1',details:'Trazer proposta' };
+    assert.equal((await request('PATCH',`/${id}`,{...payload,userId:ids.member})).status,403);
+    const changed=await request('PATCH',`/${id}`,payload);
+    assert.equal(changed.status,200,JSON.stringify(changed.data)); assert.equal(changed.data.allDay,true); assert.equal(changed.data.location,'Sala 1');
+    clock = new Date('2026-10-24T03:00:00Z');
+    assert.equal((await request('PATCH',`/${id}`,payload)).status,409);
+  });
+
+  test('presidente registra presença de convidado aceito sem permitir falsificação por membro', async () => {
+    const id=await createMeeting(); await invite(id,ids.member);
+    assert.equal((await request('PATCH',`/${id}/attendance/${ids.member}`,{userId:ids.late,action:'ENTER'})).status,403);
+    const entered=await request('PATCH',`/${id}/attendance/${ids.member}`,{userId:ids.chair,action:'ENTER'});
+    assert.equal(entered.status,200,JSON.stringify(entered.data)); assert.equal(entered.data.userId,ids.member); assert.equal(entered.data.recordedBy,ids.chair); assert.equal(entered.data.method,'CHAIR');
+    assert.equal((await request('PATCH',`/${id}/attendance/${ids.member}`,{userId:ids.chair,action:'EXIT'})).status,200);
+  });
+
+  test('código de presença exige gestor, convite e validade; armazena apenas hash', async () => {
+    const id=await createMeeting(); await invite(id,ids.member);
+    assert.equal((await request('POST',`/${id}/attendance-code`,{userId:ids.member})).status,403);
+    const generated=await request('POST',`/${id}/attendance-code`,{userId:ids.chair});
+    assert.equal(generated.status,200); assert.match(generated.data.code,/^\d{6}$/);
+    assert.notEqual((await pool.query('SELECT code_hash FROM meeting_attendance_codes')).rows[0].code_hash,generated.data.code);
+    assert.equal((await request('PATCH',`/${id}/attendance`,{userId:ids.member,action:'ENTER',code:'wrong'})).status,403);
+    assert.equal((await request('PATCH',`/${id}/attendance`,{userId:ids.member,action:'ENTER',code:generated.data.code})).status,200);
+    clock=new Date('2026-10-22T13:41:00Z');
+    assert.equal((await request('PATCH',`/${id}/attendance`,{userId:ids.member,action:'EXIT',code:generated.data.code})).status,403);
+  });
+
+  test('anexos são limitados e privados; lista de presença é PDF mesmo sem ata', async () => {
+    const id=await createMeeting();
+    const payload={userId:ids.chair,name:'pauta.txt',mimeType:'text/plain',base64:Buffer.from('Discussão e ação').toString('base64')};
+    assert.equal((await request('POST',`/${id}/attachments`,{...payload,userId:ids.member})).status,403);
+    assert.equal((await request('POST',`/${id}/attachments`,{...payload,name:'../arquivo.txt'})).status,400);
+    assert.equal((await request('POST',`/${id}/attachments`,{...payload,mimeType:'application/pdf'})).status,400);
+    const file=await request('POST',`/${id}/attachments`,payload); assert.equal(file.status,201,JSON.stringify(file.data));
+    assert.equal((await request('GET',`/${id}/attachments?userId=${ids.member}`)).data.length,1);
+    assert.equal((await request('GET',`/${id}/attachments?userId=${ids.noaccess}`)).status,403);
+    const download=await fetch(`${base}/${id}/attachments/${file.data.id}?userId=${ids.member}`);
+    assert.equal(download.status,200); assert.equal(await download.text(),'Discussão e ação');
+    const pdf=await fetch(`${base}/${id}/attendance/pdf?userId=${ids.member}`);
+    assert.equal(pdf.status,200); assert.equal(pdf.headers.get('content-type'),'application/pdf'); assert.equal(Buffer.from(await pdf.arrayBuffer()).subarray(0,5).toString(),'%PDF-');
+    assert.equal((await fetch(`${base}/${id}/attendance/pdf?userId=${ids.noaccess}`)).status,403);
+  });
+
+  test('votação independente aceita um voto por presente, troca opção e bloqueia encerrada', async () => {
+    const id=await createMeeting(); await invite(id,ids.member); await attend(id,ids.chair);
+    assert.equal((await request('POST',`/${id}/votes`,{userId:ids.member,question:'A?',options:['Sim','Não']})).status,403);
+    assert.equal((await request('POST',`/${id}/votes`,{userId:ids.chair,question:'A?',options:['Sim',' sim ']})).status,400);
+    const opened=await request('POST',`/${id}/votes`,{userId:ids.chair,question:'A?',options:['Sim','Não']}); assert.equal(opened.status,201);
+    const path=`/${id}/votes/${opened.data.id}`;
+    assert.equal((await request('POST',path+'/ballot',{userId:ids.member,optionId:opened.data.options[0].id})).status,403);
+    await attend(id,ids.member);
+    for(const option of opened.data.options) assert.equal((await request('POST',path+'/ballot',{userId:ids.member,optionId:option.id})).status,200);
+    assert.equal((await pool.query('SELECT * FROM meeting_vote_ballots')).rowCount,1);
+    assert.equal((await request('PATCH',path+'/close',{userId:ids.member})).status,403);
+    assert.equal((await request('PATCH',path+'/close',{userId:ids.chair})).status,200);
+    assert.equal((await request('POST',path+'/ballot',{userId:ids.member,optionId:opened.data.options[0].id})).status,409);
   });
 });

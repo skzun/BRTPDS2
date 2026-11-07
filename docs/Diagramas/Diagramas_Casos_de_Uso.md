@@ -6,17 +6,6 @@ Atores estão fora da fronteira Synple. As associações ator/caso de uso são l
 
 [Especificação principal](../incremento-1-especificacao-completa.md) · [Dicionário físico](../dicionario-banco-dados.md) · [Dicionário de classes e operações](../dicionario-classes.md).
 
-## Incremento 3
-
-Fontes PlantUML editáveis adicionadas para os casos de uso, modelo de classes, modelo relacional, votação e relatório individual. SVGs renderizados dessas fontes ainda não foram gerados.
-
-- [Casos de uso](fontes/uc-incremento-3.puml)
-- [Modelo de classes](fontes/classes-incremento-3.puml)
-- [Modelo relacional](fontes/relacional-incremento-3.puml)
-- [Sequência de votação](fontes/seq-votacoes.puml)
-- [Sequência do relatório individual](fontes/seq-relatorio-participacao.puml)
-- [Sequência do manual digital](fontes/seq-manual-consulta.puml)
-
 ## uc-autenticacao
 
 ![uc-autenticacao](renderizados/uc-autenticacao.svg)
@@ -76,6 +65,12 @@ Fontes PlantUML editáveis adicionadas para os casos de uso, modelo de classes, 
 ![relacional-seguranca](renderizados/relacional-seguranca.svg)
 
 [Fonte editável](fontes/relacional-seguranca.puml) · [SVG](renderizados/relacional-seguranca.svg)
+
+## relacional-incremento-3
+
+![relacional-incremento-3](renderizados/relacional-incremento-3.svg)
+
+[Fonte editável](fontes/relacional-incremento-3.puml) · [SVG](renderizados/relacional-incremento-3.svg)
 
 ## seq-cadastro
 
@@ -160,6 +155,54 @@ Fontes PlantUML editáveis adicionadas para os casos de uso, modelo de classes, 
 ![implantacao](renderizados/implantacao.svg)
 
 [Fonte editável](fontes/implantacao.puml) · [SVG](renderizados/implantacao.svg)
+
+## uc-incremento-3
+
+![uc-incremento-3](renderizados/uc-incremento-3.svg)
+
+[Fonte editável](fontes/uc-incremento-3.puml) · [SVG](renderizados/uc-incremento-3.svg)
+
+## classes-incremento-3
+
+![classes-incremento-3](renderizados/classes-incremento-3.svg)
+
+[Fonte editável](fontes/classes-incremento-3.puml) · [SVG](renderizados/classes-incremento-3.svg)
+
+## seq-votacoes
+
+![seq-votacoes](renderizados/seq-votacoes.svg)
+
+[Fonte editável](fontes/seq-votacoes.puml) · [SVG](renderizados/seq-votacoes.svg)
+
+## seq-relatorio-participacao
+
+![seq-relatorio-participacao](renderizados/seq-relatorio-participacao.svg)
+
+[Fonte editável](fontes/seq-relatorio-participacao.puml) · [SVG](renderizados/seq-relatorio-participacao.svg)
+
+## seq-manual-consulta
+
+![seq-manual-consulta](renderizados/seq-manual-consulta.svg)
+
+[Fonte editável](fontes/seq-manual-consulta.puml) · [SVG](renderizados/seq-manual-consulta.svg)
+
+## seq-editar-reuniao
+
+![seq-editar-reuniao](renderizados/seq-editar-reuniao.svg)
+
+[Fonte editável](fontes/seq-editar-reuniao.puml) · [SVG](renderizados/seq-editar-reuniao.svg)
+
+## seq-anexos
+
+![seq-anexos](renderizados/seq-anexos.svg)
+
+[Fonte editável](fontes/seq-anexos.puml) · [SVG](renderizados/seq-anexos.svg)
+
+## seq-presenca-pdf
+
+![seq-presenca-pdf](renderizados/seq-presenca-pdf.svg)
+
+[Fonte editável](fontes/seq-presenca-pdf.puml) · [SVG](renderizados/seq-presenca-pdf.svg)
 
 ## Reprodução
 

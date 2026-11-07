@@ -125,3 +125,25 @@ test('recuperação limita tentativas e logout revoga a sessão', async () => {
   assert.equal((await request('POST', '/auth/logout')).status, 200);
   assert.equal((await request('GET', '/auth/me')).status, 401);
 });
+
+test('relatório, voto e downloads usam sessão; ticket de presença não abre outra rota', async () => {
+  const { issueSession } = require('../src/services/security');
+  const ownSession = await issueSession(userId), otherSession = await issueSession(otherId);
+  const org = (await pool.query("INSERT INTO organizations (name,document,owner_id,status) VALUES ('Inc3','99999999000199',$1,'APPROVED') RETURNING id",[userId])).rows[0].id;
+  const commission = (await pool.query("INSERT INTO commissions (organization_id,name) VALUES ($1,'Inc3') RETURNING id",[org])).rows[0].id;
+  const meeting = (await pool.query("INSERT INTO meetings (commission_id,title,agenda,starts_at,ends_at,created_by) VALUES ($1,'Presença','Pauta',NOW()-INTERVAL '1 hour',NOW()+INTERVAL '1 hour',$2) RETURNING id",[commission,userId])).rows[0].id;
+  for(const id of [userId,otherId]) await pool.query("INSERT INTO meeting_invitations (meeting_id,user_id,status) VALUES ($1,$2,'ACCEPTED')",[meeting,id]);
+  await pool.query('INSERT INTO meeting_attendance (meeting_id,user_id,entered_at) VALUES ($1,$2,NOW())',[meeting,userId]);
+  const opened = await request('POST',`/meetings/${meeting}/votes`,{userId:otherId,question:'Qual?',options:['A','B']},ownSession);
+  assert.equal(opened.status,201); assert.equal(opened.data.createdBy,userId);
+  assert.equal((await request('POST',`/meetings/${meeting}/votes/${opened.data.id}/ballot`,{userId,optionId:opened.data.options[0].id},otherSession)).status,403);
+  const ownReport=await request('GET','/meetings/participation/report?userId='+otherId,undefined,ownSession);
+  const otherReport=await request('GET','/meetings/participation/report?userId='+userId,undefined,otherSession);
+  assert.equal(ownReport.data.meetings.length,1); assert.equal(otherReport.data.meetings.length,0);
+  const path=`/meetings/${meeting}/attendance/pdf`;
+  const ticket=await request('POST','/auth/download-ticket',{path},ownSession);
+  assert.equal(ticket.status,200);
+  const pdf=await fetch(base+path+'?download='+ticket.data.ticket);
+  assert.equal(pdf.status,200); assert.equal(pdf.headers.get('content-type'),'application/pdf');
+  assert.equal((await request('GET',`/meetings/${meeting}/minutes/pdf?download=${ticket.data.ticket}`,undefined,null)).status,401);
+});

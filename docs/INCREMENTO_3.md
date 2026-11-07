@@ -103,7 +103,7 @@ API privada com prefixo `/api` e Bearer de sessão. Rotas: POST `/meetings/:meet
 - Sequência de votação: [fonte UML](Diagramas/fontes/seq-votacoes.puml).
 - Sequência do relatório: [fonte UML](Diagramas/fontes/seq-relatorio-participacao.puml).
 - Sequência do manual: [fonte UML](Diagramas/fontes/seq-manual-consulta.puml).
-- [Dicionário físico](dicionario-banco-dados.md#incremento-3-votações) e [dicionário de classes](dicionario-classes.md#incremento-3-votações-e-relatório).
+- [Dicionário físico](dicionario-banco-dados.md#tabela-meeting_votes) e [dicionário de classes](dicionario-classes.md#votacao).
 
 ## Rastreabilidade e aceite
 
@@ -116,4 +116,8 @@ API privada com prefixo `/api` e Bearer de sessão. Rotas: POST `/meetings/:meet
 | RF03.05 | Manual | Conteúdo empacotado no mobile | Manual acessível na navegação e inclui as novas funções. |
 | RNF03.03 | Build mobile | `package.json` e `package-lock.json` | Manifesto e lockfile declaram Expo 58, React Native 0.88 e React 19.3; build de Android e iOS precisa ser feito antes da publicação. |
 
-Os critérios acima são o roteiro esperado. A suíte automatizada, exportação e execução em aparelhos não foram executadas nesta implementação; nenhum resultado é declarado como aprovado. Expo SDK 58 exige development build atualizado para testar os módulos nativos. Ver [referência oficial SDK 58](https://docs.expo.dev/versions/v58.0.0/) e [guia oficial de upgrade](https://docs.expo.dev/workflow/upgrading-expo-sdk-walkthrough/).
+A verificação atual e os limites de entrega estão em [ENTREGA_INCREMENTO_3.md](ENTREGA_INCREMENTO_3.md). Há testes automatizados e exportação Android/iOS/web; testes físicos e validação comunitária continuam separados.
+
+## Complementos de entrega
+
+Os requisitos RF03.06–RF03.11 acrescentam edição de reunião futura, dia todo/local/detalhes, anexos privados, código temporário de presença, registro pelo presidente e PDF da lista de presença. Consulte as fichas completas na [especificação principal](incremento-1-especificacao-completa.md#requisitos-funcionais-declarativos) e o [índice de diagramas](Diagramas/Diagramas_Casos_de_Uso.md). As regras temporais são aplicadas no backend. As instruções atualizadas estão no manual dentro do aplicativo.

@@ -70,7 +70,8 @@
         {
           "faceIDPermission": "Permitir que o Synple confirme sua identidade para entrar e alterar seu perfil."
         }
-      ]
+      ],
+      "@react-native-community/datetimepicker"
     ],
     "extra": {
       "eas": {

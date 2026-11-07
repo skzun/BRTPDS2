@@ -156,12 +156,19 @@ const R=[
  'Sem acesso: 403; sem ata: 404; versão antiga: 409; ticket inválido/expirado: 401. Ticket pode ser reutilizado na mesma rota até expirar; não é de uso único. PDF não altera votos/situação e não contém assinatura digital.',
  'Leitura das tabelas de reunião/ata/presença/decisões; download_tickets para autorização temporária; PDF não é armazenado no banco.', 'HEAD/GET /meetings/:meetingId/minutes/pdf; POST /auth/download-ticket','seq-pdf'],
 ];
+R.push(...require('./delivery-requirements.cjs'));
+for (const r of R) {
+ if (r[0] === 'RF02.01') { r[3]='Reuniões → Nova reunião → Salvar reunião'; r[6]='Início não futuro, término inválido e campos vazios: 400 com fields; não gestor: 403. Edição de reunião futura está em RF03.06.'; }
+ if (r[0] === 'RF02.02') { r[3]='Reuniões → Nova reunião → Convidados da comissão'; r[5]=['Selecionar integrantes; todos começam selecionados e o gestor pode retirar pessoas.','Enviar inviteeIds; validar elegibilidade e deduplicar no servidor.','Persistir convites e incluir organizador aceito.']; }
+ if (r[0] === 'RF02.03') r[6]='Após término, ou recusa após entrada, retorna 409. Usuário sem convite não responde por outro.';
+ if (r[0] === 'RF02.04' || r[0] === 'RF02.05') { r[3]='Abrir reunião → Presença → Entrada/Saída com biometria, ou Arquivos → código'; r[4]+=' Reunião em andamento.'; r[5]=['Confirmar biometria local, ou usar código temporário válido, ou solicitar registro ao gestor.','PATCH valida identidade, convite, período e estado de presença.','Gravar horários pelo servidor e confirmar resultado.']; r[6]='Fora do período: 409; sem convite: 403; novas entradas bloqueadas durante revisão/aprovação da ata. Gestor pode atuar por convidado pela rota própria (RF03.10). Biometria é verificação local, sem atestado remoto.'; }
+}
 const e = s=>s.replaceAll('|','\\|');
 let md=`# Especificação principal de engenharia de software — Synple
 
-**Revisão:** 30/10/2026. **Escopo:** cadastro, organizações, comissões, contas, configuração, operação e incremento 2 (reuniões/atas). **Base:** código presente neste checkout, DDL e relatórios de teste identificados; não presume implantação em outro computador.
+**Revisão:** 06/11/2026. **Escopo:** cadastro, organizações, comissões, contas, configuração, operação e incremento 2 (reuniões/atas). **Base:** código presente neste checkout, DDL e relatórios de teste identificados; não presume implantação em outro computador.
 
-Esta revisão substitui integralmente a especificação anterior. Não descreve como implementados chat, calendário gráfico, disponibilidade, edição/cancelamento de reunião, restauração de backup ou reinício de processos pelo celular. O levantamento de requisitos com a comunidade e os testes físicos ainda dependem de evidências externas.
+Esta revisão substitui integralmente a especificação anterior. Não descreve como implementados chat, calendário gráfico, disponibilidade, cancelamento de reunião, restauração de backup ou reinício de processos pelo celular. O levantamento de requisitos com a comunidade e os testes físicos ainda dependem de evidências externas.
 
 ## 1. Fontes, convenções e rastreabilidade
 
@@ -235,6 +242,8 @@ Fontes editáveis e todas as imagens: [catálogo dos diagramas](Diagramas/Diagra
 | --- | --- | --- |
 `;
 for(const r of R) md+=`| [${r[0]}](#${r[0].toLowerCase().replaceAll('.','')}) | ${r[1]} | ${r[2]} |\n`;
+md+='\n## Requisitos funcionais declarativos\n\n| ID | Requisito |\n| --- | --- |\n';
+for (const [id,name,actor] of R) md+=`| ${id} | O sistema deve oferecer a função ${name.toLowerCase()} ao ator ${actor.toLowerCase()}, respeitando as condições e resultados da ficha correspondente. |\n`;
 for(const [id,name,actor,trigger,pre,steps,exceptions,data,api,seq] of R) {
  md+=`\n<a id="${id.toLowerCase().replaceAll('.','')}"></a>\n\n### ${id} — ${name}\n\n`;
  md+=`| Campo | Especificação |\n| --- | --- |\n| Ator | ${e(actor)} |\n| Tela e gatilho | ${e(trigger)} |\n| Pré-condições | ${e(pre)} |\n| Entradas e contrato | ${e(api)}; prefixo /api em todas as rotas |\n| Dados/pós-condição de sucesso | ${e(data)} |\n| Sequência UML | [${seq}](Diagramas/renderizados/${seq}.svg) |\n\n**Fluxo principal**\n\n`;
@@ -264,7 +273,7 @@ O modelo relacional representa tabelas, PKs, FKs e cardinalidades de referência
 
 ![Segurança e operação relacionais](Diagramas/renderizados/relacional-seguranca.svg)
 
-[Dicionário físico completo](dicionario-banco-dados.md): 15 tabelas, 99 colunas, 53 restrições e 39 índices extraídos do DDL. Inclui tipos, nulabilidade, defaults, PK/FK/UNIQUE/CHECK, índices parciais/expressões e ações de exclusão. [Snapshot estruturado](modelo-fisico.snapshot.json) permite conferir o inventário.
+[Dicionário físico completo](dicionario-banco-dados.md): inventário de tabelas, colunas, restrições e índices extraído do DDL atual. Inclui tipos, nulabilidade, defaults, PK/FK/UNIQUE/CHECK, índices parciais/expressões e ações de exclusão. [Snapshot estruturado](modelo-fisico.snapshot.json) permite conferir o inventário.
 
 **Distinção entre regra e garantia:** enums de tema/papel/situação em várias tabelas são validados por rotas, mas não têm CHECK SQL. Nome de comissão não tem UNIQUE SQL. E-mail tem unicidade textual, não índice de minúsculas. Ao contrário, nome/CNPJ de organização têm índices normalizados. Presença/voto/unanimidade e validade de credenciais exigem lógica de serviço e transações; não são garantidos apenas pela existência de uma tabela.
 
@@ -325,8 +334,8 @@ Cada RF está ligado a um contrato e a uma sequência no próprio formulário. P
 
 ## 11. Limitações e lacunas verificadas
 
-1. A documentação não corrige código: na recuperação, a checagem local ainda menciona seis caracteres, enquanto servidor exige oito. Descrever o mínimo efetivo do servidor e registrar a divergência até sua correção.
-2. Recuperação valida preenchimento do e-mail nessa etapa, não um formato completo; outras telas usam validador de formato. Não afirmar validação uniforme inexistente.
+1. Recuperação exige pelo menos oito caracteres no aplicativo e no servidor; o código é consumido uma única vez.
+2. Recuperação valida formato de e-mail no cliente e no servidor. SMTP real e recebimento de mensagens continuam exigindo teste operacional.
 3. Domínios de papel/tema/situação em várias tabelas dependem da API. UNIQUE de nome de comissão por organização não existe. Mínimo de coordenador não é uma restrição CHECK do banco.
 4. Revogação de vínculo organizacional não apaga automaticamente os vínculos de comissão. Nem todas as rotas repetem a checagem de organização APPROVED da interface. Revisar consistência de autorização antes de produção.
 5. Exclusão de organização segue cascatas SQL e não tem uma proteção histórica geral implementada. As proteções de exclusão de conta/ata não podem ser generalizadas a todas as entidades.

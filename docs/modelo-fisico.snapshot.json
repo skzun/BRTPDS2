@@ -1,6 +1,6 @@
 {
   "generatedFrom": "Synple/backend/src/db/schema.sql",
-  "schemaSha256": "9f658566148954d0b27accc36c2cb66fe86520af3c1799b2a624ae5a94784d1e",
+  "schemaSha256": "34d0beb4781a1983492cc90032de2807b75357266f5d2b1ce53d10906f4b4953",
   "columns": [
     {
       "table_name": "access_requests",
@@ -220,6 +220,55 @@
       "default_value": null
     },
     {
+      "table_name": "meeting_attachments",
+      "column_name": "id",
+      "type": "uuid",
+      "not_null": true,
+      "default_value": "gen_random_uuid()"
+    },
+    {
+      "table_name": "meeting_attachments",
+      "column_name": "meeting_id",
+      "type": "uuid",
+      "not_null": true,
+      "default_value": null
+    },
+    {
+      "table_name": "meeting_attachments",
+      "column_name": "name",
+      "type": "character varying(160)",
+      "not_null": true,
+      "default_value": null
+    },
+    {
+      "table_name": "meeting_attachments",
+      "column_name": "mime_type",
+      "type": "character varying(100)",
+      "not_null": true,
+      "default_value": null
+    },
+    {
+      "table_name": "meeting_attachments",
+      "column_name": "content",
+      "type": "bytea",
+      "not_null": true,
+      "default_value": null
+    },
+    {
+      "table_name": "meeting_attachments",
+      "column_name": "created_by",
+      "type": "uuid",
+      "not_null": true,
+      "default_value": null
+    },
+    {
+      "table_name": "meeting_attachments",
+      "column_name": "created_at",
+      "type": "timestamp with time zone",
+      "not_null": true,
+      "default_value": "now()"
+    },
+    {
       "table_name": "meeting_attendance",
       "column_name": "id",
       "type": "uuid",
@@ -252,6 +301,48 @@
       "column_name": "left_at",
       "type": "timestamp with time zone",
       "not_null": false,
+      "default_value": null
+    },
+    {
+      "table_name": "meeting_attendance",
+      "column_name": "recorded_by",
+      "type": "uuid",
+      "not_null": false,
+      "default_value": null
+    },
+    {
+      "table_name": "meeting_attendance",
+      "column_name": "method",
+      "type": "character varying(20)",
+      "not_null": true,
+      "default_value": "'SELF'::character varying"
+    },
+    {
+      "table_name": "meeting_attendance_codes",
+      "column_name": "meeting_id",
+      "type": "uuid",
+      "not_null": true,
+      "default_value": null
+    },
+    {
+      "table_name": "meeting_attendance_codes",
+      "column_name": "code_hash",
+      "type": "text",
+      "not_null": true,
+      "default_value": null
+    },
+    {
+      "table_name": "meeting_attendance_codes",
+      "column_name": "expires_at",
+      "type": "timestamp with time zone",
+      "not_null": true,
+      "default_value": null
+    },
+    {
+      "table_name": "meeting_attendance_codes",
+      "column_name": "created_by",
+      "type": "uuid",
+      "not_null": true,
       "default_value": null
     },
     {
@@ -437,6 +528,118 @@
       "default_value": "now()"
     },
     {
+      "table_name": "meeting_vote_ballots",
+      "column_name": "id",
+      "type": "uuid",
+      "not_null": true,
+      "default_value": "gen_random_uuid()"
+    },
+    {
+      "table_name": "meeting_vote_ballots",
+      "column_name": "vote_id",
+      "type": "uuid",
+      "not_null": true,
+      "default_value": null
+    },
+    {
+      "table_name": "meeting_vote_ballots",
+      "column_name": "option_id",
+      "type": "uuid",
+      "not_null": true,
+      "default_value": null
+    },
+    {
+      "table_name": "meeting_vote_ballots",
+      "column_name": "user_id",
+      "type": "uuid",
+      "not_null": true,
+      "default_value": null
+    },
+    {
+      "table_name": "meeting_vote_ballots",
+      "column_name": "cast_at",
+      "type": "timestamp with time zone",
+      "not_null": true,
+      "default_value": "now()"
+    },
+    {
+      "table_name": "meeting_vote_options",
+      "column_name": "id",
+      "type": "uuid",
+      "not_null": true,
+      "default_value": "gen_random_uuid()"
+    },
+    {
+      "table_name": "meeting_vote_options",
+      "column_name": "vote_id",
+      "type": "uuid",
+      "not_null": true,
+      "default_value": null
+    },
+    {
+      "table_name": "meeting_vote_options",
+      "column_name": "label",
+      "type": "character varying(160)",
+      "not_null": true,
+      "default_value": null
+    },
+    {
+      "table_name": "meeting_vote_options",
+      "column_name": "position",
+      "type": "smallint",
+      "not_null": true,
+      "default_value": null
+    },
+    {
+      "table_name": "meeting_votes",
+      "column_name": "id",
+      "type": "uuid",
+      "not_null": true,
+      "default_value": "gen_random_uuid()"
+    },
+    {
+      "table_name": "meeting_votes",
+      "column_name": "meeting_id",
+      "type": "uuid",
+      "not_null": true,
+      "default_value": null
+    },
+    {
+      "table_name": "meeting_votes",
+      "column_name": "question",
+      "type": "character varying(500)",
+      "not_null": true,
+      "default_value": null
+    },
+    {
+      "table_name": "meeting_votes",
+      "column_name": "status",
+      "type": "character varying(10)",
+      "not_null": true,
+      "default_value": "'OPEN'::character varying"
+    },
+    {
+      "table_name": "meeting_votes",
+      "column_name": "created_by",
+      "type": "uuid",
+      "not_null": true,
+      "default_value": null
+    },
+    {
+      "table_name": "meeting_votes",
+      "column_name": "created_at",
+      "type": "timestamp with time zone",
+      "not_null": true,
+      "default_value": "now()"
+    },
+    {
+      "table_name": "meeting_votes",
+      "column_name": "closed_at",
+      "type": "timestamp with time zone",
+      "not_null": false,
+      "default_value": null
+    },
+    {
       "table_name": "meetings",
       "column_name": "id",
       "type": "uuid",
@@ -498,6 +701,27 @@
       "type": "timestamp with time zone",
       "not_null": true,
       "default_value": "now()"
+    },
+    {
+      "table_name": "meetings",
+      "column_name": "all_day",
+      "type": "boolean",
+      "not_null": true,
+      "default_value": "false"
+    },
+    {
+      "table_name": "meetings",
+      "column_name": "location",
+      "type": "character varying(300)",
+      "not_null": true,
+      "default_value": "''::character varying"
+    },
+    {
+      "table_name": "meetings",
+      "column_name": "details",
+      "type": "character varying(4000)",
+      "not_null": true,
+      "default_value": "''::character varying"
     },
     {
       "table_name": "organizations",
@@ -788,6 +1012,30 @@
       "definition": "FOREIGN KEY (session_hash) REFERENCES auth_sessions(token_hash) ON DELETE CASCADE"
     },
     {
+      "table_name": "meeting_attachments",
+      "name": "meeting_attachments_content_check",
+      "kind": "c",
+      "definition": "CHECK (((octet_length(content) >= 1) AND (octet_length(content) <= 5242880)))"
+    },
+    {
+      "table_name": "meeting_attachments",
+      "name": "meeting_attachments_created_by_fkey",
+      "kind": "f",
+      "definition": "FOREIGN KEY (created_by) REFERENCES users(id)"
+    },
+    {
+      "table_name": "meeting_attachments",
+      "name": "meeting_attachments_meeting_id_fkey",
+      "kind": "f",
+      "definition": "FOREIGN KEY (meeting_id) REFERENCES meetings(id) ON DELETE CASCADE"
+    },
+    {
+      "table_name": "meeting_attachments",
+      "name": "meeting_attachments_pkey",
+      "kind": "p",
+      "definition": "PRIMARY KEY (id)"
+    },
+    {
       "table_name": "meeting_attendance",
       "name": "meeting_attendance_meeting_id_fkey",
       "kind": "f",
@@ -801,6 +1049,12 @@
     },
     {
       "table_name": "meeting_attendance",
+      "name": "meeting_attendance_recorded_by_fkey",
+      "kind": "f",
+      "definition": "FOREIGN KEY (recorded_by) REFERENCES users(id)"
+    },
+    {
+      "table_name": "meeting_attendance",
       "name": "meeting_attendance_user_id_fkey",
       "kind": "f",
       "definition": "FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE"
@@ -810,6 +1064,24 @@
       "name": "uq_meeting_attendance",
       "kind": "u",
       "definition": "UNIQUE (meeting_id, user_id)"
+    },
+    {
+      "table_name": "meeting_attendance_codes",
+      "name": "meeting_attendance_codes_created_by_fkey",
+      "kind": "f",
+      "definition": "FOREIGN KEY (created_by) REFERENCES users(id)"
+    },
+    {
+      "table_name": "meeting_attendance_codes",
+      "name": "meeting_attendance_codes_meeting_id_fkey",
+      "kind": "f",
+      "definition": "FOREIGN KEY (meeting_id) REFERENCES meetings(id) ON DELETE CASCADE"
+    },
+    {
+      "table_name": "meeting_attendance_codes",
+      "name": "meeting_attendance_codes_pkey",
+      "kind": "p",
+      "definition": "PRIMARY KEY (meeting_id)"
     },
     {
       "table_name": "meeting_invitations",
@@ -936,6 +1208,108 @@
       "name": "uq_minutes_approval_user",
       "kind": "u",
       "definition": "UNIQUE (minutes_id, user_id)"
+    },
+    {
+      "table_name": "meeting_vote_ballots",
+      "name": "fk_meeting_vote_ballot_option",
+      "kind": "f",
+      "definition": "FOREIGN KEY (option_id, vote_id) REFERENCES meeting_vote_options(id, vote_id) ON DELETE CASCADE"
+    },
+    {
+      "table_name": "meeting_vote_ballots",
+      "name": "meeting_vote_ballots_pkey",
+      "kind": "p",
+      "definition": "PRIMARY KEY (id)"
+    },
+    {
+      "table_name": "meeting_vote_ballots",
+      "name": "meeting_vote_ballots_user_id_fkey",
+      "kind": "f",
+      "definition": "FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE"
+    },
+    {
+      "table_name": "meeting_vote_ballots",
+      "name": "meeting_vote_ballots_vote_id_fkey",
+      "kind": "f",
+      "definition": "FOREIGN KEY (vote_id) REFERENCES meeting_votes(id) ON DELETE CASCADE"
+    },
+    {
+      "table_name": "meeting_vote_ballots",
+      "name": "uq_meeting_vote_ballot_user",
+      "kind": "u",
+      "definition": "UNIQUE (vote_id, user_id)"
+    },
+    {
+      "table_name": "meeting_vote_options",
+      "name": "meeting_vote_options_label_check",
+      "kind": "c",
+      "definition": "CHECK ((length(TRIM(BOTH FROM label)) > 0))"
+    },
+    {
+      "table_name": "meeting_vote_options",
+      "name": "meeting_vote_options_pkey",
+      "kind": "p",
+      "definition": "PRIMARY KEY (id)"
+    },
+    {
+      "table_name": "meeting_vote_options",
+      "name": "meeting_vote_options_position_check",
+      "kind": "c",
+      "definition": "CHECK ((\"position\" > 0))"
+    },
+    {
+      "table_name": "meeting_vote_options",
+      "name": "meeting_vote_options_vote_id_fkey",
+      "kind": "f",
+      "definition": "FOREIGN KEY (vote_id) REFERENCES meeting_votes(id) ON DELETE CASCADE"
+    },
+    {
+      "table_name": "meeting_vote_options",
+      "name": "uq_meeting_vote_option_id_vote",
+      "kind": "u",
+      "definition": "UNIQUE (id, vote_id)"
+    },
+    {
+      "table_name": "meeting_vote_options",
+      "name": "uq_meeting_vote_option_position",
+      "kind": "u",
+      "definition": "UNIQUE (vote_id, \"position\")"
+    },
+    {
+      "table_name": "meeting_votes",
+      "name": "meeting_votes_created_by_fkey",
+      "kind": "f",
+      "definition": "FOREIGN KEY (created_by) REFERENCES users(id)"
+    },
+    {
+      "table_name": "meeting_votes",
+      "name": "meeting_votes_meeting_id_fkey",
+      "kind": "f",
+      "definition": "FOREIGN KEY (meeting_id) REFERENCES meetings(id) ON DELETE CASCADE"
+    },
+    {
+      "table_name": "meeting_votes",
+      "name": "meeting_votes_pkey",
+      "kind": "p",
+      "definition": "PRIMARY KEY (id)"
+    },
+    {
+      "table_name": "meeting_votes",
+      "name": "meeting_votes_question_check",
+      "kind": "c",
+      "definition": "CHECK ((length(TRIM(BOTH FROM question)) > 0))"
+    },
+    {
+      "table_name": "meeting_votes",
+      "name": "meeting_votes_status_check",
+      "kind": "c",
+      "definition": "CHECK (((status)::text = ANY ((ARRAY['OPEN'::character varying, 'CLOSED'::character varying])::text[])))"
+    },
+    {
+      "table_name": "meeting_votes",
+      "name": "uq_meeting_votes_id_meeting",
+      "kind": "u",
+      "definition": "UNIQUE (id, meeting_id)"
     },
     {
       "table_name": "meetings",
@@ -1083,6 +1457,16 @@
       "definition": "CREATE UNIQUE INDEX download_tickets_pkey ON download_tickets USING btree (token_hash)"
     },
     {
+      "table_name": "meeting_attachments",
+      "name": "idx_meeting_attachments_meeting",
+      "definition": "CREATE INDEX idx_meeting_attachments_meeting ON meeting_attachments USING btree (meeting_id)"
+    },
+    {
+      "table_name": "meeting_attachments",
+      "name": "meeting_attachments_pkey",
+      "definition": "CREATE UNIQUE INDEX meeting_attachments_pkey ON meeting_attachments USING btree (id)"
+    },
+    {
       "table_name": "meeting_attendance",
       "name": "idx_meeting_attendance_meeting",
       "definition": "CREATE INDEX idx_meeting_attendance_meeting ON meeting_attendance USING btree (meeting_id)"
@@ -1096,6 +1480,11 @@
       "table_name": "meeting_attendance",
       "name": "uq_meeting_attendance",
       "definition": "CREATE UNIQUE INDEX uq_meeting_attendance ON meeting_attendance USING btree (meeting_id, user_id)"
+    },
+    {
+      "table_name": "meeting_attendance_codes",
+      "name": "meeting_attendance_codes_pkey",
+      "definition": "CREATE UNIQUE INDEX meeting_attendance_codes_pkey ON meeting_attendance_codes USING btree (meeting_id)"
     },
     {
       "table_name": "meeting_invitations",
@@ -1141,6 +1530,51 @@
       "table_name": "meeting_minutes_approvals",
       "name": "uq_minutes_approval_user",
       "definition": "CREATE UNIQUE INDEX uq_minutes_approval_user ON meeting_minutes_approvals USING btree (minutes_id, user_id)"
+    },
+    {
+      "table_name": "meeting_vote_ballots",
+      "name": "idx_meeting_vote_ballots_vote",
+      "definition": "CREATE INDEX idx_meeting_vote_ballots_vote ON meeting_vote_ballots USING btree (vote_id)"
+    },
+    {
+      "table_name": "meeting_vote_ballots",
+      "name": "meeting_vote_ballots_pkey",
+      "definition": "CREATE UNIQUE INDEX meeting_vote_ballots_pkey ON meeting_vote_ballots USING btree (id)"
+    },
+    {
+      "table_name": "meeting_vote_ballots",
+      "name": "uq_meeting_vote_ballot_user",
+      "definition": "CREATE UNIQUE INDEX uq_meeting_vote_ballot_user ON meeting_vote_ballots USING btree (vote_id, user_id)"
+    },
+    {
+      "table_name": "meeting_vote_options",
+      "name": "meeting_vote_options_pkey",
+      "definition": "CREATE UNIQUE INDEX meeting_vote_options_pkey ON meeting_vote_options USING btree (id)"
+    },
+    {
+      "table_name": "meeting_vote_options",
+      "name": "uq_meeting_vote_option_id_vote",
+      "definition": "CREATE UNIQUE INDEX uq_meeting_vote_option_id_vote ON meeting_vote_options USING btree (id, vote_id)"
+    },
+    {
+      "table_name": "meeting_vote_options",
+      "name": "uq_meeting_vote_option_position",
+      "definition": "CREATE UNIQUE INDEX uq_meeting_vote_option_position ON meeting_vote_options USING btree (vote_id, \"position\")"
+    },
+    {
+      "table_name": "meeting_votes",
+      "name": "idx_meeting_votes_meeting",
+      "definition": "CREATE INDEX idx_meeting_votes_meeting ON meeting_votes USING btree (meeting_id, created_at)"
+    },
+    {
+      "table_name": "meeting_votes",
+      "name": "meeting_votes_pkey",
+      "definition": "CREATE UNIQUE INDEX meeting_votes_pkey ON meeting_votes USING btree (id)"
+    },
+    {
+      "table_name": "meeting_votes",
+      "name": "uq_meeting_votes_id_meeting",
+      "definition": "CREATE UNIQUE INDEX uq_meeting_votes_id_meeting ON meeting_votes USING btree (id, meeting_id)"
     },
     {
       "table_name": "meetings",

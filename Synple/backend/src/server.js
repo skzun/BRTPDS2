@@ -17,7 +17,7 @@ const PORT = process.env.PORT || 3001;
 
 // Middlewares
 app.use(cors());
-app.use(express.json({ limit: '256kb' }));
+app.use(express.json({ limit: '8mb' }));
 const security = require('./services/security');
 const { authorize } = require('./services/authorization');
 app.use('/api', (req, res, next) => {

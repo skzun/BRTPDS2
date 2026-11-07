@@ -486,7 +486,7 @@
     "id": "RF02.01",
     "name": "Agendar reunião da comissão",
     "actor": "Coordenador atual ou proprietário",
-    "trigger": "Reuniões → título, início, término, pauta → Agendar e convidar",
+    "trigger": "Reuniões → Nova reunião → Salvar reunião",
     "pre": "Comissão existente; gestor com sessão válida.",
     "steps": [
       "Preencher título até 160 caracteres, datas DD/MM/AAAA HH:mm e pauta.",
@@ -495,7 +495,7 @@
       "Criar reunião e convites; organizador entra como ACCEPTED.",
       "Confirmar reunião após commit."
     ],
-    "exceptions": "Término não posterior/início inválido: 400; não gestor: 403; convidados inválidos abortam toda a transação. Não há edição/cancelamento do agendamento implementados.",
+    "exceptions": "Início não futuro, término inválido e campos vazios: 400 com fields; não gestor: 403. Edição de reunião futura está em RF03.06.",
     "data": "meetings e meeting_invitations na mesma transação.",
     "api": "POST /meetings",
     "sequence": "seq-agendamento"
@@ -504,13 +504,12 @@
     "id": "RF02.02",
     "name": "Selecionar e convidar integrantes no agendamento",
     "actor": "Gestor da reunião",
-    "trigger": "Reuniões → Membros convidados no formulário Agendar e convidar",
+    "trigger": "Reuniões → Nova reunião → Convidados da comissão",
     "pre": "Mesmo contexto de RF02.01; integrantes pertencentes à comissão.",
     "steps": [
-      "Selecionar pessoas da comissão no formulário.",
-      "Enviar inviteeIds junto ao agendamento.",
-      "Resolver IDs, rejeitar pessoas não integrantes e deduplicar; incluir organizador.",
-      "Persistir INVITED para demais pessoas e ACCEPTED para organizador."
+      "Selecionar integrantes; todos começam selecionados e o gestor pode retirar pessoas.",
+      "Enviar inviteeIds; validar elegibilidade e deduplicar no servidor.",
+      "Persistir convites e incluir organizador aceito."
     ],
     "exceptions": "Não há endpoint/tela para convidar pessoas avulsas após criar a reunião. O proprietário pode ser organizador sem integrar a comissão; demais convidados precisam ser integrantes.",
     "data": "meeting_invitations, UNIQUE(meeting_id,user_id).",
@@ -528,7 +527,7 @@
       "API usa identidade da sessão e valida estado enviado.",
       "Atualizar status e responded_at pelo relógio do servidor."
     ],
-    "exceptions": "Recusa após registrar entrada é bloqueada: 409. Usuário sem convite não responde pelo de outra pessoa.",
+    "exceptions": "Após término, ou recusa após entrada, retorna 409. Usuário sem convite não responde por outro.",
     "data": "meeting_invitations.status/responded_at.",
     "api": "PATCH /meetings/:meetingId/invitation",
     "sequence": "seq-agendamento"
@@ -537,14 +536,14 @@
     "id": "RF02.04",
     "name": "Registrar entrada",
     "actor": "Convidado com convite aceito",
-    "trigger": "Cartão da reunião → Registrar entrada",
-    "pre": "Convite ACCEPTED e ausência de entrada anterior; ata ainda permite novas entradas.",
+    "trigger": "Abrir reunião → Presença → Entrada/Saída com biometria, ou Arquivos → código",
+    "pre": "Convite ACCEPTED e ausência de entrada anterior; ata ainda permite novas entradas. Reunião em andamento.",
     "steps": [
-      "Acionar Registrar entrada.",
-      "API bloqueia reunião em transação e verifica convite/presença/ata.",
-      "Registrar entered_at pelo servidor e confirmar."
+      "Confirmar biometria local, ou usar código temporário válido, ou solicitar registro ao gestor.",
+      "PATCH valida identidade, convite, período e estado de presença.",
+      "Gravar horários pelo servidor e confirmar resultado."
     ],
-    "exceptions": "Não se registra por outro participante. Após submissão para revisão e aprovação final, novas entradas ficam bloqueadas. Registro é da primeira entrada; não existe fluxo de múltiplas reentradas.",
+    "exceptions": "Fora do período: 409; sem convite: 403; novas entradas bloqueadas durante revisão/aprovação da ata. Gestor pode atuar por convidado pela rota própria (RF03.10). Biometria é verificação local, sem atestado remoto.",
     "data": "meeting_attendance, UNIQUE(meeting_id,user_id).",
     "api": "PATCH /meetings/:meetingId/attendance com action=ENTER",
     "sequence": "seq-presenca"
@@ -553,14 +552,14 @@
     "id": "RF02.05",
     "name": "Registrar saída",
     "actor": "Participante com entrada registrada",
-    "trigger": "Cartão da reunião → Registrar saída",
-    "pre": "Entrada existente e saída ainda não registrada.",
+    "trigger": "Abrir reunião → Presença → Entrada/Saída com biometria, ou Arquivos → código",
+    "pre": "Entrada existente e saída ainda não registrada. Reunião em andamento.",
     "steps": [
-      "Acionar Registrar saída.",
-      "API confere própria presença em transação.",
-      "Gravar left_at com relógio do servidor e devolver presença."
+      "Confirmar biometria local, ou usar código temporário válido, ou solicitar registro ao gestor.",
+      "PATCH valida identidade, convite, período e estado de presença.",
+      "Gravar horários pelo servidor e confirmar resultado."
     ],
-    "exceptions": "Sem entrada, negar operação; saída não apaga presença nem retira voto obrigatório. Saídas continuam disponíveis após submissão/aprovação da ata.",
+    "exceptions": "Fora do período: 409; sem convite: 403; novas entradas bloqueadas durante revisão/aprovação da ata. Gestor pode atuar por convidado pela rota própria (RF03.10). Biometria é verificação local, sem atestado remoto.",
     "data": "meeting_attendance.left_at.",
     "api": "PATCH /meetings/:meetingId/attendance com action=EXIT",
     "sequence": "seq-presenca"
@@ -650,5 +649,179 @@
     "data": "Leitura das tabelas de reunião/ata/presença/decisões; download_tickets para autorização temporária; PDF não é armazenado no banco.",
     "api": "HEAD/GET /meetings/:meetingId/minutes/pdf; POST /auth/download-ticket",
     "sequence": "seq-pdf"
+  },
+  {
+    "id": "RF03.01",
+    "name": "Abrir votação independente da ata",
+    "actor": "Coordenador ou proprietário",
+    "trigger": "Reunião → Votações → Abrir votação",
+    "pre": "Sessão válida, gestão da reunião e ao menos uma entrada registrada.",
+    "steps": [
+      "Preencher pergunta e de duas a oito opções distintas.",
+      "POST cria votação e opções na mesma transação.",
+      "Atualizar a apuração pelo snapshot autorizado."
+    ],
+    "exceptions": "Pergunta vazia, opção duplicada/inválida: 400; não gestor: 403; sem presentes: 409.",
+    "data": "meeting_votes e meeting_vote_options; status OPEN.",
+    "api": "POST /meetings/:meetingId/votes",
+    "sequence": "seq-votacoes"
+  },
+  {
+    "id": "RF03.02",
+    "name": "Votar ou alterar a opção",
+    "actor": "Participante com entrada registrada",
+    "trigger": "Reunião → Votações → opção",
+    "pre": "Votação OPEN e presença registrada.",
+    "steps": [
+      "Selecionar uma opção.",
+      "Servidor usa a identidade da sessão e verifica a presença.",
+      "Inserir ou atualizar o voto único e sincronizar a contagem."
+    ],
+    "exceptions": "Sem presença: 403; encerrada: 409; opção de outra votação: 400.",
+    "data": "meeting_vote_ballots; UNIQUE(vote_id,user_id).",
+    "api": "POST /meetings/:meetingId/votes/:voteId/ballot",
+    "sequence": "seq-votacoes"
+  },
+  {
+    "id": "RF03.03",
+    "name": "Encerrar votação",
+    "actor": "Coordenador ou proprietário",
+    "trigger": "Reunião → Votações → Encerrar votação → confirmação",
+    "pre": "Gestor autenticado e votação aberta.",
+    "steps": [
+      "Confirmar encerramento.",
+      "Servidor bloqueia a reunião e grava CLOSED e closed_at."
+    ],
+    "exceptions": "Não gestor: 403; já encerrada: 409.",
+    "data": "meeting_votes.status e closed_at; apuração fica imutável.",
+    "api": "PATCH /meetings/:meetingId/votes/:voteId/close",
+    "sequence": "seq-votacoes"
+  },
+  {
+    "id": "RF03.04",
+    "name": "Consultar relatório individual",
+    "actor": "Usuário autenticado",
+    "trigger": "Meu relatório → Atualizar relatório",
+    "pre": "Sessão válida.",
+    "steps": [
+      "Consultar o endpoint sem enviar outra identidade.",
+      "Filtrar attendance.user_id pela sessão e entered_at não nulo.",
+      "Exibir reuniões, organizações, comissões, presença e situação de ata."
+    ],
+    "exceptions": "Sem sessão: 401; falha de rede exibida na tela; convite sem entrada não compõe relatório.",
+    "data": "Consulta de meeting_attendance, meetings, commissions, organizations e meeting_minutes.",
+    "api": "GET /meetings/participation/report",
+    "sequence": "seq-relatorio-participacao"
+  },
+  {
+    "id": "RF03.05",
+    "name": "Consultar manual digital",
+    "actor": "Usuário autenticado",
+    "trigger": "Manual na navegação",
+    "pre": "Aplicativo aberto.",
+    "steps": [
+      "Abrir Manual.",
+      "Renderizar instruções locais de acesso, organizações, comissão, reunião, presença, arquivos, votação, atas e relatório."
+    ],
+    "exceptions": "Consulta do conteúdo não depende da API.",
+    "data": "Conteúdo empacotado em ManualScreen.js.",
+    "api": "Sem endpoint; ManualScreen()",
+    "sequence": "seq-manual-consulta"
+  },
+  {
+    "id": "RF03.06",
+    "name": "Editar reunião futura",
+    "actor": "Coordenador ou proprietário",
+    "trigger": "Abrir reunião → Editar agendamento → Salvar reunião",
+    "pre": "Reunião ainda não iniciada e sem presença.",
+    "steps": [
+      "Alterar título, período, pauta, local/detalhes e dia todo.",
+      "Validar todos os campos e exibir mensagens junto aos campos.",
+      "Atualizar a reunião em transação e solicitar nova confirmação aos convidados."
+    ],
+    "exceptions": "Não gestor: 403; já iniciada/com presença: 409; datas inválidas/passadas: 400.",
+    "data": "meetings atualizada; convites voltam a INVITED, mantendo organizador aceito.",
+    "api": "PATCH /meetings/:meetingId",
+    "sequence": "seq-editar-reuniao"
+  },
+  {
+    "id": "RF03.07",
+    "name": "Agendar por dias de calendário e informar local/detalhes",
+    "actor": "Coordenador ou proprietário",
+    "trigger": "Nova reunião → Dia todo, Início, Término, Local, Detalhes",
+    "pre": "Mesmo acesso de agendamento.",
+    "steps": [
+      "Escolher primeiro/último dia e ativar Dia todo, ou informar horas.",
+      "Converter dias em intervalo com término exclusivo na meia-noite seguinte no fuso do aparelho.",
+      "Preencher local até 300 e detalhes até 4000 caracteres opcionais."
+    ],
+    "exceptions": "Início passado e intervalo inválido recusados; dia todo atual já iniciado não é novo agendamento futuro.",
+    "data": "meetings.all_day, location, details e timestamps ISO.",
+    "api": "POST /meetings ou PATCH /meetings/:meetingId",
+    "sequence": "seq-editar-reuniao"
+  },
+  {
+    "id": "RF03.08",
+    "name": "Compartilhar anexos com convidados",
+    "actor": "Gestor envia; convidados e gestor consultam",
+    "trigger": "Abrir reunião → Arquivos → Anexar / nome do arquivo",
+    "pre": "Sessão válida e acesso à reunião.",
+    "steps": [
+      "Selecionar PDF, PNG, JPEG ou TXT.",
+      "Enviar base64; servidor verifica tamanho, tipo, autoria e limite por reunião.",
+      "Convidado consulta metadados e baixa via ticket curto vinculado à rota e sessão."
+    ],
+    "exceptions": "Até 5 MB por arquivo e dez por reunião; outro usuário: 403; arquivo inválido: 400; ticket expirado: 401.",
+    "data": "meeting_attachments com BYTEA; conteúdo não compõe /sync.",
+    "api": "GET/POST /meetings/:meetingId/attachments; GET /meetings/:meetingId/attachments/:attachmentId",
+    "sequence": "seq-anexos"
+  },
+  {
+    "id": "RF03.09",
+    "name": "Registrar presença por código temporário",
+    "actor": "Gestor emite; convidado aceito utiliza",
+    "trigger": "Arquivos → Gerar código / Entrada com código / Saída com código",
+    "pre": "Reunião em andamento; convite aceito; primeira entrada/saída.",
+    "steps": [
+      "Gestor gera código de seis dígitos válido por até dez minutos e nunca além do término.",
+      "Participante informa o código com sessão própria.",
+      "Servidor compara hash/validade e registra horário e ator."
+    ],
+    "exceptions": "Código inválido/expirado: 403; cinco tentativas por 15 minutos por endpoint/IP: 429; fora do período: 409.",
+    "data": "meeting_attendance_codes guarda SHA-256; meeting_attendance.method=CODE.",
+    "api": "POST /meetings/:meetingId/attendance-code; PATCH /meetings/:meetingId/attendance",
+    "sequence": "seq-presenca"
+  },
+  {
+    "id": "RF03.10",
+    "name": "Registrar entrada/saída de convidado pelo presidente",
+    "actor": "Coordenador ou proprietário",
+    "trigger": "Presença → Registrar entrada/saída deste participante",
+    "pre": "Gestor autenticado, convidado aceito e reunião em andamento.",
+    "steps": [
+      "Selecionar participante.",
+      "Servidor autoriza o gestor sem aceitar troca de identidade no JSON.",
+      "Registrar presença do alvo com recorded_by do gestor e method CHAIR."
+    ],
+    "exceptions": "Não gestor: 403; convite não aceito: 403; fora do horário ou saída sem entrada: 409; ata em revisão bloqueia novas entradas.",
+    "data": "meeting_attendance; recorded_by, method e horários do servidor.",
+    "api": "PATCH /meetings/:meetingId/attendance/:participantId",
+    "sequence": "seq-presenca"
+  },
+  {
+    "id": "RF03.11",
+    "name": "Exportar lista de presença em PDF",
+    "actor": "Convidado histórico ou gestor",
+    "trigger": "Arquivos → Baixar lista de presença em PDF",
+    "pre": "Sessão e acesso à reunião; não exige ata.",
+    "steps": [
+      "Solicitar ticket de download.",
+      "Servidor confere novamente o acesso e consulta snapshot de convidados/presenças.",
+      "Gerar PDF com nomes, status, entradas, saídas e fuso."
+    ],
+    "exceptions": "Sem acesso: 403; ticket expirado/rota diferente: 401; geração falha não indica sucesso.",
+    "data": "Consulta sem persistir PDF; fontes Unicode incorporadas.",
+    "api": "GET /meetings/:meetingId/attendance/pdf; POST /auth/download-ticket",
+    "sequence": "seq-presenca-pdf"
   }
 ]

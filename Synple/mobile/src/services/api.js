@@ -419,6 +419,16 @@ export async function scheduleMeetingWithApi(meeting) {
   } catch { return { success: false, error: 'Servidor offline. A reunião não foi agendada.' }; }
 }
 
+export async function meetingRequest(path, method = 'GET', payload) {
+  try {
+    const response = await fetchWithTimeout(`${getApiBaseUrl()}/meetings${path}`, {
+      method, headers:{'Content-Type':'application/json'}, ...(payload === undefined ? {} : {body:JSON.stringify(payload)}),
+    }, 30000);
+    const result = await response.json();
+    return response.ok ? {success:true,data:result} : {success:false,error:result.error || 'Operação não concluída.',fields:result.fields};
+  } catch { return {success:false,error:'Sem conexão com o servidor. Seus dados não foram confirmados.'}; }
+}
+
 export async function respondToMeetingInvitationWithApi(meetingId, userId, status) {
   try {
     const response = await fetchWithTimeout(`${getApiBaseUrl()}/meetings/${encodeURIComponent(meetingId)}/invitation`, {
@@ -615,7 +625,9 @@ export async function authorizePdfDownload(url) {
   const path = new URL(url).pathname.replace(/^\/api/, '');
   const result = await authRequest('download-ticket', { path });
   if (!result.success) throw new Error(result.error);
-  return url + '&download=' + encodeURIComponent(result.ticket);
+  const downloadUrl = new URL(url);
+  downloadUrl.searchParams.set('download', result.ticket);
+  return downloadUrl.toString();
 }
 
 export async function commissionRequest(id, method, payload) {

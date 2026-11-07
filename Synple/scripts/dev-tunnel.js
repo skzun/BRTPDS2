@@ -1,6 +1,7 @@
 const { spawn } = require('child_process');
 const fs = require('fs');
 const path = require('path');
+const net = require('net');
 
 console.log('====================================================');
 console.log('🌐 INICIANDO SYNPLE COM SUPORTE A REDE EXTERNA (TÚNEL)');
@@ -43,6 +44,11 @@ async function isSynpleBackendReady() {
 }
 
 async function start() {
+  await new Promise((resolve, reject) => {
+    const server = net.createServer();
+    server.once('error', () => reject(new Error('Porta 8081 ocupada. Encerre o Expo antigo com Ctrl+C antes de iniciar novamente.')));
+    server.listen(8081, () => server.close(resolve));
+  });
   if (await isSynpleBackendReady()) {
     console.log('[Backend] API Synple já está ativa na porta 3001; reutilizando o processo existente.');
   } else {
@@ -73,7 +79,9 @@ async function start() {
       console.log('📱 Celulares em 4G/redes de fora salvarão direto no PostgreSQL!');
       console.log('====================================================\n');
 
-      mobile = spawn(npxCmd, ['expo', 'start', '--tunnel', expoLaunchTarget], {
+      const expoArgs = ['expo', 'start', '--tunnel', 'ngrok', expoLaunchTarget, '--port', '8081'];
+      if (expoLaunchTarget === '--dev-client') expoArgs.push('--scheme', 'synple');
+      mobile = spawn(npxCmd, expoArgs, {
         stdio: 'inherit',
         shell: true,
         cwd: path.join(rootDir, 'mobile'),
@@ -98,8 +106,8 @@ async function start() {
   });
 
   tunnel.on('exit', (code) => {
-    if (!isCleaningUp && !mobile) {
-      console.error(`[API tunnel] O processo terminou antes de disponibilizar a API (código ${code ?? 'desconhecido'}).`);
+    if (!isCleaningUp) {
+      console.error(`[API tunnel] O túnel da API foi encerrado (código ${code ?? 'desconhecido'}). Inicie novamente para gerar novos endereços.`);
       cleanup(code || 1);
     }
   });
@@ -129,10 +137,12 @@ function cleanup(exitCode = 0) {
   if (isCleaningUp) return;
   isCleaningUp = true;
   console.log('\n🛑 Encerrando Synple Backend, Túnel e Mobile...');
-  try { backend?.kill(); } catch (e) {}
-  try { tunnel?.kill(); } catch (e) {}
-  if (mobile) {
-    try { mobile.kill(); } catch (e) {}
+  for (const child of [backend, tunnel, mobile]) {
+    if (!child?.pid) continue;
+    try {
+      if (isWin) require('child_process').spawnSync('taskkill', ['/PID', String(child.pid), '/T', '/F'], { windowsHide: true, stdio: 'ignore' });
+      else child.kill();
+    } catch (e) {}
   }
 
   process.exit(exitCode);

@@ -1,17 +1,20 @@
 # Tecnologias e versões — Synple
 
-Revisão: 06/11/2026. Faixas vêm dos manifests; versões resolvidas vêm dos lockfiles versionados. Não representam prova de instalação em outro PC ou de build publicado.
+Revisão: 30/10/2026. Faixas vêm dos manifests; versões resolvidas vêm dos lockfiles versionados. Não representam prova de instalação em outro PC.
 
 ## mobile
 
 | Dependência direta | Faixa declarada | Resolvida no lockfile | Uso |
 | --- | --- | --- | --- |
 | `@react-native-async-storage/async-storage` | `2.2.0` | `2.2.0` | Aplicação |
+| `@react-native-community/datetimepicker` | `9.2.1` | `9.2.1` | Aplicação |
 | `@react-native-google-signin/google-signin` | `^16.1.5` | `16.2.0` | Aplicação |
 | `expo` | `^58.0.23` | `58.0.23` | Aplicação |
 | `expo-auth-session` | `~58.0.17` | `58.0.17` | Aplicação |
 | `expo-build-properties` | `~58.0.12` | `58.0.12` | Aplicação |
 | `expo-dev-client` | `~58.0.18` | `58.0.18` | Aplicação |
+| `expo-document-picker` | `~58.0.4` | `58.0.4` | Aplicação |
+| `expo-file-system` | `~58.0.13` | `58.0.13` | Aplicação |
 | `expo-local-authentication` | `~58.0.2` | `58.0.2` | Aplicação |
 | `expo-secure-store` | `~58.0.2` | `58.0.2` | Aplicação |
 | `expo-splash-screen` | `~58.0.13` | `58.0.13` | Aplicação |
@@ -19,7 +22,7 @@ Revisão: 06/11/2026. Faixas vêm dos manifests; versões resolvidas vêm dos lo
 | `expo-web-browser` | `~58.0.7` | `58.0.7` | Aplicação |
 | `react` | `^19.3.0` | `19.3.0` | Aplicação |
 | `react-dom` | `^19.3.0` | `19.3.0` | Aplicação |
-| `react-native` | `^0.88.0` | `0.88.0` | Aplicação |
+| `react-native` | `0.88.1` | `0.88.1` | Aplicação |
 | `react-native-safe-area-context` | `~5.11.1` | `5.11.1` | Aplicação |
 | `react-native-web` | `^0.21.2` | `0.21.4` | Aplicação |
 | `@expo/ngrok` | `^4.1.3` | `4.1.3` | Desenvolvimento |
@@ -53,4 +56,4 @@ Revisão: 06/11/2026. Faixas vêm dos manifests; versões resolvidas vêm dos lo
 
 Não há Sequelize, Lucia Auth, JWT de sessão, WatermelonDB, Redis, MinIO, TanStack Query, Zustand, React Native Paper ou React Navigation nas dependências atuais. Não confundir ID token Google com o token opaco de sessão do Synple.
 
-Referências: [Expo SDK 58](https://docs.expo.dev/versions/v58.0.0/), [upgrade Expo](https://docs.expo.dev/workflow/upgrading-expo-sdk-walkthrough/), [ciclo PostgreSQL](https://www.postgresql.org/support/versioning/). SDK 58 usa React Native 0.88, React 19.3 e Node 22.13 ou superior. As faixas do manifesto e versões do lockfile foram alinhadas às recomendações oficiais consultadas em 06/11/2026. PostgreSQL 16 permanece para compatibilidade com os dados existentes.
+Referências: [Expo SDK 58](https://docs.expo.dev/versions/v58.0.0/), [upgrade Expo](https://docs.expo.dev/workflow/upgrading-expo-sdk-walkthrough/), [ciclo PostgreSQL](https://www.postgresql.org/support/versioning/). SDK 58 usa React Native 0.88, React 19.3 e Node 22.13 ou superior; manter PostgreSQL 16 preserva compatibilidade com dados existentes.

@@ -6,12 +6,12 @@ import {
   KeyboardAvoidingView,
   Platform,
   RefreshControl,
-  ScrollView,
   Text,
   View,
   useColorScheme,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { KeyboardScrollView as ScrollView } from './src/components/KeyboardScrollView';
 
 import { INITIAL_DATA } from './src/constants/data';
 import { useSynpleData, EMPTY_DATA } from './src/hooks/useSynpleData';
@@ -244,11 +244,10 @@ export default function App() {
   }
   async function registerUser(form) {
     const error = validateRegistration(form);
-    if (error) { Alert.alert('Dados inválidos', error); return false; }
+    if (error) return { success: false, error };
     const result = await registerWithApi({ ...form, email: normalizeEmail(form.email) });
-    if (!result.success) { Alert.alert('Cadastro não realizado', result.error); return false; }
-    Alert.alert('Confirme seu e-mail', 'Enviamos um código de ativação. Informe-o para liberar seu acesso.');
-    return true;
+    if (!result.success) return { success: false, error: result.error };
+    return { success: true };
   }
   async function logout() {
     await authRequest('logout');
@@ -384,6 +383,7 @@ export default function App() {
   }
 
   async function recordAttendance(meetingId, action) {
+    if (!(await confirmBiometric())) { Alert.alert('Presença não confirmada', 'Autorize a biometria do aparelho, use o código da reunião na aba Arquivos ou peça o registro ao presidente.'); return false; }
     const result = await recordMeetingAttendanceWithApi(meetingId, activeUserId, action);
     if (!result.success) { Alert.alert('Presença não registrada', result.error); return false; }
     setData((current) => ({
@@ -582,7 +582,7 @@ export default function App() {
 
   async function recoverAccountFromLogin(rawEmail) {
     const email = (rawEmail || '').trim().toLowerCase();
-    if (!email) {
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
       Alert.alert('E-mail obrigatório', 'Informe o seu e-mail cadastrado.');
       return false;
     }
@@ -613,8 +613,8 @@ export default function App() {
       Alert.alert('Código obrigatório', 'Código de verificação ausente. Valide seus dados novamente.');
       return false;
     }
-    if (next.length < 6 || next !== confirm) {
-      Alert.alert('Senha inválida', 'A nova senha deve ter no mínimo 6 caracteres e coincidir com a confirmação.');
+    if (next.length < 8 || next !== confirm) {
+      Alert.alert('Senha inválida', 'A nova senha deve ter no mínimo 8 caracteres e coincidir com a confirmação.');
       return false;
     }
 

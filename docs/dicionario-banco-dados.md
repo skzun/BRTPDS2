@@ -6,6 +6,134 @@ Revisão: 30/10/2026. Extraído de um schema temporário criado pelo DDL atual, 
 
 Cada tabela tem finalidade, todas as colunas, nulabilidade, defaults, restrições e índices reais. “Sem CHECK” significa que o domínio citado é convenção/validação da aplicação, não garantia SQL. `timestamp with time zone` corresponde a TIMESTAMPTZ e `character varying(n)` a VARCHAR(n). FKs sem ON DELETE explícito usam NO ACTION. As restrições de regra entre várias linhas são descritas separadamente na especificação.
 
+## Tabela `meeting_votes`
+
+Votação de escolha única independente da aprovação da ata.
+
+| Coluna | Tipo SQL | Aceita NULL | Default | Significado/domínio |
+| --- | --- | --- | --- | --- |
+| `id` | `uuid` | Não | `gen_random_uuid()` | Identificador do registro; UUID gerado pelo PostgreSQL, exceto onde o tipo é textual. |
+| `meeting_id` | `uuid` | Não | — | Reunião à qual o registro pertence; referência a meetings.id. |
+| `question` | `character varying(500)` | Não | — | Pergunta não vazia, até 500 caracteres. |
+| `status` | `character varying(10)` | Não | `'OPEN'::character varying` | OPEN ou CLOSED por CHECK. |
+| `created_by` | `uuid` | Não | — | Autor autenticado; FK para users. |
+| `created_at` | `timestamp with time zone` | Não | `now()` | Instante de criação no banco; TIMESTAMPTZ representa um instante, exibido no fuso escolhido pelo cliente. |
+| `closed_at` | `timestamp with time zone` | Sim | — | Instante de encerramento; nulo enquanto aberta. |
+
+### Restrições de meeting_votes
+
+- `meeting_votes_created_by_fkey`: `FOREIGN KEY (created_by) REFERENCES users(id)`.
+- `meeting_votes_meeting_id_fkey`: `FOREIGN KEY (meeting_id) REFERENCES meetings(id) ON DELETE CASCADE`.
+- `meeting_votes_pkey`: `PRIMARY KEY (id)`.
+- `meeting_votes_question_check`: `CHECK ((length(TRIM(BOTH FROM question)) > 0))`.
+- `meeting_votes_status_check`: `CHECK (((status)::text = ANY ((ARRAY['OPEN'::character varying, 'CLOSED'::character varying])::text[])))`.
+- `uq_meeting_votes_id_meeting`: `UNIQUE (id, meeting_id)`.
+
+### Índices de meeting_votes
+
+- `idx_meeting_votes_meeting`: `CREATE INDEX idx_meeting_votes_meeting ON meeting_votes USING btree (meeting_id, created_at)`.
+- `meeting_votes_pkey`: `CREATE UNIQUE INDEX meeting_votes_pkey ON meeting_votes USING btree (id)`.
+- `uq_meeting_votes_id_meeting`: `CREATE UNIQUE INDEX uq_meeting_votes_id_meeting ON meeting_votes USING btree (id, meeting_id)`.
+
+## Tabela `meeting_vote_options`
+
+Alternativas ordenadas de uma votação.
+
+| Coluna | Tipo SQL | Aceita NULL | Default | Significado/domínio |
+| --- | --- | --- | --- | --- |
+| `id` | `uuid` | Não | `gen_random_uuid()` | Identificador do registro; UUID gerado pelo PostgreSQL, exceto onde o tipo é textual. |
+| `vote_id` | `uuid` | Não | — | Votação à qual pertence; FK com cascata. |
+| `label` | `character varying(160)` | Não | — | Alternativa não vazia, até 160 caracteres. |
+| `position` | `smallint` | Não | — | Ordem positiva e única por votação; rota aceita de duas a oito opções. |
+
+### Restrições de meeting_vote_options
+
+- `meeting_vote_options_label_check`: `CHECK ((length(TRIM(BOTH FROM label)) > 0))`.
+- `meeting_vote_options_pkey`: `PRIMARY KEY (id)`.
+- `meeting_vote_options_position_check`: `CHECK (("position" > 0))`.
+- `meeting_vote_options_vote_id_fkey`: `FOREIGN KEY (vote_id) REFERENCES meeting_votes(id) ON DELETE CASCADE`.
+- `uq_meeting_vote_option_id_vote`: `UNIQUE (id, vote_id)`.
+- `uq_meeting_vote_option_position`: `UNIQUE (vote_id, "position")`.
+
+### Índices de meeting_vote_options
+
+- `meeting_vote_options_pkey`: `CREATE UNIQUE INDEX meeting_vote_options_pkey ON meeting_vote_options USING btree (id)`.
+- `uq_meeting_vote_option_id_vote`: `CREATE UNIQUE INDEX uq_meeting_vote_option_id_vote ON meeting_vote_options USING btree (id, vote_id)`.
+- `uq_meeting_vote_option_position`: `CREATE UNIQUE INDEX uq_meeting_vote_option_position ON meeting_vote_options USING btree (vote_id, "position")`.
+
+## Tabela `meeting_vote_ballots`
+
+Um voto por participante e votação.
+
+| Coluna | Tipo SQL | Aceita NULL | Default | Significado/domínio |
+| --- | --- | --- | --- | --- |
+| `id` | `uuid` | Não | `gen_random_uuid()` | Identificador do registro; UUID gerado pelo PostgreSQL, exceto onde o tipo é textual. |
+| `vote_id` | `uuid` | Não | — | Votação escolhida; FK com cascata. |
+| `option_id` | `uuid` | Não | — | Opção pertencente à mesma votação, protegida por FK composta. |
+| `user_id` | `uuid` | Não | — | Pessoa vinculada ao registro; referência a users.id. |
+| `cast_at` | `timestamp with time zone` | Não | `now()` | Instante da última escolha; rota só altera enquanto aberta. |
+
+### Restrições de meeting_vote_ballots
+
+- `fk_meeting_vote_ballot_option`: `FOREIGN KEY (option_id, vote_id) REFERENCES meeting_vote_options(id, vote_id) ON DELETE CASCADE`.
+- `meeting_vote_ballots_pkey`: `PRIMARY KEY (id)`.
+- `meeting_vote_ballots_user_id_fkey`: `FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE`.
+- `meeting_vote_ballots_vote_id_fkey`: `FOREIGN KEY (vote_id) REFERENCES meeting_votes(id) ON DELETE CASCADE`.
+- `uq_meeting_vote_ballot_user`: `UNIQUE (vote_id, user_id)`.
+
+### Índices de meeting_vote_ballots
+
+- `idx_meeting_vote_ballots_vote`: `CREATE INDEX idx_meeting_vote_ballots_vote ON meeting_vote_ballots USING btree (vote_id)`.
+- `meeting_vote_ballots_pkey`: `CREATE UNIQUE INDEX meeting_vote_ballots_pkey ON meeting_vote_ballots USING btree (id)`.
+- `uq_meeting_vote_ballot_user`: `CREATE UNIQUE INDEX uq_meeting_vote_ballot_user ON meeting_vote_ballots USING btree (vote_id, user_id)`.
+
+## Tabela `meeting_attendance_codes`
+
+Desafio temporário de presença, criado pelo gestor durante a reunião.
+
+| Coluna | Tipo SQL | Aceita NULL | Default | Significado/domínio |
+| --- | --- | --- | --- | --- |
+| `meeting_id` | `uuid` | Não | — | Reunião à qual o registro pertence; referência a meetings.id. |
+| `code_hash` | `text` | Não | — | SHA-256 de código de seis dígitos; nunca o código em texto. |
+| `expires_at` | `timestamp with time zone` | Não | — | Instante após o qual a aplicação rejeita o registro; expiração não implica remoção automática da linha. |
+| `created_by` | `uuid` | Não | — | Gestor autenticado que emitiu o desafio. |
+
+### Restrições de meeting_attendance_codes
+
+- `meeting_attendance_codes_created_by_fkey`: `FOREIGN KEY (created_by) REFERENCES users(id)`.
+- `meeting_attendance_codes_meeting_id_fkey`: `FOREIGN KEY (meeting_id) REFERENCES meetings(id) ON DELETE CASCADE`.
+- `meeting_attendance_codes_pkey`: `PRIMARY KEY (meeting_id)`.
+
+### Índices de meeting_attendance_codes
+
+- `meeting_attendance_codes_pkey`: `CREATE UNIQUE INDEX meeting_attendance_codes_pkey ON meeting_attendance_codes USING btree (meeting_id)`.
+
+## Tabela `meeting_attachments`
+
+Arquivos de reunião disponíveis aos convidados e gestores.
+
+| Coluna | Tipo SQL | Aceita NULL | Default | Significado/domínio |
+| --- | --- | --- | --- | --- |
+| `id` | `uuid` | Não | `gen_random_uuid()` | Identificador do registro; UUID gerado pelo PostgreSQL, exceto onde o tipo é textual. |
+| `meeting_id` | `uuid` | Não | — | Reunião à qual o registro pertence; referência a meetings.id. |
+| `name` | `character varying(160)` | Não | — | Nome de até 160 caracteres; sem barras/controles. |
+| `mime_type` | `character varying(100)` | Não | — | PDF, PNG, JPEG ou texto; validado na rota. |
+| `content` | `bytea` | Não | — | Conteúdo binário entre 1 byte e 5 MB por CHECK; até dez arquivos por reunião na rota. |
+| `created_by` | `uuid` | Não | — | Gestor autenticado responsável pelo arquivo. |
+| `created_at` | `timestamp with time zone` | Não | `now()` | Instante de criação no banco; TIMESTAMPTZ representa um instante, exibido no fuso escolhido pelo cliente. |
+
+### Restrições de meeting_attachments
+
+- `meeting_attachments_content_check`: `CHECK (((octet_length(content) >= 1) AND (octet_length(content) <= 5242880)))`.
+- `meeting_attachments_created_by_fkey`: `FOREIGN KEY (created_by) REFERENCES users(id)`.
+- `meeting_attachments_meeting_id_fkey`: `FOREIGN KEY (meeting_id) REFERENCES meetings(id) ON DELETE CASCADE`.
+- `meeting_attachments_pkey`: `PRIMARY KEY (id)`.
+
+### Índices de meeting_attachments
+
+- `idx_meeting_attachments_meeting`: `CREATE INDEX idx_meeting_attachments_meeting ON meeting_attachments USING btree (meeting_id)`.
+- `meeting_attachments_pkey`: `CREATE UNIQUE INDEX meeting_attachments_pkey ON meeting_attachments USING btree (id)`.
+
 ## Tabela `users`
 
 Contas locais/Google, preferências e desafios de ativação/recuperação.
@@ -164,6 +292,9 @@ Agendamento e pauta das reuniões de uma comissão.
 | `created_by` | `uuid` | Não | — | Usuário autor; FK users.id. Produção obtém o ator da sessão. |
 | `created_at` | `timestamp with time zone` | Não | `now()` | Instante de criação no banco; TIMESTAMPTZ representa um instante, exibido no fuso escolhido pelo cliente. |
 | `updated_at` | `timestamp with time zone` | Não | `now()` | Última atualização feita pela aplicação. DEFAULT NOW() só inicializa o valor; não existe trigger geral de atualização. |
+| `all_day` | `boolean` | Não | `false` | Indica reunião por dias de calendário; término exclusivo à meia-noite seguinte no fuso selecionado no aparelho. |
+| `location` | `character varying(300)` | Não | `''::character varying` | Local opcional, até 300 caracteres. |
+| `details` | `character varying(4000)` | Não | `''::character varying` | Detalhes opcionais, até 4.000 caracteres. |
 
 ### Restrições de meetings
 
@@ -215,11 +346,14 @@ Primeira entrada e saída de cada participante.
 | `user_id` | `uuid` | Não | — | Pessoa vinculada ao registro; referência a users.id. |
 | `entered_at` | `timestamp with time zone` | Sim | — | Entrada registrada pelo relógio do servidor; entrada requer convite aceito. |
 | `left_at` | `timestamp with time zone` | Sim | — | Saída registrada pelo servidor; a ordem temporal é validada na rota, não por CHECK SQL. |
+| `recorded_by` | `uuid` | Sim | — | Ator autenticado responsável pelo último registro de presença; FK para users. |
+| `method` | `character varying(20)` | Não | `'SELF'::character varying` | SELF para autorregistro, CHAIR para registro pelo gestor ou CODE para código temporário. Biometria é proteção local, não atestado do servidor. |
 
 ### Restrições de meeting_attendance
 
 - `meeting_attendance_meeting_id_fkey`: `FOREIGN KEY (meeting_id) REFERENCES meetings(id) ON DELETE CASCADE`.
 - `meeting_attendance_pkey`: `PRIMARY KEY (id)`.
+- `meeting_attendance_recorded_by_fkey`: `FOREIGN KEY (recorded_by) REFERENCES users(id)`.
 - `meeting_attendance_user_id_fkey`: `FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE`.
 - `uq_meeting_attendance`: `UNIQUE (meeting_id, user_id)`.
 
@@ -391,49 +525,6 @@ Autorização curta para abrir PDF em navegador sem expor o Bearer token.
 ### Índices de download_tickets
 
 - `download_tickets_pkey`: `CREATE UNIQUE INDEX download_tickets_pkey ON download_tickets USING btree (token_hash)`.
-
-## Incremento 3 — votações
-
-### Tabela `meeting_votes`
-
-Votação de escolha única ligada a uma reunião; não representa decisão de aprovação de ata.
-
-| Coluna | Tipo SQL | Aceita NULL | Default | Significado/domínio |
-| --- | --- | --- | --- | --- |
-| `id` | `uuid` | Não | `gen_random_uuid()` | Identificador da votação. |
-| `meeting_id` | `uuid` | Não | — | Reunião da votação; FK com exclusão em cascata. |
-| `question` | `character varying(500)` | Não | — | Pergunta da votação; não pode ficar vazia. |
-| `status` | `character varying(10)` | Não | `'OPEN'` | OPEN ou CLOSED; encerramento usa horário do servidor. |
-| `created_by` | `uuid` | Não | — | Usuário autenticado que abriu a votação. FK sem ação de exclusão explícita. |
-| `created_at` | `timestamp with time zone` | Não | `now()` | Instante de abertura. |
-| `closed_at` | `timestamp with time zone` | Sim | — | Instante de encerramento; nulo enquanto aberta. |
-
-Restrições: PK `id`; FKs para meetings e users; CHECK para pergunta não vazia e status; UNIQUE `(id, meeting_id)` para referências compostas.
-
-### Tabela `meeting_vote_options`
-
-| Coluna | Tipo SQL | Aceita NULL | Default | Significado/domínio |
-| --- | --- | --- | --- | --- |
-| `id` | `uuid` | Não | `gen_random_uuid()` | Identificador da opção. |
-| `vote_id` | `uuid` | Não | — | Votação; FK com cascata. |
-| `label` | `character varying(160)` | Não | — | Texto da opção; não pode ficar vazio. |
-| `position` | `smallint` | Não | — | Ordem de exibição, iniciando em 1; entre 2 e 8 opções são validadas pela rota. |
-
-Restrições: PK `id`; FK `vote_id` com cascata; CHECK para texto não vazio e `position > 0`; UNIQUE `(vote_id, position)` e `(id, vote_id)`.
-
-### Tabela `meeting_vote_ballots`
-
-| Coluna | Tipo SQL | Aceita NULL | Default | Significado/domínio |
-| --- | --- | --- | --- | --- |
-| `id` | `uuid` | Não | `gen_random_uuid()` | Identificador do voto. |
-| `vote_id` | `uuid` | Não | — | Votação a que o voto pertence. |
-| `option_id` | `uuid` | Não | — | Opção selecionada; FK composta com `vote_id`, garantindo opção da mesma votação. |
-| `user_id` | `uuid` | Não | — | Participante; FK com exclusão em cascata. |
-| `cast_at` | `timestamp with time zone` | Não | `now()` | Última gravação do voto. |
-
-Restrições: PK `id`; FKs para votação, opção composta `(option_id, vote_id)` e usuário; UNIQUE `(vote_id, user_id)` permite apenas um registro por pessoa/votação. Enquanto aberta, a rota atualiza esse registro; após fechamento, não aceita alterações. Índices adicionais: `idx_meeting_votes_meeting (meeting_id, created_at)` e `idx_meeting_vote_ballots_vote (vote_id)`.
-
-IDs UUID são gerados pelo PostgreSQL com `gen_random_uuid()`; seed/incremento numérico não se aplica.
 
 ## Limites e integridade entre camadas
 

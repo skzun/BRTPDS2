@@ -1,32 +1,28 @@
 @startuml
 !pragma layout smetana
-skinparam backgroundColor white
 skinparam shadowing false
-skinparam defaultFontName SansSerif
 skinparam defaultFontSize 13
-skinparam ArrowColor #334155
-skinparam packageStyle rectangle
-skinparam classAttributeIconSize 0
-skinparam roundcorner 5
-skinparam dpi 130
-title SQ09 — entrada e saída
+title Presença própria, por código e por gestor
 autonumber
-actor Pessoa
-participant "App Synple" as App
-participant "API Express" as API
+actor "Usuário autenticado" as U
+participant "App / API cliente" as App
+participant "routes/meetings.js" as API
 database PostgreSQL as DB
-Pessoa -> App : Registrar entrada ou Registrar saída
-App -> API : PATCH /meetings/:id/attendance
-API -> DB : BEGIN; lock da reunião
-API -> DB : Verifica convite, presença e situação da ata
-alt entrada permitida
- API -> DB : Registra entered_at pelo relógio do servidor
-else saída permitida
- API -> DB : Registra left_at pelo relógio do servidor
-else operação inválida
- API -> DB : ROLLBACK
- API --> App : 403/409
+U -> App: confirmBiometric() ou código informado
+App -> API: PATCH /meetings/:meetingId/attendance[/:participantId]
+API -> API: getMeeting(client, meetingId, userId)
+API -> API: requireOngoing(meeting)
+opt registro por terceiro
+ API -> API: requireManager(meetingDoAtor)
 end
-API -> DB : COMMIT se operação válida
-API --> App : Presença atualizada
+opt código informado
+ API -> DB: query("SELECT 1 FROM meeting_attendance_codes WHERE ...", params)
+end
+API -> DB: query("SELECT 1 FROM meeting_invitations ...", params)
+alt entrada
+ API -> DB: query("INSERT INTO meeting_attendance ...", params)
+else saída
+ API -> DB: query("UPDATE meeting_attendance SET left_at=...", params)
+end
+API --> App: 200 presença / 403 acesso / 409 período ou estado
 @enduml

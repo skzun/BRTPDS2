@@ -1,29 +1,23 @@
 @startuml
 !pragma layout smetana
-skinparam backgroundColor white
 skinparam shadowing false
-skinparam defaultFontName SansSerif
 skinparam defaultFontSize 13
-skinparam ArrowColor #334155
-skinparam packageStyle rectangle
-skinparam classAttributeIconSize 0
-skinparam roundcorner 5
-skinparam dpi 130
-title SQ08 — agendamento e convidados
+title Agendar reunião e responder convite
 autonumber
-actor Pessoa
-participant "App Synple" as App
-participant "API Express" as API
+actor "Usuário autenticado" as U
+participant "App / API cliente" as App
+participant "routes/meetings.js" as API
 database PostgreSQL as DB
-Pessoa -> App : Gestor preenche título, datas, pauta e integrantes
-App -> API : POST /meetings
-API -> DB : BEGIN; confere gestor e lock da comissão
-API -> API : Valida período e convidados
-API -> DB : INSERT reunião e convites deduplicados
-API -> DB : Inclui organizador como ACCEPTED; COMMIT
-API --> App : 201 reunião
-Pessoa -> App : Convidado aceita/recusa
-App -> API : PATCH /meetings/:id/invitation
-API -> DB : Confere destinatário e atualiza convite
-API --> App : Convite atualizado
+U -> App: buildMeetingPayload(form, commissionId, inviteeIds)
+App -> API: POST /meetings
+API -> API: validateSchedule(req.body)
+API -> DB: query("SELECT c.id ... FOR UPDATE OF c", params)
+API -> DB: query("INSERT INTO meetings ...", params)
+API -> DB: query("INSERT INTO meeting_invitations ...", params)
+API --> App: 201 reunião e convites
+U -> App: respondToMeetingInvitationWithApi(meetingId, userId, status)
+App -> API: PATCH /meetings/:meetingId/invitation
+API -> API: getMeeting(client, meetingId, userId)
+API -> DB: query("UPDATE meeting_invitations SET status=...", params)
+API --> App: 200 convite ou 409 prazo
 @enduml

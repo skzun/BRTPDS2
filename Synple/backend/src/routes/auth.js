@@ -196,7 +196,7 @@ router.post('/forgot-password', async (req, res) => {
   const { email } = req.body;
   const cleanEmail = normalizeEmail(email);
 
-  if (!cleanEmail) {
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(cleanEmail)) {
     return res.status(400).json({ error: 'O e-mail é obrigatório.' });
   }
 
@@ -339,7 +339,7 @@ router.post('/logout', async (req, res, next) => {
 });
 router.post('/download-ticket', async (req, res, next) => {
   try {
-    if (typeof req.body.path !== 'string' || !/^\/meetings\/[a-f0-9-]+\/minutes\/pdf$/i.test(req.body.path)) return res.status(400).json({ error: 'Endereço de PDF inválido.' });
+    if (typeof req.body.path !== 'string' || !/^\/meetings\/[a-f0-9-]+\/(?:(?:minutes|attendance)\/pdf|attachments\/[a-f0-9-]+)$/i.test(req.body.path)) return res.status(400).json({ error: 'Endereço de download inválido.' });
     const ticket = crypto.randomBytes(32).toString('hex');
     await db.query("DELETE FROM download_tickets WHERE expires_at < NOW()");
     await db.query("INSERT INTO download_tickets (token_hash, session_hash, path, expires_at) VALUES ($1, $2, $3, NOW() + INTERVAL '60 seconds')", [digest(ticket), req.sessionHash, req.body.path]);

@@ -4,7 +4,8 @@
   "private": true,
   "description": "Synple Monorepo - Mobile (Expo) & Backend (Node.js/PostgreSQL)",
   "scripts": {
-    "dev": "node scripts/dev.js",
+    "dev": "node scripts/dev-tunnel.js",
+    "dev:local": "node scripts/dev.js",
     "dev:tunnel": "node scripts/dev-tunnel.js",
     "dev:tunnel:go": "node scripts/dev-tunnel.js --go",
     "start": "npm --prefix mobile run start",

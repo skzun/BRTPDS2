@@ -3,6 +3,21 @@ const assert = require('node:assert/strict');
 const path = require('path');
 require('dotenv').config({ path: path.join(__dirname, '../.env') });
 const db = require('../src/db/connection');
+const { Pool } = require('pg');
+const { randomUUID } = require('node:crypto');
+const fs = require('node:fs');
+const originalPool = db.pool;
+const schema = 'backend_test_' + randomUUID().replaceAll('-', '');
+let pool;
+test.before(async () => {
+  await originalPool.query(`CREATE SCHEMA "${schema}"`);
+  pool = new Pool({ ...originalPool.options, password: originalPool.options.password, options: `-c search_path=${schema}` });
+  await pool.query(fs.readFileSync(path.join(__dirname, '../src/db/schema.sql'), 'utf8'));
+  db.pool = pool; db.query = (...args) => pool.query(...args);
+  for (const [name,email,role] of [['Admin','admin@synple.com','SYSTEM_ADMIN'],['Marina','marina@synple.com','USER'],['João','joao@synple.com','USER']]) {
+    await pool.query('INSERT INTO users (name,email,password_hash,system_role) VALUES ($1,$2,$3,$4)',[name,email,'isolated-test-hash',role]);
+  }
+});
 
 test('conecta com sucesso ao PostgreSQL Banco_synple', async () => {
   const res = await db.query('SELECT current_database(), version();');
@@ -14,9 +29,9 @@ test('verifica existência das tabelas oficiais, incluindo reuniões e atas do i
   const res = await db.query(`
     SELECT table_name
     FROM information_schema.tables
-    WHERE table_schema = 'public'
+    WHERE table_schema = $1
     ORDER BY table_name;
-  `);
+  `, [schema]);
   const tableNames = res.rows.map(r => r.table_name);
   const expectedTables = [
     'access_requests',
@@ -80,5 +95,7 @@ test('verifica suporte e fluxo de recuperação de senha (reset_token)', async (
 });
 
 test.after(async () => {
-  await db.pool.end();
+  if (pool) await pool.end();
+  await originalPool.query(`DROP SCHEMA IF EXISTS "${schema}" CASCADE`);
+  await originalPool.end();
 });

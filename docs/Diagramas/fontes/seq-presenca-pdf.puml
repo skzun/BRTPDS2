@@ -1,0 +1,20 @@
+@startuml
+!pragma layout smetana
+skinparam shadowing false
+skinparam defaultFontSize 13
+title Exportar lista de presença
+autonumber
+actor "Usuário autenticado" as U
+participant "App / API cliente" as App
+participant "routes/meetings.js" as API
+database PostgreSQL as DB
+U -> App: authorizePdfDownload(url)
+App -> API: POST /auth/download-ticket
+API --> App: ticket
+App -> API: GET /meetings/:meetingId/attendance/pdf?download=ticket
+API -> API: requireMeetingAccess(client, meetingId, userId)
+API -> DB: query("SELECT ... FROM meeting_invitations ... LEFT JOIN meeting_attendance ...", params)
+DB --> API: snapshot de convidados e presenças
+API -> API: generateAttendancePdf(snapshot)
+API --> App: application/pdf
+@enduml

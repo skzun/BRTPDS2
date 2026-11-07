@@ -1,0 +1,24 @@
+@startuml
+!pragma layout smetana
+skinparam shadowing false
+skinparam defaultFontSize 13
+title Agendar/editar com validação por campo
+autonumber
+actor "Usuário autenticado" as U
+participant "App / API cliente" as App
+participant "routes/meetings.js" as API
+database PostgreSQL as DB
+U -> App: MeetingEditor(props)
+App -> App: buildMeetingPayload(form, commissionId, inviteeIds)
+alt campos inválidos
+ App --> U: Field(error) em cada campo
+else dados válidos
+ App -> API: POST /meetings ou PATCH /meetings/:meetingId
+ API -> API: validateSchedule(req.body)
+ API -> DB: query("SELECT ... FOR UPDATE", params)
+ API -> API: requireManager(meeting)
+ API -> DB: query("INSERT INTO meetings ... / UPDATE meetings ...", params)
+ API -> DB: query("UPDATE meeting_invitations ...", params)
+ API --> App: reunião ou 400 {error,fields}
+end
+@enduml

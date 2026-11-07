@@ -1,0 +1,14 @@
+@startuml
+!pragma layout smetana
+skinparam shadowing false
+skinparam defaultFontSize 13
+title Consultar manual local
+actor Usuário as U
+participant NavigationTabs as NAV
+participant App
+participant ManualScreen as Manual
+U -> NAV: onOpenManual()
+NAV -> App: setScreen(manual)
+App -> Manual: ManualScreen()
+Manual --> U: Tópicos de utilização
+@enduml

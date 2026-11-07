@@ -1,6 +1,6 @@
 # Dicionário de classes, atributos e operações — Synple
 
-Revisão: 30/10/2026. O código usa objetos JSON, funções, hooks e módulos Express, não classes JavaScript de entidade/ORM. O modelo UML de análise representa os conceitos; o modelo de projeto usa o estereótipo local «módulo JS/CommonJS» para expor operações existentes. Não implica construtores ou métodos de instância inexistentes.
+Revisão: 06/11/2026. O código usa objetos JSON, funções, hooks e módulos Express, não classes JavaScript de entidade/ORM. O modelo UML de análise representa os conceitos; o modelo de projeto usa o estereótipo local «módulo JS/CommonJS» para expor operações existentes. Não implica construtores ou métodos de instância inexistentes.
 
 ## Tipos de contrato
 
@@ -15,6 +15,11 @@ Revisão: 30/10/2026. O código usa objetos JSON, funções, hooks e módulos Ex
 
 | Classe/modelo | Persistência | Responsabilidade |
 | --- | --- | --- |
+| Votacao | [meeting_votes](dicionario-banco-dados.md#tabela-meeting_votes) | Pergunta e apuração independente da ata. |
+| OpcaoVotacao | [meeting_vote_options](dicionario-banco-dados.md#tabela-meeting_vote_options) | Alternativa ordenada. |
+| Voto | [meeting_vote_ballots](dicionario-banco-dados.md#tabela-meeting_vote_ballots) | Escolha única de um participante. |
+| CodigoPresenca | [meeting_attendance_codes](dicionario-banco-dados.md#tabela-meeting_attendance_codes) | Desafio temporário com hash e validade. |
+| AnexoReuniao | [meeting_attachments](dicionario-banco-dados.md#tabela-meeting_attachments) | Arquivo privado com tamanho e conteúdo. |
 | Usuario | [users](dicionario-banco-dados.md#tabela-users) | Conta e preferência da pessoa. Não possui método de instância login no código. |
 | Organizacao | [organizations](dicionario-banco-dados.md#tabela-organizations) | Organização e proprietário contextual, que pode ser transferido. |
 | VinculoOrganizacao | [access_requests](dicionario-banco-dados.md#tabela-access_requests) | Solicitação ou convite e sua decisão; não confundir com sessão nem comissão. |
@@ -30,6 +35,68 @@ Revisão: 30/10/2026. O código usa objetos JSON, funções, hooks e módulos Ex
 | MarcoInstalacao | [system_metadata](dicionario-banco-dados.md#tabela-system_metadata) | Marco persistido da instalação. |
 | SubsistemaLegado | [system_subsystems](dicionario-banco-dados.md#tabela-system_subsystems) | Modelo técnico legado; não é monitor real de serviço. |
 | TicketDownload | [download_tickets](dicionario-banco-dados.md#tabela-download_tickets) | Modelo técnico de download restrito à sessão/rota/prazo. |
+
+### Votacao
+
+| Atributo conceitual | Coluna | Tipo / cardinalidade do valor |
+| --- | --- | --- |
+| id | `id` | uuid / 1 |
+| meetingId | `meeting_id` | uuid / 1 |
+| question | `question` | character varying(500) / 1 |
+| status | `status` | character varying(10) / 1 |
+| createdBy | `created_by` | uuid / 1 |
+| createdAt | `created_at` | timestamp with time zone / 1 |
+| closedAt | `closed_at` | timestamp with time zone / 0..1 |
+
+Semântica, nulabilidade, default, domínio e restrições detalhados na tabela física correspondente. Os aliases JSON reais não são derivados automaticamente desse camelCase: o backend usa, por exemplo, systemRole; campos sensíveis não são enviados ao mobile.
+
+### OpcaoVotacao
+
+| Atributo conceitual | Coluna | Tipo / cardinalidade do valor |
+| --- | --- | --- |
+| id | `id` | uuid / 1 |
+| voteId | `vote_id` | uuid / 1 |
+| label | `label` | character varying(160) / 1 |
+| position | `position` | smallint / 1 |
+
+Semântica, nulabilidade, default, domínio e restrições detalhados na tabela física correspondente. Os aliases JSON reais não são derivados automaticamente desse camelCase: o backend usa, por exemplo, systemRole; campos sensíveis não são enviados ao mobile.
+
+### Voto
+
+| Atributo conceitual | Coluna | Tipo / cardinalidade do valor |
+| --- | --- | --- |
+| id | `id` | uuid / 1 |
+| voteId | `vote_id` | uuid / 1 |
+| optionId | `option_id` | uuid / 1 |
+| userId | `user_id` | uuid / 1 |
+| castAt | `cast_at` | timestamp with time zone / 1 |
+
+Semântica, nulabilidade, default, domínio e restrições detalhados na tabela física correspondente. Os aliases JSON reais não são derivados automaticamente desse camelCase: o backend usa, por exemplo, systemRole; campos sensíveis não são enviados ao mobile.
+
+### CodigoPresenca
+
+| Atributo conceitual | Coluna | Tipo / cardinalidade do valor |
+| --- | --- | --- |
+| meetingId | `meeting_id` | uuid / 1 |
+| codeHash | `code_hash` | text / 1 |
+| expiresAt | `expires_at` | timestamp with time zone / 1 |
+| createdBy | `created_by` | uuid / 1 |
+
+Semântica, nulabilidade, default, domínio e restrições detalhados na tabela física correspondente. Os aliases JSON reais não são derivados automaticamente desse camelCase: o backend usa, por exemplo, systemRole; campos sensíveis não são enviados ao mobile.
+
+### AnexoReuniao
+
+| Atributo conceitual | Coluna | Tipo / cardinalidade do valor |
+| --- | --- | --- |
+| id | `id` | uuid / 1 |
+| meetingId | `meeting_id` | uuid / 1 |
+| name | `name` | character varying(160) / 1 |
+| mimeType | `mime_type` | character varying(100) / 1 |
+| content | `content` | bytea / 1 |
+| createdBy | `created_by` | uuid / 1 |
+| createdAt | `created_at` | timestamp with time zone / 1 |
+
+Semântica, nulabilidade, default, domínio e restrições detalhados na tabela física correspondente. Os aliases JSON reais não são derivados automaticamente desse camelCase: o backend usa, por exemplo, systemRole; campos sensíveis não são enviados ao mobile.
 
 ### Usuario
 
@@ -122,6 +189,9 @@ Semântica, nulabilidade, default, domínio e restrições detalhados na tabela 
 | createdBy | `created_by` | uuid / 1 |
 | createdAt | `created_at` | timestamp with time zone / 1 |
 | updatedAt | `updated_at` | timestamp with time zone / 1 |
+| allDay | `all_day` | boolean / 1 |
+| location | `location` | character varying(300) / 1 |
+| details | `details` | character varying(4000) / 1 |
 
 Semântica, nulabilidade, default, domínio e restrições detalhados na tabela física correspondente. Os aliases JSON reais não são derivados automaticamente desse camelCase: o backend usa, por exemplo, systemRole; campos sensíveis não são enviados ao mobile.
 
@@ -147,6 +217,8 @@ Semântica, nulabilidade, default, domínio e restrições detalhados na tabela 
 | userId | `user_id` | uuid / 1 |
 | enteredAt | `entered_at` | timestamp with time zone / 0..1 |
 | leftAt | `left_at` | timestamp with time zone / 0..1 |
+| recordedBy | `recorded_by` | uuid / 0..1 |
+| method | `method` | character varying(20) / 1 |
 
 Semântica, nulabilidade, default, domínio e restrições detalhados na tabela física correspondente. Os aliases JSON reais não são derivados automaticamente desse camelCase: o backend usa, por exemplo, systemRole; campos sensíveis não são enviados ao mobile.
 
@@ -239,6 +311,14 @@ Semântica, nulabilidade, default, domínio e restrições detalhados na tabela 
 
 As assinaturas abaixo são extraídas dos exports atuais. Os parâmetros entre chaves são objetos desestruturados. Tipos/efeitos descrevem o contrato observado; não são anotações de tipo presentes no JavaScript. Operações HTTP sem função nomeada são callbacks das rotas e estão especificadas pelas fichas RF e pelo contrato, em vez de serem inventadas como métodos de entidade.
 
+### PresencaPDF
+
+Fonte: [Synple/backend/src/services/attendancePdf.js](../Synple/backend/src/services/attendancePdf.js).
+
+| Operação e parâmetros | Retorno | Responsabilidade / efeito / erro |
+| --- | --- | --- |
+| `generateAttendancePdf({ meeting, attendance })` | `Promise<Buffer>` | Gera PDF Unicode de convidados, presença e horários sem exigir uma ata. |
+
 ### ClienteAPI
 
 Fonte: [Synple/mobile/src/services/api.js](../Synple/mobile/src/services/api.js).
@@ -265,12 +345,17 @@ Fonte: [Synple/mobile/src/services/api.js](../Synple/mobile/src/services/api.js)
 | `updateCommissionMemberRoleWithApi(commissionId, actorId, userId, role)` | `Promise<Resultado<{member:JSON}>>` | Transfere coordenação ou altera papel respeitando mínimo de um. |
 | `removeCommissionMemberWithApi(commissionId, actorId, userId)` | `Promise<Resultado<{member:null}>>` | Remove vínculo atual sem apagar convites/presença históricos da reunião. |
 | `scheduleMeetingWithApi(meeting)` | `Promise<Resultado<{meeting:JSON}>>` | Cria reunião e convites atomicamente. |
+| `meetingRequest(path, method = 'GET', payload)` | `Promise<Resultado<JSON>>` | Executa consulta ou escrita autenticada de reuniões, anexos e presença; retorna dados, erros por campo e falhas de conexão. |
 | `respondToMeetingInvitationWithApi(meetingId, userId, status)` | `Promise<Resultado<{invitation:JSON}>>` | Responde convite da própria sessão. |
 | `recordMeetingAttendanceWithApi(meetingId, userId, action)` | `Promise<Resultado<{attendance:JSON}>>` | Registra entrada/saída pelo servidor. |
 | `fetchMeetingAttendanceWithApi(meetingId, userId)` | `Promise<Resultado<{attendance:JSON}>>` | Consulta presença para gerar lista compartilhável. |
 | `saveMeetingMinutesWithApi(meetingId, userId, content)` | `Promise<Resultado<{minutes:JSON}>>` | Salva rascunho/correção; erro não confirma persistência. |
 | `submitMeetingMinutesWithApi(meetingId, userId)` | `Promise<Resultado>` | Submete ata; mantém os dados devolvidos pelo endpoint no envelope da API cliente. |
 | `approveMeetingMinutesWithApi(meetingId, userId, decision, comment = '', version)` | `Promise<Resultado>` | Envia decisão, comentário e versão lida. |
+| `createMeetingVoteWithApi(meetingId, userId, question, options)` | `Promise<Resultado<JSON>>` | Abre votação independente da ata. |
+| `castMeetingVoteWithApi(meetingId, voteId, userId, optionId)` | `Promise<Resultado<JSON>>` | Registra ou altera opção do participante presente. |
+| `closeMeetingVoteWithApi(meetingId, voteId, userId)` | `Promise<Resultado<JSON>>` | Encerra votação como gestor. |
+| `fetchMeetingParticipationReportWithApi()` | `Promise<Resultado<JSON>>` | Consulta somente presenças da sessão autenticada. |
 | `updateAccessRequestStatusWithApi(requestId, status, role)` | `Promise<VinculoOrganizacao\|{success:false}>` | Atualiza situação/cargo; sucesso retorna linha diretamente. |
 | `createOrganizationWithApi({ name, document, ownerId, status = 'PENDING' })` | `Promise<Resultado<{organization:Organizacao}>>` | Cria organização PENDING, com dono obtido da sessão. |
 | `createCommissionWithApi({ organizationId, name, type, description, memberIds = [] })` | `Promise<Resultado<{commission:Comissao}>>` | Cria comissão com equipe; erro não equivale a cadastro offline. |
@@ -293,7 +378,7 @@ Fonte: [Synple/backend/src/services/security.js](../Synple/backend/src/services/
 | `authenticate(req, res, next)` | `Promise<void>` | Middleware: verifica Bearer ou ticket PDF e preenche req.auth; 401 para inválido. |
 | `bindActor(req, res, next)` | `void` | Substitui campos de ator de operações privadas pela identidade da sessão. |
 | `adminOnly(req, res, next)` | `void` | Middleware: permite SYSTEM_ADMIN ou responde 403. |
-| `rateLimit(limit, seconds)` | `Middleware` | Cria middleware assíncrono que atualiza contador persistente e devolve 429 no limite. |
+| `rateLimit(limit, seconds, database = db)` | `Middleware` | Cria middleware assíncrono que atualiza contador persistente e devolve 429 no limite. |
 | `scopeSnapshot(data, actor)` | `Snapshot` | Filtra coleções por ator. Modifica o objeto recebido, não é função pura. |
 
 ### Autorizacao
@@ -357,7 +442,7 @@ Fonte: [Synple/backend/src/routes/meetings.js](../Synple/backend/src/routes/meet
 
 | Operação e parâmetros | Retorno | Responsabilidade / efeito / erro |
 | --- | --- | --- |
-| `createMeetingsRouter(database, { renderMinutesPdf = generateMeetingMinutesPdf } = {})` | `Router` | Cria Router Express com callbacks de agendamento/presença/ata/PDF e transações. |
+| `createMeetingsRouter(database, { renderMinutesPdf = generateMeetingMinutesPdf, now = () => new Date() } = {})` | `Router` | Cria Router Express com callbacks de agendamento/presença/ata/PDF e transações. |
 
 ### RotasComissao
 
@@ -383,21 +468,8 @@ Fonte: [Synple/backend/src/routes/sync.js](../Synple/backend/src/routes/sync.js)
 | --- | --- | --- |
 | `createSyncRouter(db)` | `Router` | Cria Router de snapshot. No app real a sessão é exigida antes do router. |
 
-## Incremento 3 — votações e relatório
-
-O código continua usando objetos JSON e funções, sem classes JavaScript/ORM para estes conceitos.
-
-| Modelo de análise | Persistência | Responsabilidade |
-| --- | --- | --- |
-| `Votacao` | `meeting_votes` | Pergunta, status e autoria de uma votação independente da ata. |
-| `OpcaoVotacao` | `meeting_vote_options` | Uma alternativa ordenada de escolha única. |
-| `Voto` | `meeting_vote_ballots` | Escolha de um participante para uma votação; pode ser atualizada antes do fechamento. |
-| `RelatorioParticipacao` | Consulta, sem tabela própria | Projeção de reuniões em que a sessão autenticada tem presença registrada. |
-
-Operações implementadas: `createMeetingVoteWithApi(meetingId, userId, question, options)`, `castMeetingVoteWithApi(meetingId, voteId, userId, optionId)`, `closeMeetingVoteWithApi(meetingId, voteId, userId)` e `fetchMeetingParticipationReportWithApi()`. As três primeiras chamam rotas transacionais em `backend/src/routes/meetings.js`; o relatório é filtrado pela sessão do servidor e não por um userId arbitrário no cliente.
-
 ## Responsabilidades dos callbacks HTTP e validação
 
-Cadastro/login/Google/ativação/recuperação: backend/src/routes/auth.js. Organização/ingresso/convites/transferência: organizations.js. Comissão/equipe: commissions.js. Perfil/exclusão: users.js. Reuniões/presença/atas/votações/relatório/PDF: meetings.js. Condições de cada callback constam nas fichas RF, com telas, parâmetros, pós-condição, respostas e limites. Não há uma operação Usuario.salvarNoAsyncStorage no domínio.
+Cadastro/login/Google/ativação/recuperação: backend/src/routes/auth.js. Organização/ingresso/convites/transferência: organizations.js. Comissão/equipe: commissions.js. Perfil/exclusão: users.js. Reuniões/presença/atas/PDF: meetings.js. Condições de cada callback constam nas fichas RF, com telas, parâmetros, pós-condição, respostas e limites. Não há uma operação Usuario.salvarNoAsyncStorage no domínio.
 
 Exceções: wrappers API retornam Resultado/linha/null conforme tabela; fetchSystemInfo e authorizePdfDownload podem lançar. Middleware usa next(error) ou resposta HTTP. SQL não comprova biometria; confirmBiometric é proteção local. Observação de documentação: as funções não são polimorfismo/herança implementados; multiplicidades do domínio e herança dos atores UML representam papéis/relações de análise.

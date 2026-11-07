@@ -1,25 +1,47 @@
 @startuml
+!pragma layout smetana
+skinparam shadowing false
+skinparam defaultFontSize 13
 left to right direction
-title Casos de uso — Incremento 3
+title Incremento 3 — funções e atores
 actor "Usuário autenticado" as U
-actor "Coordenador / proprietário" as M
-actor "Participante com presença" as P
-U <|-- M
-U <|-- P
-rectangle "Synple" {
- usecase "RF03.01\nAbrir votação" as OPEN
- usecase "RF03.02\nVotar / alterar voto" as CAST
- usecase "RF03.03\nEncerrar votação" as CLOSE
- usecase "RF03.04\nConsultar relatório individual" as REPORT
- usecase "RF03.05\nConsultar manual digital" as MANUAL
+actor "Gestor: coordenador ou proprietário" as G
+actor "Convidado histórico" as C
+actor "Participante com entrada" as P
+U <|-- G
+U <|-- C
+C <|-- P
+rectangle Synple {
+usecase "RF03.01\nAbrir votação independente da ata" as RF03_01
+usecase "RF03.02\nVotar ou alterar a opção" as RF03_02
+usecase "RF03.03\nEncerrar votação" as RF03_03
+usecase "RF03.04\nConsultar relatório individual" as RF03_04
+usecase "RF03.05\nConsultar manual digital" as RF03_05
+usecase "RF03.06\nEditar reunião futura" as RF03_06
+usecase "RF03.07\nAgendar por dias de calendário e informar local/detalhes" as RF03_07
+usecase "RF03.08\nCompartilhar anexos com convidados" as RF03_08
+usecase "RF03.09\nRegistrar presença por código temporário" as RF03_09
+usecase "RF03.10\nRegistrar entrada/saída de convidado pelo presidente" as RF03_10
+usecase "RF03.11\nExportar lista de presença em PDF" as RF03_11
+usecase "RF02.07\nCriar/corrigir ata" as ATA
+usecase "RF02.08\nSubmeter ata" as SUB
+usecase "RF02.09\nAprovar/rejeitar ata" as DEC
 }
-M -- OPEN
-M -- CLOSE
-P -- CAST
-U -- REPORT
-U -- MANUAL
-note bottom of CAST
-Somente pessoa com entrada registrada;
-escolha única enquanto a votação estiver aberta.
-end note
+G -- RF03_01
+P -- RF03_02
+G -- RF03_03
+U -- RF03_04
+U -- RF03_05
+G -- RF03_06
+G -- RF03_07
+G -- RF03_08
+C -- RF03_08
+G -- RF03_09
+C -- RF03_09
+G -- RF03_10
+C -- RF03_11
+G -- RF03_11
+G -- ATA
+G -- SUB
+P -- DEC
 @enduml

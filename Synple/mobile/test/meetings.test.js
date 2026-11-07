@@ -15,7 +15,7 @@ test('interpreta data brasileira no fuso local e rejeita datas inexistentes e fo
 });
 
 test('valida período e gera horário ISO com convidados únicos', () => {
-  const form = { title: ' Reunião ', agenda: ' Planejar ', startsAt: '22/10/2026 18:00', endsAt: '22/10/2026 19:00' };
+  const form = { title: ' Reunião ', agenda: ' Planejar ', startsAt: '22/10/2099 18:00', endsAt: '22/10/2099 19:00' };
   const { meeting } = buildMeetingPayload(form, 'commission-1', ['u1', 'u1', 'u2']);
   assert.equal(meeting.title, 'Reunião');
   assert.equal(meeting.agenda, 'Planejar');
@@ -37,6 +37,17 @@ test('lista presença mantém convidados sem entrada e participantes com saída'
   assert.equal(rows[0].leftAt, '2026-10-22T19:00:00Z');
   assert.equal(rows[1].invitationStatus, 'DECLINED');
   assert.equal(rows[1].enteredAt, undefined);
+});
+
+test('lista todos os erros de agendamento e rejeita início passado', () => {
+  const result=buildMeetingPayload({title:'',agenda:'',startsAt:'01/01/2001 10:00',endsAt:'inválido'},'c',[],new Date('2026-11-06T12:00:00Z'));
+  assert.deepEqual(Object.keys(result.fields).sort(),['agenda','endsAt','startsAt','title']);
+});
+
+test('dia todo converte intervalo local para término exclusivo e preserva detalhes', () => {
+  const {meeting}=buildMeetingPayload({title:'Dia todo',agenda:'Trabalho',startsAt:'12/11/2099 00:00',endsAt:'12/11/2099 00:00',allDay:true,location:' Sala ',details:' Plano '},'c');
+  assert.equal(meeting.allDay,true); assert.equal(meeting.location,'Sala'); assert.equal(meeting.details,'Plano');
+  assert.equal(new Date(meeting.startsAt).getHours(),0); assert.equal(new Date(meeting.endsAt).getDate(),13);
 });
 
 test('unanimidade inclui presidente e quem saiu, ignora votos de versões anteriores e de ausentes', () => {
