@@ -60,12 +60,20 @@ function createUsersRouter(db) {
         OR EXISTS (SELECT 1 FROM commissions c JOIN organizations o ON o.id = c.organization_id WHERE c.id = m.commission_id AND o.owner_id = $1)
         OR EXISTS (SELECT 1 FROM meeting_invitations i WHERE i.meeting_id = m.id AND i.user_id = $1)
         OR EXISTS (SELECT 1 FROM meeting_attendance a WHERE a.meeting_id = m.id AND a.user_id = $1)
+        OR EXISTS (SELECT 1 FROM meeting_vote_ballots b JOIN meeting_votes v ON v.id = b.vote_id WHERE v.meeting_id = m.id AND b.user_id = $1)
         OR EXISTS (SELECT 1 FROM meeting_minutes mm WHERE mm.meeting_id = m.id AND ($1 = ANY(mm.required_approver_ids) OR mm.created_by = $1 OR mm.updated_by = $1))
         ORDER BY m.id FOR UPDATE OF m`, [targetId]);
       const lockedUser = await client.query('SELECT id FROM users WHERE id = $1 FOR UPDATE', [targetId]);
       if (!lockedUser.rowCount) {
         await client.query('ROLLBACK');
         return res.status(404).json({ error: 'Usuário não encontrado no banco de dados.' });
+      }
+      // A FK dos votos usa CASCADE; excluir a conta mudaria até resultados
+      // encerrados. Preserva o histórico sob os mesmos locks usados ao votar.
+      const ballots = await client.query('SELECT 1 FROM meeting_vote_ballots WHERE user_id = $1 LIMIT 1', [targetId]);
+      if (ballots.rowCount) {
+        await client.query('ROLLBACK');
+        return res.status(409).json({ error: 'Este usuário possui votos registrados. A conta deve ser preservada para manter o histórico e a apuração das votações.' });
       }
       const snapshot = await client.query(`SELECT 1 FROM meeting_minutes
         WHERE status IN ('IN_REVIEW', 'APPROVED') AND $1 = ANY(required_approver_ids) LIMIT 1`, [targetId]);

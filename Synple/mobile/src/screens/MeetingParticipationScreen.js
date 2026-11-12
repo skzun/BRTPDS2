@@ -41,7 +41,8 @@ export function MeetingParticipationScreen() {
         <View key={meeting.meetingId} style={styles.card}>
           <Text style={styles.cardTitle}>{meeting.title}</Text>
           <Text style={styles.memberDetail}>{meeting.organizationName} · {meeting.commissionName}</Text>
-          <Text style={styles.memberDetail}>Agendada: {formatDate(meeting.startsAt)}</Text>
+          <Text style={styles.memberDetail}>Início agendado: {formatDate(meeting.startsAt)}</Text>
+          <Text style={styles.memberDetail}>Término agendado: {formatDate(meeting.endsAt)}</Text>
           <Text style={styles.memberDetail}>Sua entrada: {formatDate(meeting.enteredAt)}</Text>
           <Text style={styles.memberDetail}>Sua saída: {meeting.leftAt ? formatDate(meeting.leftAt) : 'não registrada'}</Text>
           {!!meeting.minutesStatus && <Text style={styles.memberDetail}>Ata: {MINUTES_STATUS[meeting.minutesStatus] || meeting.minutesStatus}</Text>}
