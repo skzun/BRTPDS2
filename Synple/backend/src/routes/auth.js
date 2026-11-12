@@ -21,9 +21,10 @@ router.use((req, res, next) => {
   }
   next();
 });
-router.use(['/login', '/google', '/change-password'], rateLimit(10, 900));
-router.use(['/forgot-password', '/resend-activation'], rateLimit(3, 900));
-router.use(['/reset-password', '/verify-email'], rateLimit(5, 900));
+// Limites curtos para desenvolvimento e uso normal, sem deixar tentativas ilimitadas.
+router.use(['/login', '/google', '/change-password'], rateLimit(10, 120));
+router.use(['/forgot-password', '/resend-activation'], rateLimit(3, 300));
+router.use(['/reset-password', '/verify-email'], rateLimit(5, 300));
 
 function getGoogleClientIds() {
   return (process.env.GOOGLE_OAUTH_CLIENT_IDS || '')

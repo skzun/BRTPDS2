@@ -11,12 +11,12 @@ export function StatusBadge({ status }) {
   return <Text style={[themeStyles.badge, themeStyles[`badge${status}`]]}>{STATUS_LABELS[status] || status}</Text>;
 }
 
-export function Field({ label, value, onChangeText, placeholder, keyboardType = 'default', secureTextEntry = false, autoCapitalize, multiline = false, maxLength, editable = true, accessibilityLabel, error }) {
+export function Field({ label, value, onChangeText, placeholder, keyboardType = 'default', secureTextEntry = false, autoCapitalize, multiline = false, maxLength, editable = true, accessibilityLabel, error, controlled = false }) {
   const { isDark, styles: themeStyles } = useContext(ThemeContext);
   const inputRef = useRef(null);
   const revealInput = useContext(FieldScrollContext);
   const lastText = useRef(String(value ?? ''));
-  useEffect(() => { const text = String(value ?? ''); if (text !== lastText.current) { inputRef.current?.setNativeProps({ text }); lastText.current = text; } }, [value]);
+  useEffect(() => { const text = String(value ?? ''); if (!controlled && text !== lastText.current) { inputRef.current?.setNativeProps({ text }); lastText.current = text; } }, [controlled, value]);
   const resolvedAutoCapitalize = autoCapitalize || (secureTextEntry || keyboardType === 'email-address' ? 'none' : 'sentences');
   return (
     <View style={themeStyles.field}>
@@ -24,7 +24,7 @@ export function Field({ label, value, onChangeText, placeholder, keyboardType = 
       <TextInput
         accessibilityLabel={accessibilityLabel || label}
         ref={inputRef}
-        defaultValue={String(value ?? '')}
+        {...(controlled ? { value: String(value ?? '') } : { defaultValue: String(value ?? '') })}
         onChangeText={text => { lastText.current = text; onChangeText?.(text); }}
         placeholder={placeholder}
         placeholderTextColor={isDark ? '#64748B' : '#94A3B8'}

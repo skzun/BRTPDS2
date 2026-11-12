@@ -62,3 +62,21 @@ O boot aplica migrações e preserva dados. Somente para criar dados fictícios 
 - `npm run start:local:go`: Expo Go pela rede local.
 
 Somente os modos locais exigem computador e celular na mesma rede. Veja também o [README](../../README.md).
+# Execução local do Synple (mobile + backend)
+
+Antes de abrir o aplicativo, o backend precisa estar em execução. Sem a API na porta 3001, o login, o Google e a aprovação de organizações não funcionarão.
+
+Em um terminal, na raiz `Synple`:
+
+```powershell
+npm run backend
+```
+
+Em outro terminal, inicie o mobile:
+
+```powershell
+cd mobile
+npx expo start --dev-client --lan
+```
+
+Para usar outra rede ou 4G, use `npm run dev:tunnel` na raiz. Abra o development build do Synple, não o Expo Go.

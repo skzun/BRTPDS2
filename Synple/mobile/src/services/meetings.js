@@ -16,7 +16,12 @@ function buildMeetingPayload(form, commissionId, inviteeIds = [], now = new Date
   if (!form.agenda?.trim() || form.agenda.length > 10000) fields.agenda = 'Informe a pauta (até 10.000 caracteres).';
   let start = parseMeetingDate(form.startsAt), end = parseMeetingDate(form.endsAt);
   if (form.allDay && start && end) { start.setHours(0, 0, 0, 0); end.setHours(0, 0, 0, 0); end.setDate(end.getDate() + 1); }
-  if (!start || start <= new Date(now)) fields.startsAt = 'Escolha uma data e horário futuros.';
+  const today = new Date(now); today.setHours(0, 0, 0, 0);
+  const startDay = start ? new Date(start) : null;
+  if (startDay) startDay.setHours(0, 0, 0, 0);
+  if (!start || startDay < today || (!form.allDay && start <= new Date(now))) {
+    fields.startsAt = form.allDay ? 'Escolha hoje ou uma data futura.' : 'Escolha hoje ou um horário futuro.';
+  }
   if (!end || (start && end <= start)) fields.endsAt = 'O término deve ser posterior ao início.';
   if ((form.location || '').length > 300) fields.location = 'Use até 300 caracteres.';
   if ((form.details || '').length > 4000) fields.details = 'Use até 4.000 caracteres.';
@@ -60,7 +65,11 @@ function canManageMeetingCommission(data, commissionId, userId) {
 function getAccessibleMeetingCommissions(data, userId) {
   const invitedMeetingIds = new Set((data.meetingInvitations || []).filter((invite) => invite.userId === userId).map((invite) => invite.meetingId));
   const historicalCommissionIds = new Set((data.meetings || []).filter((meeting) => invitedMeetingIds.has(meeting.id)).map((meeting) => meeting.commissionId));
-  return (data.commissions || []).filter((commission) => historicalCommissionIds.has(commission.id)
+  const organizationIds = new Set((data.organizations || []).filter((organization) => organization.ownerId === userId
+    || (data.accessRequests || []).some((request) => request.organizationId === organization.id && request.userId === userId && request.status === 'APPROVED'))
+    .map((organization) => organization.id));
+  return (data.commissions || []).filter((commission) => organizationIds.has(commission.organizationId)
+    || historicalCommissionIds.has(commission.id)
     || (data.commissionMembers || []).some((member) => member.commissionId === commission.id && member.userId === userId)
     || (data.organizations || []).some((org) => org.id === commission.organizationId && org.ownerId === userId));
 }

@@ -63,7 +63,13 @@ function createMeetingsRouter(database, { renderMinutesPdf = generateMeetingMinu
     const start = parseTimestamp(body.startsAt), end = parseTimestamp(body.endsAt);
     if (typeof body.title !== 'string' || !body.title.trim() || body.title.trim().length > 160) errors.title = 'Informe um título de até 160 caracteres.';
     if (typeof body.agenda !== 'string' || !body.agenda.trim() || body.agenda.length > 10000) errors.agenda = 'Informe a pauta (até 10.000 caracteres).';
-    if (!Number.isFinite(start) || start <= new Date(now()).getTime()) errors.startsAt = 'Escolha um início futuro.';
+    const current = new Date(now());
+    const todayStart = new Date(current); todayStart.setHours(0, 0, 0, 0);
+    const startDate = Number.isFinite(start) ? new Date(start) : null;
+    if (startDate) startDate.setHours(0, 0, 0, 0);
+    if (!Number.isFinite(start) || (body.allDay === true ? startDate < todayStart : start <= current.getTime())) {
+      errors.startsAt = body.allDay === true ? 'Escolha hoje ou uma data futura.' : 'Escolha um início futuro.';
+    }
     if (!Number.isFinite(end) || end <= start) errors.endsAt = 'O término deve ser posterior ao início.';
     for (const [key, limit] of [['location', 300], ['details', 4000]]) if (body[key] !== undefined && (typeof body[key] !== 'string' || body[key].length > limit)) errors[key] = `Use até ${limit} caracteres.`;
     if (body.allDay !== undefined && typeof body.allDay !== 'boolean') errors.allDay = 'Informe se a reunião é de dia todo.';
@@ -170,7 +176,10 @@ function createMeetingsRouter(database, { renderMinutesPdf = generateMeetingMinu
       if (!code.rowCount) throw new RequestError(403, 'Código de presença inválido ou expirado.');
     }
     const invited = await client.query("SELECT 1 FROM meeting_invitations WHERE meeting_id = $1 AND user_id = $2 AND status = 'ACCEPTED'", [meeting.id, userId]);
-    if (!invited.rowCount) throw new RequestError(403, 'Aceite o convite antes de registrar presença.');
+    const organizationMember = await client.query(`SELECT 1 FROM meetings m JOIN commissions c ON c.id = m.commission_id
+      JOIN organizations o ON o.id = c.organization_id
+      WHERE m.id = $1 AND (o.owner_id = $2 OR EXISTS (SELECT 1 FROM access_requests r WHERE r.organization_id = o.id AND r.user_id = $2 AND r.status = 'APPROVED'))`, [meeting.id, userId]);
+    if (!invited.rowCount && !organizationMember.rowCount && !meeting.canManage) throw new RequestError(403, 'Você precisa pertencer à organização para registrar presença.');
     const existing = await client.query(`SELECT ${attendanceColumns} FROM meeting_attendance WHERE meeting_id = $1 AND user_id = $2`, [meeting.id, userId]);
     if (action === 'ENTER' && existing.rows[0]?.enteredAt && !existing.rows[0]?.leftAt) return reply(existing.rows[0]);
     if (action === 'ENTER') {
@@ -201,7 +210,10 @@ function createMeetingsRouter(database, { renderMinutesPdf = generateMeetingMinu
   async function requireMeetingAccess(client, meetingId, userId) {
     const meeting = await getMeeting(client, meetingId, userId);
     const invitation = await client.query('SELECT 1 FROM meeting_invitations WHERE meeting_id=$1 AND user_id=$2', [meeting.id, userId]);
-    if (!meeting.canManage && !invitation.rowCount) throw new RequestError(403, 'Você não tem acesso a esta reunião.');
+    const member = await client.query(`SELECT 1 FROM meetings m JOIN commissions c ON c.id = m.commission_id
+      JOIN organizations o ON o.id = c.organization_id
+      WHERE m.id = $1 AND (o.owner_id = $2 OR EXISTS (SELECT 1 FROM access_requests r WHERE r.organization_id = o.id AND r.user_id = $2 AND r.status = 'APPROVED'))`, [meeting.id, userId]);
+    if (!meeting.canManage && !invitation.rowCount && !member.rowCount) throw new RequestError(403, 'Você não tem acesso a esta reunião.');
     return meeting;
   }
 

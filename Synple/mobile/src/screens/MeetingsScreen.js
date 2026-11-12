@@ -55,6 +55,11 @@ function MeetingCard({ data, meeting, activeUser, isManager, onRespond, onAttend
   const ended = currentTime >= new Date(meeting.endsAt).getTime();
   const inFlight = useRef(false);
   const invitation = data.meetingInvitations.find((item) => item.meetingId === meeting.id && item.userId === activeUser.id);
+  const commission = (data.commissions || []).find((item) => item.id === meeting.commissionId);
+  const organization = (data.organizations || []).find((item) => item.id === commission?.organizationId);
+  const isOrganizationMember = organization?.ownerId === activeUser.id
+    || (data.accessRequests || []).some((request) => request.organizationId === organization?.id && request.userId === activeUser.id && request.status === 'APPROVED');
+  const canParticipate = invitation?.status === 'ACCEPTED' || isOrganizationMember || isManager;
   const attendance = data.meetingAttendance.find((item) => item.meetingId === meeting.id && item.userId === activeUser.id);
   const rows = generatedRows || getMeetingAttendanceRows(data, meeting.id);
   const present = rows.filter((item) => item.enteredAt);
@@ -193,7 +198,7 @@ function MeetingCard({ data, meeting, activeUser, isManager, onRespond, onAttend
           {invitation.status !== 'DECLINED' && <Pressable disabled={!!pending} style={styles.rejectButton} onPress={() => perform('invite', () => onRespond(meeting.id, 'DECLINED'))}><Text style={styles.rejectText}>Recusar</Text></Pressable>}
         </View>
       )}
-      {invitation?.status === 'ACCEPTED' && !ended && !attendance?.enteredAt && !lockedAttendance && (
+      {canParticipate && !ended && !attendance?.enteredAt && !lockedAttendance && (
         <View style={styles.actionRow}>
           <Pressable disabled={!!pending || !ongoing} style={styles.primaryButton} onPress={() => perform('attendance', () => onAttendance(meeting.id, 'ENTER'))}><Text style={styles.primaryButtonText}>Entrada com biometria</Text></Pressable>
           <Pressable disabled={!!pending} style={styles.rejectButton} onPress={() => perform('invite', () => onRespond(meeting.id, 'DECLINED'))}><Text style={styles.rejectText}>Recusar convite</Text></Pressable>
@@ -330,13 +335,14 @@ export function MeetingsScreen({ data, activeUser, meetings, onSchedule, onRespo
   const { styles } = useContext(ThemeContext);
   const [selectedCommissionId, setSelectedCommissionId] = useState('');
   const [creating, setCreating] = useState(false);
-  const commissions = useMemo(() => getAccessibleMeetingCommissions(data, activeUser.id), [data.commissions, data.commissionMembers, data.organizations, data.meetings, data.meetingInvitations, activeUser.id]);
+  const commissions = useMemo(() => getAccessibleMeetingCommissions(data, activeUser.id), [data.commissions, data.commissionMembers, data.organizations, data.accessRequests, data.meetings, data.meetingInvitations, activeUser.id]);
   const commissionId = commissions.some((item) => item.id === selectedCommissionId) ? selectedCommissionId : commissions[0]?.id;
   const commission = commissions.find((item) => item.id === commissionId);
   const isManager = canManageMeetingCommission(data, commissionId, activeUser.id);
+  const isCommissionMember = data.commissionMembers.some((member) => member.commissionId === commissionId && member.userId === activeUser.id);
   const commissionMembers = data.commissionMembers.filter((member) => member.commissionId === commissionId && member.userId !== activeUser.id);
   const visibleMeetings = meetings.filter((meeting) => meeting.commissionId === commissionId && (
-    isManager || data.meetingInvitations.some((invite) => invite.meetingId === meeting.id && invite.userId === activeUser.id)
+    isManager || isCommissionMember || data.meetingInvitations.some((invite) => invite.meetingId === meeting.id && invite.userId === activeUser.id)
   )).sort((a, b) => new Date(b.startsAt) - new Date(a.startsAt));
 
   if (!commission) return <Text style={styles.empty}>Você ainda não participa de uma comissão com reuniões disponíveis.</Text>;

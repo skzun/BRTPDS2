@@ -8,6 +8,7 @@ export function AdminManagementScreen({
   organizations,
   users,
   activeUserId,
+  organizationStatusPending = new Set(),
   onChangeOrganizationStatus,
   onRemoveOrganization,
   onRemoveUser,
@@ -21,30 +22,33 @@ export function AdminManagementScreen({
         <Text style={styles.cardTitle}>Organizações</Text>
         <Text style={styles.hint}>Aprovar, recusar ou remover organizações do aplicativo.</Text>
         {organizations.map((organization) => {
+          const statusPending = organizationStatusPending.has(organization.id);
           const ceo = users.find((user) => user.id === organization.ownerId);
           return (
             <View key={organization.id} style={styles.member}>
-              <View>
+              <View style={{ flex: 1, minWidth: 0, marginRight: 8 }}>
                 <Text style={styles.memberName}>{organization.name}</Text>
                 <Text style={styles.muted}>{organization.document}</Text>
                 <Text style={styles.muted}>Administrador: {ceo?.name || 'Não identificado'}</Text>
                 <StatusBadge status={organization.status} />
               </View>
-              <View>
+              <View style={{ width: 124 }}>
                 <View style={styles.actionRow}>
                   {organization.status === 'PENDING' && (
                     <>
                       <Pressable
-                        style={styles.approveButton}
+                        style={[styles.approveButton, styles.adminOrganizationActionButton]}
+                        disabled={statusPending}
                         onPress={() => onChangeOrganizationStatus(organization.id, 'APPROVED')}
                       >
-                        <Text style={styles.actionText}>Aprovar</Text>
+                        <Text numberOfLines={1} style={styles.actionText}>{statusPending ? 'Aguarde…' : 'Aprovar'}</Text>
                       </Pressable>
                       <Pressable
-                        style={styles.rejectButton}
+                        style={[styles.rejectButton, styles.adminOrganizationActionButton]}
+                        disabled={statusPending}
                         onPress={() => onChangeOrganizationStatus(organization.id, 'REJECTED')}
                       >
-                        <Text style={styles.rejectText}>Recusar</Text>
+                        <Text numberOfLines={1} style={styles.rejectText}>{statusPending ? 'Aguarde…' : 'Recusar'}</Text>
                       </Pressable>
                     </>
                   )}

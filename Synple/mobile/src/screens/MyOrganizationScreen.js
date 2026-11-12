@@ -60,6 +60,8 @@ export function MyOrganizationScreen({
           onChangeText={(document) => setOrganizationForm({ ...organizationForm, document: formatCNPJ(document) })}
           placeholder="00.000.000/0000-00"
           keyboardType="numeric"
+          maxLength={18}
+          controlled
         />
         <Pressable
           style={[styles.primaryButton, isCreatingOrganization && styles.disabledButton]}
@@ -125,7 +127,7 @@ export function MyOrganizationScreen({
             <View style={styles.card}>
               <Text style={styles.cardTitle}>Dados da organização</Text>
               <Field label="Nome" value={organizationEdit.name} onChangeText={(name) => setOrganizationEdit((current) => ({ ...current, name }))} placeholder="Nome da organização" />
-              <Field label="CNPJ" value={organizationEdit.document} onChangeText={(document) => setOrganizationEdit((current) => ({ ...current, document: formatCNPJ(document) }))} placeholder="00.000.000/0000-00" keyboardType="numeric" />
+              <Field label="CNPJ" value={organizationEdit.document} onChangeText={(document) => setOrganizationEdit((current) => ({ ...current, document: formatCNPJ(document) }))} placeholder="00.000.000/0000-00" keyboardType="numeric" maxLength={18} controlled />
               <Pressable style={styles.primaryButton} onPress={() => onUpdateOrganization(selectedOrganization.id, organizationEdit)}>
                 <Text style={styles.primaryButtonText}>Salvar organização</Text>
               </Pressable>

@@ -227,7 +227,10 @@ export async function updateUserWithApi(userId, payload) {
       body: JSON.stringify(payload),
     }, 4000);
 
-    if (!response.ok) return { success: false };
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({}));
+      return { success: false, error: error.error || `A API recusou a alteração (HTTP ${response.status}).` };
+    }
     const user = await response.json();
     return { success: true, user };
   } catch (err) {

@@ -84,6 +84,7 @@ export function getThemeStyles(isDark = false) {
     approveButton: { minHeight: 44, flex: 1, backgroundColor: isDark ? '#059669' : '#10B981', alignItems: 'center', justifyContent: 'center', paddingHorizontal: 10, paddingVertical: 10, borderRadius: 9 },
     actionText: { color: '#FFFFFF', fontWeight: '800', fontSize: 13 },
     rejectButton: { minHeight: 44, flex: 1, backgroundColor: isDark ? '#4C0519' : '#FFF1F2', alignItems: 'center', justifyContent: 'center', paddingHorizontal: 10, paddingVertical: 10, borderRadius: 9 },
+    adminOrganizationActionButton: { flex: 0, width: 58, minWidth: 58, paddingHorizontal: 4 },
     rejectText: { color: isDark ? '#FECDD3' : '#BE123C', fontWeight: '800', fontSize: 13 },
     outlineButton: { minHeight: 44, marginTop: 14, borderWidth: 1, borderColor: isDark ? '#9F1239' : '#FDA4AF', alignItems: 'center', justifyContent: 'center', paddingHorizontal: 12, paddingVertical: 10, borderRadius: 9 },
     outlineText: { color: isDark ? '#FDA4AF' : '#BE123C', fontWeight: '800', fontSize: 13 },

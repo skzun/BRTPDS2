@@ -88,6 +88,8 @@ export default function App() {
   const [organizationForm, setOrganizationForm] = useState({ name: '', document: '' });
   const [isCreatingOrganization, setIsCreatingOrganization] = useState(false);
   const organizationCreationInFlightRef = useRef(false);
+  const organizationStatusInFlightRef = useRef(new Set());
+  const [organizationStatusPending, setOrganizationStatusPending] = useState(() => new Set());
   const commissionMemberOperationsRef = useRef(new Set());
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [organizationSearch, setOrganizationSearch] = useState('');
@@ -258,10 +260,28 @@ export default function App() {
   }
 
   function changeOrganizationStatus(organizationId, status) {
+    if (organizationStatusInFlightRef.current.has(organizationId)) return;
     confirmAction('Alterar situação', 'Confirmar a alteração da organização?', async () => {
-      const result = await updateOrganizationStatusWithApi(organizationId, status);
-      if (!result?.id) return Alert.alert('Alteração não realizada', 'A API não confirmou a alteração.');
-      await syncWithRemote();
+      organizationStatusInFlightRef.current.add(organizationId);
+      setOrganizationStatusPending((current) => new Set(current).add(organizationId));
+      try {
+        const result = await updateOrganizationStatusWithApi(organizationId, status);
+        if (!result?.id) return Alert.alert('Alteração não realizada', result?.error || 'A API não confirmou a alteração.');
+        setData((current) => ({
+          ...current,
+          organizations: current.organizations.map((organization) => organization.id === organizationId
+            ? { ...organization, status: result.status }
+            : organization),
+        }));
+        await syncWithRemote();
+      } finally {
+        organizationStatusInFlightRef.current.delete(organizationId);
+        setOrganizationStatusPending((current) => {
+          const next = new Set(current);
+          next.delete(organizationId);
+          return next;
+        });
+      }
     });
   }
   function removeOrganization(organizationId) {
@@ -456,15 +476,17 @@ export default function App() {
   }
 
   async function createCommission() {
-    if (!isOrgAdmin || selectedOrganization?.ownerId !== activeUserId || selectedOrganization.status !== 'APPROVED') return;
+    if (!isOrgAdmin || !selectedOrganization || selectedOrganization.ownerId !== activeUserId || selectedOrganization.status !== 'APPROVED') {
+      return Alert.alert('Organização não disponível', 'Selecione uma organização aprovada que você administra antes de cadastrar uma comissão.');
+    }
     const validationError = validateCommission(commissionForm);
     if (validationError) return Alert.alert('Dados obrigatórios', validationError);
     const name = commissionForm.name.trim();
-    if (data.commissions.some((commission) => commission.organizationId === selectedOrganizationId && commission.name.toLowerCase() === name.toLowerCase())) {
+    if (data.commissions.some((commission) => commission.organizationId === selectedOrganization.id && commission.name.toLowerCase() === name.toLowerCase())) {
       return Alert.alert('Nome já cadastrado', 'Já existe uma comissão ou grupo de trabalho com este nome nesta organização.');
     }
 
-    const result = await createCommissionWithApi({ organizationId: selectedOrganizationId, name,
+    const result = await createCommissionWithApi({ organizationId: selectedOrganization.id, name,
       type: commissionForm.type || 'Comissão', description: commissionForm.description.trim(), memberIds: [activeUserId] });
     if (!result.success) return Alert.alert('Comissão não criada', result.error);
     const commission = result.commission;
@@ -725,6 +747,7 @@ export default function App() {
               organizationSearch={organizationSearch}
               setOrganizationSearch={setOrganizationSearch}
               activeUserId={activeUserId}
+              organizationStatusPending={organizationStatusPending}
               accessRequests={data.accessRequests}
               onRequestAccess={requestAccess}
               onRespondInvitation={respondOrganizationInvitation}
@@ -759,7 +782,12 @@ export default function App() {
               onRequestAccess={requestAccess}
               approvedOwnedOrganizations={approvedOwnedOrganizations}
               organizationCommissions={organizationCommissions}
-              onNavigateToCommissions={() => setScreen('commissions')}
+              onNavigateToCommissions={() => {
+                const organization = approvedOwnedOrganizations.find((item) => item.id === selectedOrganizationId) || approvedOwnedOrganizations[0];
+                if (!organization) return Alert.alert('Organização não disponível', 'A organização precisa estar aprovada para gerenciar comissões.');
+                setSelectedOrganizationId(organization.id);
+                setScreen('commissions');
+              }}
               organizationPendingRequests={organizationPendingRequests}
               onChangeAccessStatus={changeAccessStatus}
               selectedOrganization={selectedOrganization}

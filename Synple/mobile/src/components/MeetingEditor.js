@@ -7,10 +7,17 @@ import { buildMeetingPayload } from '../services/meetings';
 import { meetingRequest } from '../services/api';
 
 const format = value => { const d = new Date(value); const p = n => String(n).padStart(2, '0'); return `${p(d.getDate())}/${p(d.getMonth()+1)}/${d.getFullYear()} ${p(d.getHours())}:${p(d.getMinutes())}`; };
+const initialSchedule = () => {
+  const start = new Date();
+  start.setSeconds(0, 0);
+  start.setMinutes(start.getMinutes() + 1);
+  const end = new Date(start.getTime() + 60 * 60 * 1000);
+  return { startsAt: format(start), endsAt: format(end) };
+};
 
 export function MeetingEditor({ meeting, commissionId, inviteeIds = [], invitees = [], onSaved, onCancel }) {
   const { styles } = useContext(ThemeContext);
-  const [form, setForm] = useState(() => meeting ? { ...meeting, startsAt:format(meeting.startsAt), endsAt:format(meeting.allDay ? new Date(new Date(meeting.endsAt).getTime()-1) : meeting.endsAt) } : { title:'', agenda:'', startsAt:'', endsAt:'', allDay:false, location:'', details:'' });
+  const [form, setForm] = useState(() => meeting ? { ...meeting, startsAt:format(meeting.startsAt), endsAt:format(meeting.allDay ? new Date(new Date(meeting.endsAt).getTime()-1) : meeting.endsAt) } : { title:'', agenda:'', ...initialSchedule(), allDay:false, location:'', details:'' });
   const [errors, setErrors] = useState({});
   const [error, setError] = useState('');
   const [saving, setSaving] = useState(false);

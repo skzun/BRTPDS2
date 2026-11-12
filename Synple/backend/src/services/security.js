@@ -41,7 +41,11 @@ function rateLimit(limit, seconds, database = db) {
         const result = await database.query(`INSERT INTO auth_rate_limits (key, attempts, expires_at)
           VALUES ($1, 1, NOW() + $2 * INTERVAL '1 second') ON CONFLICT (key) DO UPDATE
           SET attempts = CASE WHEN auth_rate_limits.expires_at <= NOW() THEN 1 ELSE auth_rate_limits.attempts + 1 END,
-          expires_at = CASE WHEN auth_rate_limits.expires_at <= NOW() THEN EXCLUDED.expires_at ELSE auth_rate_limits.expires_at END
+          expires_at = CASE
+            WHEN auth_rate_limits.expires_at <= NOW() OR auth_rate_limits.expires_at > NOW() + $2 * INTERVAL '1 second'
+              THEN EXCLUDED.expires_at
+            ELSE auth_rate_limits.expires_at
+          END
           RETURNING attempts`, [digest(key), seconds]);
         if (result.rows[0].attempts > limit) {
           res.set('Retry-After', String(seconds));

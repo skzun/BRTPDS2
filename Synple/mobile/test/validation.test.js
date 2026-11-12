@@ -37,6 +37,11 @@ test('exige nome e CNPJ para organização', () => {
   assert.ok(validateOrganization({ name: 'Aurora', document: '' }));
 });
 
+test('mantém o CNPJ formatado e limita caracteres inválidos', () => {
+  assert.equal(formatCNPJ('12.345.678/0001-95'), '12.345.678/0001-95');
+  assert.equal(formatCNPJ('12abc345678000195xyz'), '12.345.678/0001-95');
+});
+
 test('exige nome para comissão ou grupo de trabalho', () => {
   assert.equal(validateCommission({ name: 'Comissão de Eventos' }), null);
   assert.ok(validateCommission({ name: '' }));
