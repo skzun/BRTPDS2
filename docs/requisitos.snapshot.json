@@ -313,11 +313,11 @@
     "id": "RF19",
     "name": "Entrar com e-mail e senha",
     "actor": "Visitante",
-    "trigger": "Login → E-mail/Senha → botão Entrar como usuário ou administrador",
+    "trigger": "Login → E-mail/Senha → botão Entrar; perfil identificado pelo servidor",
     "pre": "Conta existente, ativa e API disponível.",
     "steps": [
       "Preencher e-mail/senha; validar formato do e-mail e presença da senha no app.",
-      "Enviar credenciais ao servidor; seleção de modo não concede papel administrativo.",
+      "Enviar e-mail e senha ao servidor; o perfil da conta define o papel administrativo.",
       "A API normaliza dados, compara bcrypt, verifica ativação e aplica limites.",
       "Emitir sessão opaca de sete dias; devolver perfil sem hash de senha.",
       "Guardar token em memória e tentar armazenamento biométrico protegido; consultar snapshot e abrir área conforme systemRole real."
@@ -457,7 +457,7 @@
     "steps": [
       "Selecionar usuário e confirmar a exclusão.",
       "API verifica SYSTEM_ADMIN e inicia transação.",
-      "Bloquear remoção do próprio administrador, de coordenador atual e de aprovador fixado em ata em revisão/aprovada.",
+      "Bloquear remoção do próprio administrador, de coordenador atual, de aprovador fixado em ata em revisão/aprovada e de usuário com voto registrado em votação.",
       "Executar DELETE conforme FKs; em sucesso confirmar e remover dados locais correspondentes."
     ],
     "exceptions": "É necessário transferir coordenação antes de remover coordenador. Referências históricas sem cascata podem impedir exclusão; conflitos retornam 409. A proteção contra excluir qualquer outro SYSTEM_ADMIN está na interface, não como regra equivalente em todas as ramificações do backend.",

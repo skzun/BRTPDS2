@@ -3,7 +3,7 @@ import { useContext } from 'react';
 import { ThemeContext } from '../styles/theme';
 
 const TOPICS = [
-  ['1. Acesso e perfil', 'Entre com seu e-mail e senha ou use Google. No perfil, atualize nome, telefone, senha e tema. A sessão pode pedir confirmação biométrica do aparelho.'],
+  ['1. Acesso e perfil', 'Informe seu e-mail e senha e toque em Entrar, ou use Google. O sistema identifica automaticamente se sua conta é de administrador ou usuário e abre a área correspondente. No perfil, atualize nome, telefone, senha e tema. A sessão pode pedir confirmação biométrica do aparelho.'],
   ['2. Organizações', 'Pesquise organizações aprovadas e solicite acesso. Se você é proprietário, cadastre a organização, aguarde a aprovação e gerencie os integrantes na tela Minha organização.'],
   ['3. Comissões', 'O proprietário cria comissões e gerencia seus integrantes. O coordenador da comissão organiza as reuniões e as votações.'],
   ['4. Reuniões e presença', 'Abra Nova reunião para agendar; escolha data e hora ou Dia todo, pauta, local e detalhes. Erros aparecem junto aos campos. Uma reunião futura sem presença pode ser editada e os convidados devem confirmar de novo. Não são aceitos agendamentos no passado nem convites após o término. Abra um cartão e escolha Presença, Arquivos, Votações ou Ata.'],

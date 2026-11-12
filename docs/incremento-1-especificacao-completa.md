@@ -12,7 +12,7 @@ Esta revisão substitui integralmente a especificação anterior. Não descreve 
 | [Rotas Express](../Synple/backend/src/routes), [segurança](../Synple/backend/src/services/security.js) e [autorização](../Synple/backend/src/services/authorization.js) | Contrato HTTP, identidade, permissões e regras executadas |
 | [DDL](../Synple/backend/src/db/schema.sql) | Estrutura física e restrições efetivamente existentes |
 | [Versions](tecnologias-versoes.md) | Manifests e versões resolvidas no lockfile, incluindo dependências diretas |
-| [Verificação das correções](../Synple/docs/VERIFICACAO_CORRECOES.md) | Execuções anteriores identificadas: 35 testes backend, 23 mobile e exportações; não são testes novos desta revisão documental |
+| [Verificação das correções](VERIFICACAO_CORRECOES.md) | Execuções anteriores identificadas: 35 testes backend, 23 mobile e exportações; não são testes novos desta revisão documental |
 | Enunciado do incremento 2, identificado na documentação anterior como slides 4–10 da apresentação f2b56f41bcb6-5d9f38abce32442c931a4ff49a379768.pptx | Origem declarada das funcionalidades de reunião; o arquivo original não está sendo apresentado como revalidado nesta revisão |
 
 IDs RF01–RF18 foram preservados para rastrear a entrega anterior; RF16–RF18 agora descrevem o que existe no aplicativo, sem alegar reinício/setup/reset reais. RF19–RF28 explicitam contas/sessão/convites e gestão antes misturados a outros fluxos. RF02.01–RF02.10 pertencem ao incremento 2: o ponto faz parte do identificador e não os confunde com RF02.
@@ -25,7 +25,7 @@ Cliente Expo SDK 58/React Native 0.88/React 19.3, JavaScript, componentes própr
 
 Android mínimo 7/API 24; iOS mínimo 16.4; Node mínimo 22.13. [Tabela completa de tecnologias](tecnologias-versoes.md). Faixa semver do manifest, versão do lockfile e versão do processo/imagem são coisas distintas; tags Docker e CLI latest não fixam patch. A compatibilidade declarada não comprova teste em todos os aparelhos.
 
-![Implantação atual](Diagramas/renderizados/implantacao.svg)
+![Implantação atual](Diagramas/ENTREGA_DEFINITIVA/renderizados/implantacao.svg)
 
 API: EXPO_PUBLIC_API_URL tem precedência; há fallback de endereço por ambiente em api.js/network.json e detecção do IP local. O túnel Expo expõe Metro, não a API. O script tunnel abre também Cloudflare para a API. Em produção exige-se HTTPS e endereço estável; quick tunnel muda ao reiniciar e depende do computador ligado.
 
@@ -60,13 +60,13 @@ API pública: /health e rotas de login/cadastro/Google/recuperação/ativação/
 
 Os atores ficam fora da fronteira Synple. Linhas representam associações; triângulo vazio indica especialização contextual. Não foram usadas setas de fluxo de processo ou componentes técnicos como atores internos.
 
-![Contas e sessão](Diagramas/renderizados/uc-autenticacao.svg)
+![Contas e sessão](Diagramas/ENTREGA_DEFINITIVA/renderizados/uc-autenticacao.svg)
 
-![Organizações e comissões](Diagramas/renderizados/uc-organizacoes.svg)
+![Organizações e comissões](Diagramas/ENTREGA_DEFINITIVA/renderizados/uc-organizacoes.svg)
 
-![Reuniões e atas](Diagramas/renderizados/uc-reunioes.svg)
+![Reuniões e atas](Diagramas/ENTREGA_DEFINITIVA/renderizados/uc-reunioes.svg)
 
-![Consulta e operação](Diagramas/renderizados/uc-operacao.svg)
+![Consulta e operação](Diagramas/ENTREGA_DEFINITIVA/renderizados/uc-operacao.svg)
 
 Fontes editáveis e todas as imagens: [catálogo dos diagramas](Diagramas/Diagramas_Casos_de_Uso.md). Referência normativa: [UML 2.5.1 — OMG](https://www.omg.org/spec/UML/2.5.1/About-UML).
 
@@ -189,7 +189,7 @@ Fontes editáveis e todas as imagens: [catálogo dos diagramas](Diagramas/Diagra
 | Pré-condições | Sessão válida. |
 | Entradas e contrato | POST /organizations; prefixo /api em todas as rotas |
 | Dados/pós-condição de sucesso | organizations: name, document, owner_id, status=PENDING. Índices normalizados protegem concorrência. |
-| Sequência UML | [seq-comando](Diagramas/renderizados/seq-comando.svg) |
+| Sequência UML | [seq-comando](Diagramas/ENTREGA_DEFINITIVA/renderizados/seq-comando.svg) |
 
 **Fluxo principal**
 
@@ -213,7 +213,7 @@ Fontes editáveis e todas as imagens: [catálogo dos diagramas](Diagramas/Diagra
 | Pré-condições | Sessão SYSTEM_ADMIN e organização existente. |
 | Entradas e contrato | PATCH /organizations/:id/status; prefixo /api em todas as rotas |
 | Dados/pós-condição de sucesso | organizations.status e updated_at. |
-| Sequência UML | [seq-comando](Diagramas/renderizados/seq-comando.svg) |
+| Sequência UML | [seq-comando](Diagramas/ENTREGA_DEFINITIVA/renderizados/seq-comando.svg) |
 
 **Fluxo principal**
 
@@ -237,7 +237,7 @@ Fontes editáveis e todas as imagens: [catálogo dos diagramas](Diagramas/Diagra
 | Pré-condições | Sessão administrativa; organização existente. |
 | Entradas e contrato | GET /organizations; DELETE /organizations/:id; prefixo /api em todas as rotas |
 | Dados/pós-condição de sucesso | DELETE organizations; efeitos das FKs listados no dicionário físico. |
-| Sequência UML | [seq-comando](Diagramas/renderizados/seq-comando.svg) |
+| Sequência UML | [seq-comando](Diagramas/ENTREGA_DEFINITIVA/renderizados/seq-comando.svg) |
 
 **Fluxo principal**
 
@@ -261,7 +261,7 @@ Fontes editáveis e todas as imagens: [catálogo dos diagramas](Diagramas/Diagra
 | Pré-condições | Organização aprovada; proprietário autenticado. |
 | Entradas e contrato | POST /commissions; prefixo /api em todas as rotas |
 | Dados/pós-condição de sucesso | commissions e commission_members na mesma transação. |
-| Sequência UML | [seq-comando](Diagramas/renderizados/seq-comando.svg) |
+| Sequência UML | [seq-comando](Diagramas/ENTREGA_DEFINITIVA/renderizados/seq-comando.svg) |
 
 **Fluxo principal**
 
@@ -286,7 +286,7 @@ Fontes editáveis e todas as imagens: [catálogo dos diagramas](Diagramas/Diagra
 | Pré-condições | Sessão do proprietário; comissão existente. |
 | Entradas e contrato | PATCH /commissions/:commissionId; DELETE /commissions/:commissionId; prefixo /api em todas as rotas |
 | Dados/pós-condição de sucesso | commissions; exclusão remove vínculos por FK, mas a rota bloqueia comissão com reunião. |
-| Sequência UML | [seq-comando](Diagramas/renderizados/seq-comando.svg) |
+| Sequência UML | [seq-comando](Diagramas/ENTREGA_DEFINITIVA/renderizados/seq-comando.svg) |
 
 **Fluxo principal**
 
@@ -310,7 +310,7 @@ Fontes editáveis e todas as imagens: [catálogo dos diagramas](Diagramas/Diagra
 | Pré-condições | Integrante elegível: proprietário ou membro APPROVED da organização. |
 | Entradas e contrato | POST /commissions/:commissionId/members; PATCH/DELETE /commissions/:commissionId/members/:userId; prefixo /api em todas as rotas |
 | Dados/pós-condição de sucesso | commission_members; PK (commission_id,user_id) e índice parcial único de COORDINATOR. |
-| Sequência UML | [seq-comando](Diagramas/renderizados/seq-comando.svg) |
+| Sequência UML | [seq-comando](Diagramas/ENTREGA_DEFINITIVA/renderizados/seq-comando.svg) |
 
 **Fluxo principal**
 
@@ -334,7 +334,7 @@ Fontes editáveis e todas as imagens: [catálogo dos diagramas](Diagramas/Diagra
 | Pré-condições | API e SMTP configurados; e-mail ainda não cadastrado. |
 | Entradas e contrato | POST /auth/register; prefixo /api em todas as rotas |
 | Dados/pós-condição de sucesso | users: email_verified=FALSE, activation_hash=SHA-256(código), activation_expires; password_hash=bcrypt fator 10. |
-| Sequência UML | [seq-cadastro](Diagramas/renderizados/seq-cadastro.svg) |
+| Sequência UML | [seq-cadastro](Diagramas/ENTREGA_DEFINITIVA/renderizados/seq-cadastro.svg) |
 
 **Fluxo principal**
 
@@ -360,7 +360,7 @@ Fontes editáveis e todas as imagens: [catálogo dos diagramas](Diagramas/Diagra
 | Pré-condições | Na interface, organização APPROVED e usuário sem vínculo PENDING/APPROVED. |
 | Entradas e contrato | POST /organizations/:id/access-requests; PATCH /organizations/access-requests/:requestId; prefixo /api em todas as rotas |
 | Dados/pós-condição de sucesso | access_requests, UNIQUE(organization_id,user_id). |
-| Sequência UML | [seq-comando](Diagramas/renderizados/seq-comando.svg) |
+| Sequência UML | [seq-comando](Diagramas/ENTREGA_DEFINITIVA/renderizados/seq-comando.svg) |
 
 **Fluxo principal**
 
@@ -384,7 +384,7 @@ Fontes editáveis e todas as imagens: [catálogo dos diagramas](Diagramas/Diagra
 | Pré-condições | Membro e organização selecionados; interface exige proprietário e organização aprovada. |
 | Entradas e contrato | PATCH /organizations/access-requests/:requestId; prefixo /api em todas as rotas |
 | Dados/pós-condição de sucesso | access_requests.organization_role/status/updated_at. |
-| Sequência UML | [seq-comando](Diagramas/renderizados/seq-comando.svg) |
+| Sequência UML | [seq-comando](Diagramas/ENTREGA_DEFINITIVA/renderizados/seq-comando.svg) |
 
 **Fluxo principal**
 
@@ -408,7 +408,7 @@ Fontes editáveis e todas as imagens: [catálogo dos diagramas](Diagramas/Diagra
 | Pré-condições | Sessão válida; senha atual conhecida. |
 | Entradas e contrato | POST /auth/change-password; prefixo /api em todas as rotas |
 | Dados/pós-condição de sucesso | users.password_hash/updated_at; DELETE auth_sessions por user_id. |
-| Sequência UML | [seq-comando](Diagramas/renderizados/seq-comando.svg) |
+| Sequência UML | [seq-comando](Diagramas/ENTREGA_DEFINITIVA/renderizados/seq-comando.svg) |
 
 **Fluxo principal**
 
@@ -432,7 +432,7 @@ Fontes editáveis e todas as imagens: [catálogo dos diagramas](Diagramas/Diagra
 | Pré-condições | SMTP e API disponíveis; não exige sessão. |
 | Entradas e contrato | POST /auth/forgot-password; POST /auth/reset-password; prefixo /api em todas as rotas |
 | Dados/pós-condição de sucesso | users.reset_token=SHA-256(código), reset_token_expires; novo password_hash; remoção de auth_sessions. O vínculo google_id permanece. |
-| Sequência UML | [seq-recuperacao](Diagramas/renderizados/seq-recuperacao.svg) |
+| Sequência UML | [seq-recuperacao](Diagramas/ENTREGA_DEFINITIVA/renderizados/seq-recuperacao.svg) |
 
 **Fluxo principal**
 
@@ -458,7 +458,7 @@ Fontes editáveis e todas as imagens: [catálogo dos diagramas](Diagramas/Diagra
 | Pré-condições | Celular com biometria forte disponível e cadastrada; sessão válida. |
 | Entradas e contrato | PUT /users/:id; prefixo /api em todas as rotas |
 | Dados/pós-condição de sucesso | users.name/phone/updated_at; não altera email, system_role ou password_hash. |
-| Sequência UML | [seq-biometria](Diagramas/renderizados/seq-biometria.svg) |
+| Sequência UML | [seq-biometria](Diagramas/ENTREGA_DEFINITIVA/renderizados/seq-biometria.svg) |
 
 **Fluxo principal**
 
@@ -483,7 +483,7 @@ Fontes editáveis e todas as imagens: [catálogo dos diagramas](Diagramas/Diagra
 | Pré-condições | Sessão válida. |
 | Entradas e contrato | PUT /users/:id com {theme}; GET /sync; prefixo /api em todas as rotas |
 | Dados/pós-condição de sucesso | users.theme; cache JSON na chave @synple:incremento-1, coleção users, atributo theme. Token não fica nesse JSON. |
-| Sequência UML | [seq-comando](Diagramas/renderizados/seq-comando.svg) |
+| Sequência UML | [seq-comando](Diagramas/ENTREGA_DEFINITIVA/renderizados/seq-comando.svg) |
 
 **Fluxo principal**
 
@@ -508,7 +508,7 @@ Fontes editáveis e todas as imagens: [catálogo dos diagramas](Diagramas/Diagra
 | Pré-condições | Sessão SYSTEM_ADMIN; API alcançável. |
 | Entradas e contrato | GET /system; GET /health público; prefixo /api em todas as rotas |
 | Dados/pós-condição de sucesso | Consulta system_metadata e funções SQL; uptime não é persistido. system_subsystems é tabela legada, não monitor real. |
-| Sequência UML | [seq-sistema](Diagramas/renderizados/seq-sistema.svg) |
+| Sequência UML | [seq-sistema](Diagramas/ENTREGA_DEFINITIVA/renderizados/seq-sistema.svg) |
 
 **Fluxo principal**
 
@@ -532,7 +532,7 @@ Fontes editáveis e todas as imagens: [catálogo dos diagramas](Diagramas/Diagra
 | Pré-condições | Snapshot autorizado já carregado. |
 | Entradas e contrato | GET /sync; prefixo /api em todas as rotas |
 | Dados/pós-condição de sucesso | Sem tabela própria de relatório; coleções de GET /sync. |
-| Sequência UML | [seq-sincronizacao](Diagramas/renderizados/seq-sincronizacao.svg) |
+| Sequência UML | [seq-sincronizacao](Diagramas/ENTREGA_DEFINITIVA/renderizados/seq-sincronizacao.svg) |
 
 **Fluxo principal**
 
@@ -555,7 +555,7 @@ Fontes editáveis e todas as imagens: [catálogo dos diagramas](Diagramas/Diagra
 | Pré-condições | Sessão administrativa. |
 | Entradas e contrato | GET /system; GET /sync; prefixo /api em todas as rotas |
 | Dados/pós-condição de sucesso | Nenhuma mudança de estado de serviço; consultas. |
-| Sequência UML | [seq-sistema](Diagramas/renderizados/seq-sistema.svg) |
+| Sequência UML | [seq-sistema](Diagramas/ENTREGA_DEFINITIVA/renderizados/seq-sistema.svg) |
 
 **Fluxo principal**
 
@@ -578,7 +578,7 @@ Fontes editáveis e todas as imagens: [catálogo dos diagramas](Diagramas/Diagra
 | Pré-condições | Instalação migrada. |
 | Entradas e contrato | GET /sync; GET /system; prefixo /api em todas as rotas |
 | Dados/pós-condição de sucesso | system_metadata.initialized_at; startedAt derivado de process.uptime(). |
-| Sequência UML | [seq-sistema](Diagramas/renderizados/seq-sistema.svg) |
+| Sequência UML | [seq-sistema](Diagramas/ENTREGA_DEFINITIVA/renderizados/seq-sistema.svg) |
 
 **Fluxo principal**
 
@@ -601,7 +601,7 @@ Fontes editáveis e todas as imagens: [catálogo dos diagramas](Diagramas/Diagra
 | Pré-condições | Sessão local aberta; serviço remoto pode estar indisponível. |
 | Entradas e contrato | POST /auth/logout; prefixo /api em todas as rotas |
 | Dados/pós-condição de sucesso | DELETE auth_sessions quando alcançável; remoção de synple.session.v1 do SecureStore; JSON local vazio. |
-| Sequência UML | [seq-sistema](Diagramas/renderizados/seq-sistema.svg) |
+| Sequência UML | [seq-sistema](Diagramas/ENTREGA_DEFINITIVA/renderizados/seq-sistema.svg) |
 
 **Fluxo principal**
 
@@ -621,16 +621,16 @@ Fontes editáveis e todas as imagens: [catálogo dos diagramas](Diagramas/Diagra
 | Campo | Especificação |
 | --- | --- |
 | Ator | Visitante |
-| Tela e gatilho | Login → E-mail/Senha → botão Entrar como usuário ou administrador |
+| Tela e gatilho | Login → E-mail/Senha → botão Entrar; perfil identificado pelo servidor |
 | Pré-condições | Conta existente, ativa e API disponível. |
 | Entradas e contrato | POST /auth/login; GET /sync; prefixo /api em todas as rotas |
 | Dados/pós-condição de sucesso | auth_sessions.token_hash/user_id/expires_at. Token bruto não é guardado no banco ou AsyncStorage. |
-| Sequência UML | [seq-login](Diagramas/renderizados/seq-login.svg) |
+| Sequência UML | [seq-login](Diagramas/ENTREGA_DEFINITIVA/renderizados/seq-login.svg) |
 
 **Fluxo principal**
 
 1. Preencher e-mail/senha; validar formato do e-mail e presença da senha no app.
-2. Enviar credenciais ao servidor; seleção de modo não concede papel administrativo.
+2. Enviar e-mail e senha ao servidor; o perfil da conta define o papel administrativo.
 3. A API normaliza dados, compara bcrypt, verifica ativação e aplica limites.
 4. Emitir sessão opaca de sete dias; devolver perfil sem hash de senha.
 5. Guardar token em memória e tentar armazenamento biométrico protegido; consultar snapshot e abrir área conforme systemRole real.
@@ -650,7 +650,7 @@ Fontes editáveis e todas as imagens: [catálogo dos diagramas](Diagramas/Diagra
 | Pré-condições | Client IDs Web/plataforma e backend configurados; development build compatível no celular. |
 | Entradas e contrato | POST /auth/google; prefixo /api em todas as rotas |
 | Dados/pós-condição de sucesso | users.google_id/email_verified; senha aleatória com hash para nova conta Google; auth_sessions. |
-| Sequência UML | [seq-login](Diagramas/renderizados/seq-login.svg) |
+| Sequência UML | [seq-login](Diagramas/ENTREGA_DEFINITIVA/renderizados/seq-login.svg) |
 
 **Fluxo principal**
 
@@ -675,7 +675,7 @@ Fontes editáveis e todas as imagens: [catálogo dos diagramas](Diagramas/Diagra
 | Pré-condições | Cadastro local pendente; e-mail de ativação emitido. |
 | Entradas e contrato | POST /auth/verify-email; POST /auth/resend-activation; prefixo /api em todas as rotas |
 | Dados/pós-condição de sucesso | users.email_verified/activation_hash/activation_expires. |
-| Sequência UML | [seq-cadastro](Diagramas/renderizados/seq-cadastro.svg) |
+| Sequência UML | [seq-cadastro](Diagramas/ENTREGA_DEFINITIVA/renderizados/seq-cadastro.svg) |
 
 **Fluxo principal**
 
@@ -699,7 +699,7 @@ Fontes editáveis e todas as imagens: [catálogo dos diagramas](Diagramas/Diagra
 | Pré-condições | Novo proprietário distinto do atual e com acesso APPROVED. |
 | Entradas e contrato | PATCH /organizations/:id/owner; prefixo /api em todas as rotas |
 | Dados/pós-condição de sucesso | organizations.owner_id e access_requests do antigo dono. |
-| Sequência UML | [seq-transferencia](Diagramas/renderizados/seq-transferencia.svg) |
+| Sequência UML | [seq-transferencia](Diagramas/ENTREGA_DEFINITIVA/renderizados/seq-transferencia.svg) |
 
 **Fluxo principal**
 
@@ -724,7 +724,7 @@ Fontes editáveis e todas as imagens: [catálogo dos diagramas](Diagramas/Diagra
 | Pré-condições | Destinatário existente, verificado e diferente do proprietário. |
 | Entradas e contrato | POST /organizations/:id/invitations; prefixo /api em todas as rotas |
 | Dados/pós-condição de sucesso | access_requests; uma linha por organização/pessoa. |
-| Sequência UML | [seq-convite-org](Diagramas/renderizados/seq-convite-org.svg) |
+| Sequência UML | [seq-convite-org](Diagramas/ENTREGA_DEFINITIVA/renderizados/seq-convite-org.svg) |
 
 **Fluxo principal**
 
@@ -748,7 +748,7 @@ Fontes editáveis e todas as imagens: [catálogo dos diagramas](Diagramas/Diagra
 | Pré-condições | Convite PENDING recebido pela própria conta. |
 | Entradas e contrato | PATCH /organizations/:id/invitations/:requestId; prefixo /api em todas as rotas |
 | Dados/pós-condição de sucesso | access_requests.status/invitation_accepted/updated_at. |
-| Sequência UML | [seq-convite-org](Diagramas/renderizados/seq-convite-org.svg) |
+| Sequência UML | [seq-convite-org](Diagramas/ENTREGA_DEFINITIVA/renderizados/seq-convite-org.svg) |
 
 **Fluxo principal**
 
@@ -772,7 +772,7 @@ Fontes editáveis e todas as imagens: [catálogo dos diagramas](Diagramas/Diagra
 | Pré-condições | Sessão válida. |
 | Entradas e contrato | GET /sync; prefixo /api em todas as rotas |
 | Dados/pós-condição de sucesso | AsyncStorage @synple:incremento-1; não armazena senha/token. Sem fila automática de cadastros offline. |
-| Sequência UML | [seq-sincronizacao](Diagramas/renderizados/seq-sincronizacao.svg) |
+| Sequência UML | [seq-sincronizacao](Diagramas/ENTREGA_DEFINITIVA/renderizados/seq-sincronizacao.svg) |
 
 **Fluxo principal**
 
@@ -796,7 +796,7 @@ Fontes editáveis e todas as imagens: [catálogo dos diagramas](Diagramas/Diagra
 | Pré-condições | Celular com SecureStore/biometria disponíveis e token salvo. |
 | Entradas e contrato | GET /auth/me; prefixo /api em todas as rotas |
 | Dados/pós-condição de sucesso | SecureStore synple.session.v1 protegido; memória do app; auth_sessions no servidor. |
-| Sequência UML | [seq-biometria](Diagramas/renderizados/seq-biometria.svg) |
+| Sequência UML | [seq-biometria](Diagramas/ENTREGA_DEFINITIVA/renderizados/seq-biometria.svg) |
 
 **Fluxo principal**
 
@@ -820,13 +820,13 @@ Fontes editáveis e todas as imagens: [catálogo dos diagramas](Diagramas/Diagra
 | Pré-condições | Conta alvo existente e diferente do administrador ativo; interface também restringe remoção de outro administrador. |
 | Entradas e contrato | DELETE /users/:id; prefixo /api em todas as rotas |
 | Dados/pós-condição de sucesso | users e cascatas/restrições reais das FKs; sessões são removidas por cascata. |
-| Sequência UML | [seq-comando](Diagramas/renderizados/seq-comando.svg) |
+| Sequência UML | [seq-comando](Diagramas/ENTREGA_DEFINITIVA/renderizados/seq-comando.svg) |
 
 **Fluxo principal**
 
 1. Selecionar usuário e confirmar a exclusão.
 2. API verifica SYSTEM_ADMIN e inicia transação.
-3. Bloquear remoção do próprio administrador, de coordenador atual e de aprovador fixado em ata em revisão/aprovada.
+3. Bloquear remoção do próprio administrador, de coordenador atual, de aprovador fixado em ata em revisão/aprovada e de usuário com voto registrado em votação.
 4. Executar DELETE conforme FKs; em sucesso confirmar e remover dados locais correspondentes.
 
 **Alternativas, exceções e limites:** É necessário transferir coordenação antes de remover coordenador. Referências históricas sem cascata podem impedir exclusão; conflitos retornam 409. A proteção contra excluir qualquer outro SYSTEM_ADMIN está na interface, não como regra equivalente em todas as ramificações do backend.
@@ -844,7 +844,7 @@ Fontes editáveis e todas as imagens: [catálogo dos diagramas](Diagramas/Diagra
 | Pré-condições | Organização selecionada; sessão do proprietário. |
 | Entradas e contrato | PATCH /organizations/:id; prefixo /api em todas as rotas |
 | Dados/pós-condição de sucesso | organizations.name/document/updated_at; owner_id não muda nessa operação. |
-| Sequência UML | [seq-comando](Diagramas/renderizados/seq-comando.svg) |
+| Sequência UML | [seq-comando](Diagramas/ENTREGA_DEFINITIVA/renderizados/seq-comando.svg) |
 
 **Fluxo principal**
 
@@ -868,7 +868,7 @@ Fontes editáveis e todas as imagens: [catálogo dos diagramas](Diagramas/Diagra
 | Pré-condições | Comissão existente; gestor com sessão válida. |
 | Entradas e contrato | POST /meetings; prefixo /api em todas as rotas |
 | Dados/pós-condição de sucesso | meetings e meeting_invitations na mesma transação. |
-| Sequência UML | [seq-agendamento](Diagramas/renderizados/seq-agendamento.svg) |
+| Sequência UML | [seq-agendamento](Diagramas/ENTREGA_DEFINITIVA/renderizados/seq-agendamento.svg) |
 
 **Fluxo principal**
 
@@ -893,7 +893,7 @@ Fontes editáveis e todas as imagens: [catálogo dos diagramas](Diagramas/Diagra
 | Pré-condições | Mesmo contexto de RF02.01; integrantes pertencentes à comissão. |
 | Entradas e contrato | POST /meetings, campo inviteeIds; prefixo /api em todas as rotas |
 | Dados/pós-condição de sucesso | meeting_invitations, UNIQUE(meeting_id,user_id). |
-| Sequência UML | [seq-agendamento](Diagramas/renderizados/seq-agendamento.svg) |
+| Sequência UML | [seq-agendamento](Diagramas/ENTREGA_DEFINITIVA/renderizados/seq-agendamento.svg) |
 
 **Fluxo principal**
 
@@ -916,7 +916,7 @@ Fontes editáveis e todas as imagens: [catálogo dos diagramas](Diagramas/Diagra
 | Pré-condições | Convite da própria pessoa. |
 | Entradas e contrato | PATCH /meetings/:meetingId/invitation; prefixo /api em todas as rotas |
 | Dados/pós-condição de sucesso | meeting_invitations.status/responded_at. |
-| Sequência UML | [seq-agendamento](Diagramas/renderizados/seq-agendamento.svg) |
+| Sequência UML | [seq-agendamento](Diagramas/ENTREGA_DEFINITIVA/renderizados/seq-agendamento.svg) |
 
 **Fluxo principal**
 
@@ -939,7 +939,7 @@ Fontes editáveis e todas as imagens: [catálogo dos diagramas](Diagramas/Diagra
 | Pré-condições | Convite ACCEPTED e ausência de entrada anterior; ata ainda permite novas entradas. Reunião em andamento. |
 | Entradas e contrato | PATCH /meetings/:meetingId/attendance com action=ENTER; prefixo /api em todas as rotas |
 | Dados/pós-condição de sucesso | meeting_attendance, UNIQUE(meeting_id,user_id). |
-| Sequência UML | [seq-presenca](Diagramas/renderizados/seq-presenca.svg) |
+| Sequência UML | [seq-presenca](Diagramas/ENTREGA_DEFINITIVA/renderizados/seq-presenca.svg) |
 
 **Fluxo principal**
 
@@ -962,7 +962,7 @@ Fontes editáveis e todas as imagens: [catálogo dos diagramas](Diagramas/Diagra
 | Pré-condições | Entrada existente e saída ainda não registrada. Reunião em andamento. |
 | Entradas e contrato | PATCH /meetings/:meetingId/attendance com action=EXIT; prefixo /api em todas as rotas |
 | Dados/pós-condição de sucesso | meeting_attendance.left_at. |
-| Sequência UML | [seq-presenca](Diagramas/renderizados/seq-presenca.svg) |
+| Sequência UML | [seq-presenca](Diagramas/ENTREGA_DEFINITIVA/renderizados/seq-presenca.svg) |
 
 **Fluxo principal**
 
@@ -985,7 +985,7 @@ Fontes editáveis e todas as imagens: [catálogo dos diagramas](Diagramas/Diagra
 | Pré-condições | Acesso à reunião por gestão ou convite, inclusive histórico. |
 | Entradas e contrato | GET /meetings/:meetingId/attendance; prefixo /api em todas as rotas |
 | Dados/pós-condição de sucesso | Leitura de meeting_invitations, meeting_attendance e users; sem nova tabela de relatório. |
-| Sequência UML | [seq-presenca](Diagramas/renderizados/seq-presenca.svg) |
+| Sequência UML | [seq-presenca](Diagramas/ENTREGA_DEFINITIVA/renderizados/seq-presenca.svg) |
 
 **Fluxo principal**
 
@@ -1009,7 +1009,7 @@ Fontes editáveis e todas as imagens: [catálogo dos diagramas](Diagramas/Diagra
 | Pré-condições | Gestor autorizado; ata não aprovada. |
 | Entradas e contrato | POST /meetings/:meetingId/minutes; prefixo /api em todas as rotas |
 | Dados/pós-condição de sucesso | meeting_minutes e remoção das decisões substituídas em meeting_minutes_approvals. |
-| Sequência UML | [seq-ata](Diagramas/renderizados/seq-ata.svg) |
+| Sequência UML | [seq-ata](Diagramas/ENTREGA_DEFINITIVA/renderizados/seq-ata.svg) |
 
 **Fluxo principal**
 
@@ -1033,7 +1033,7 @@ Fontes editáveis e todas as imagens: [catálogo dos diagramas](Diagramas/Diagra
 | Pré-condições | Ata DRAFT salva e pelo menos uma pessoa com entrada registrada. |
 | Entradas e contrato | POST /meetings/:meetingId/minutes/submit; prefixo /api em todas as rotas |
 | Dados/pós-condição de sucesso | meeting_minutes e conjunto UUID[]; sem tabela de snapshot completo de pessoas. |
-| Sequência UML | [seq-ata](Diagramas/renderizados/seq-ata.svg) |
+| Sequência UML | [seq-ata](Diagramas/ENTREGA_DEFINITIVA/renderizados/seq-ata.svg) |
 
 **Fluxo principal**
 
@@ -1057,7 +1057,7 @@ Fontes editáveis e todas as imagens: [catálogo dos diagramas](Diagramas/Diagra
 | Pré-condições | Ata IN_REVIEW e ator incluído em required_approver_ids. |
 | Entradas e contrato | PATCH /meetings/:meetingId/minutes/approval; prefixo /api em todas as rotas |
 | Dados/pós-condição de sucesso | meeting_minutes_approvals e meeting_minutes.status/approved_at. |
-| Sequência UML | [seq-ata](Diagramas/renderizados/seq-ata.svg) |
+| Sequência UML | [seq-ata](Diagramas/ENTREGA_DEFINITIVA/renderizados/seq-ata.svg) |
 
 **Fluxo principal**
 
@@ -1081,7 +1081,7 @@ Fontes editáveis e todas as imagens: [catálogo dos diagramas](Diagramas/Diagra
 | Pré-condições | Ata salva; formulário sem alterações locais pendentes; versão atual. |
 | Entradas e contrato | HEAD/GET /meetings/:meetingId/minutes/pdf; POST /auth/download-ticket; prefixo /api em todas as rotas |
 | Dados/pós-condição de sucesso | Leitura das tabelas de reunião/ata/presença/decisões; download_tickets para autorização temporária; PDF não é armazenado no banco. |
-| Sequência UML | [seq-pdf](Diagramas/renderizados/seq-pdf.svg) |
+| Sequência UML | [seq-pdf](Diagramas/ENTREGA_DEFINITIVA/renderizados/seq-pdf.svg) |
 
 **Fluxo principal**
 
@@ -1106,7 +1106,7 @@ Fontes editáveis e todas as imagens: [catálogo dos diagramas](Diagramas/Diagra
 | Pré-condições | Sessão válida, gestão da reunião e ao menos uma entrada registrada. |
 | Entradas e contrato | POST /meetings/:meetingId/votes; prefixo /api em todas as rotas |
 | Dados/pós-condição de sucesso | meeting_votes e meeting_vote_options; status OPEN. |
-| Sequência UML | [seq-votacoes](Diagramas/renderizados/seq-votacoes.svg) |
+| Sequência UML | [seq-votacoes](Diagramas/ENTREGA_DEFINITIVA/renderizados/seq-votacoes.svg) |
 
 **Fluxo principal**
 
@@ -1129,7 +1129,7 @@ Fontes editáveis e todas as imagens: [catálogo dos diagramas](Diagramas/Diagra
 | Pré-condições | Votação OPEN e presença registrada. |
 | Entradas e contrato | POST /meetings/:meetingId/votes/:voteId/ballot; prefixo /api em todas as rotas |
 | Dados/pós-condição de sucesso | meeting_vote_ballots; UNIQUE(vote_id,user_id). |
-| Sequência UML | [seq-votacoes](Diagramas/renderizados/seq-votacoes.svg) |
+| Sequência UML | [seq-votacoes](Diagramas/ENTREGA_DEFINITIVA/renderizados/seq-votacoes.svg) |
 
 **Fluxo principal**
 
@@ -1152,7 +1152,7 @@ Fontes editáveis e todas as imagens: [catálogo dos diagramas](Diagramas/Diagra
 | Pré-condições | Gestor autenticado e votação aberta. |
 | Entradas e contrato | PATCH /meetings/:meetingId/votes/:voteId/close; prefixo /api em todas as rotas |
 | Dados/pós-condição de sucesso | meeting_votes.status e closed_at; apuração fica imutável. |
-| Sequência UML | [seq-votacoes](Diagramas/renderizados/seq-votacoes.svg) |
+| Sequência UML | [seq-votacoes](Diagramas/ENTREGA_DEFINITIVA/renderizados/seq-votacoes.svg) |
 
 **Fluxo principal**
 
@@ -1174,7 +1174,7 @@ Fontes editáveis e todas as imagens: [catálogo dos diagramas](Diagramas/Diagra
 | Pré-condições | Sessão válida. |
 | Entradas e contrato | GET /meetings/participation/report; prefixo /api em todas as rotas |
 | Dados/pós-condição de sucesso | Consulta de meeting_attendance, meetings, commissions, organizations e meeting_minutes. |
-| Sequência UML | [seq-relatorio-participacao](Diagramas/renderizados/seq-relatorio-participacao.svg) |
+| Sequência UML | [seq-relatorio-participacao](Diagramas/ENTREGA_DEFINITIVA/renderizados/seq-relatorio-participacao.svg) |
 
 **Fluxo principal**
 
@@ -1197,7 +1197,7 @@ Fontes editáveis e todas as imagens: [catálogo dos diagramas](Diagramas/Diagra
 | Pré-condições | Aplicativo aberto. |
 | Entradas e contrato | Sem endpoint; ManualScreen(); prefixo /api em todas as rotas |
 | Dados/pós-condição de sucesso | Conteúdo empacotado em ManualScreen.js. |
-| Sequência UML | [seq-manual-consulta](Diagramas/renderizados/seq-manual-consulta.svg) |
+| Sequência UML | [seq-manual-consulta](Diagramas/ENTREGA_DEFINITIVA/renderizados/seq-manual-consulta.svg) |
 
 **Fluxo principal**
 
@@ -1219,7 +1219,7 @@ Fontes editáveis e todas as imagens: [catálogo dos diagramas](Diagramas/Diagra
 | Pré-condições | Reunião ainda não iniciada e sem presença. |
 | Entradas e contrato | PATCH /meetings/:meetingId; prefixo /api em todas as rotas |
 | Dados/pós-condição de sucesso | meetings atualizada; convites voltam a INVITED, mantendo organizador aceito. |
-| Sequência UML | [seq-editar-reuniao](Diagramas/renderizados/seq-editar-reuniao.svg) |
+| Sequência UML | [seq-editar-reuniao](Diagramas/ENTREGA_DEFINITIVA/renderizados/seq-editar-reuniao.svg) |
 
 **Fluxo principal**
 
@@ -1242,7 +1242,7 @@ Fontes editáveis e todas as imagens: [catálogo dos diagramas](Diagramas/Diagra
 | Pré-condições | Mesmo acesso de agendamento. |
 | Entradas e contrato | POST /meetings ou PATCH /meetings/:meetingId; prefixo /api em todas as rotas |
 | Dados/pós-condição de sucesso | meetings.all_day, location, details e timestamps ISO. |
-| Sequência UML | [seq-editar-reuniao](Diagramas/renderizados/seq-editar-reuniao.svg) |
+| Sequência UML | [seq-editar-reuniao](Diagramas/ENTREGA_DEFINITIVA/renderizados/seq-editar-reuniao.svg) |
 
 **Fluxo principal**
 
@@ -1265,7 +1265,7 @@ Fontes editáveis e todas as imagens: [catálogo dos diagramas](Diagramas/Diagra
 | Pré-condições | Sessão válida e acesso à reunião. |
 | Entradas e contrato | GET/POST /meetings/:meetingId/attachments; GET /meetings/:meetingId/attachments/:attachmentId; prefixo /api em todas as rotas |
 | Dados/pós-condição de sucesso | meeting_attachments com BYTEA; conteúdo não compõe /sync. |
-| Sequência UML | [seq-anexos](Diagramas/renderizados/seq-anexos.svg) |
+| Sequência UML | [seq-anexos](Diagramas/ENTREGA_DEFINITIVA/renderizados/seq-anexos.svg) |
 
 **Fluxo principal**
 
@@ -1288,7 +1288,7 @@ Fontes editáveis e todas as imagens: [catálogo dos diagramas](Diagramas/Diagra
 | Pré-condições | Reunião em andamento; convite aceito; primeira entrada/saída. |
 | Entradas e contrato | POST /meetings/:meetingId/attendance-code; PATCH /meetings/:meetingId/attendance; prefixo /api em todas as rotas |
 | Dados/pós-condição de sucesso | meeting_attendance_codes guarda SHA-256; meeting_attendance.method=CODE. |
-| Sequência UML | [seq-presenca](Diagramas/renderizados/seq-presenca.svg) |
+| Sequência UML | [seq-presenca](Diagramas/ENTREGA_DEFINITIVA/renderizados/seq-presenca.svg) |
 
 **Fluxo principal**
 
@@ -1311,7 +1311,7 @@ Fontes editáveis e todas as imagens: [catálogo dos diagramas](Diagramas/Diagra
 | Pré-condições | Gestor autenticado, convidado aceito e reunião em andamento. |
 | Entradas e contrato | PATCH /meetings/:meetingId/attendance/:participantId; prefixo /api em todas as rotas |
 | Dados/pós-condição de sucesso | meeting_attendance; recorded_by, method e horários do servidor. |
-| Sequência UML | [seq-presenca](Diagramas/renderizados/seq-presenca.svg) |
+| Sequência UML | [seq-presenca](Diagramas/ENTREGA_DEFINITIVA/renderizados/seq-presenca.svg) |
 
 **Fluxo principal**
 
@@ -1334,7 +1334,7 @@ Fontes editáveis e todas as imagens: [catálogo dos diagramas](Diagramas/Diagra
 | Pré-condições | Sessão e acesso à reunião; não exige ata. |
 | Entradas e contrato | GET /meetings/:meetingId/attendance/pdf; POST /auth/download-ticket; prefixo /api em todas as rotas |
 | Dados/pós-condição de sucesso | Consulta sem persistir PDF; fontes Unicode incorporadas. |
-| Sequência UML | [seq-presenca-pdf](Diagramas/renderizados/seq-presenca-pdf.svg) |
+| Sequência UML | [seq-presenca-pdf](Diagramas/ENTREGA_DEFINITIVA/renderizados/seq-presenca-pdf.svg) |
 
 **Fluxo principal**
 
@@ -1350,11 +1350,11 @@ Fontes editáveis e todas as imagens: [catálogo dos diagramas](Diagramas/Diagra
 
 Os classificadores de domínio representam responsabilidades/dados, não classes JavaScript inexistentes. Não foi atribuída a Usuario uma operação login que, no código, pertence ao módulo de API/rotas. Os módulos de projeto têm operações com parâmetros/retornos reais e dicionário próprio. Associação não implica exclusão em cascata; esta é especificada no modelo físico.
 
-![Classes de cadastro](Diagramas/renderizados/classes-cadastro.svg)
+![Classes de cadastro](Diagramas/ENTREGA_DEFINITIVA/renderizados/classes-cadastro.svg)
 
-![Classes de reuniões](Diagramas/renderizados/classes-reunioes.svg)
+![Classes de reuniões](Diagramas/ENTREGA_DEFINITIVA/renderizados/classes-reunioes.svg)
 
-![Módulos e operações](Diagramas/renderizados/classes-servicos.svg)
+![Módulos e operações](Diagramas/ENTREGA_DEFINITIVA/renderizados/classes-servicos.svg)
 
 [Dicionário de classes, atributos e métodos](dicionario-classes.md). Atributos técnicos e nomes SQL completos estão no dicionário físico; os recortes visuais não substituem esses inventários.
 
@@ -1362,11 +1362,11 @@ Os classificadores de domínio representam responsabilidades/dados, não classes
 
 O modelo relacional representa tabelas, PKs, FKs e cardinalidades de referência. Não é chamado de diagrama UML. As multiplicidades relacionais indicam capacidade SQL, não pressupõem que cada organização já possua comissões ou cada reunião já possua uma ata.
 
-![Cadastro relacional](Diagramas/renderizados/relacional-cadastro.svg)
+![Cadastro relacional](Diagramas/ENTREGA_DEFINITIVA/renderizados/relacional-cadastro.svg)
 
-![Reuniões relacionais](Diagramas/renderizados/relacional-reunioes.svg)
+![Reuniões relacionais](Diagramas/ENTREGA_DEFINITIVA/renderizados/relacional-reunioes.svg)
 
-![Segurança e operação relacionais](Diagramas/renderizados/relacional-seguranca.svg)
+![Segurança e operação relacionais](Diagramas/ENTREGA_DEFINITIVA/renderizados/relacional-seguranca.svg)
 
 [Dicionário físico completo](dicionario-banco-dados.md): inventário de tabelas, colunas, restrições e índices extraído do DDL atual. Inclui tipos, nulabilidade, defaults, PK/FK/UNIQUE/CHECK, índices parciais/expressões e ações de exclusão. [Snapshot estruturado](modelo-fisico.snapshot.json) permite conferir o inventário.
 
@@ -1406,7 +1406,7 @@ Recuperação: tela Login → Esqueci minha senha; campo E-mail cadastrado e bot
 
 Sessão: perfil devolvido por login inclui token; api.js separa o token do perfil e o envia em Authorization: Bearer. Cache não recebe esse token. A validação da sessão é no servidor a cada recurso privado; biometria apenas libera sessão protegida localmente e autoriza o formulário de perfil.
 
-Estados de interface, fonte e componentes: [contrato de interfaces](../Synple/docs/INTERFACES.md). Padrões de programação diários: [PADROES_DESENVOLVIMENTO.md](../Synple/docs/PADROES_DESENVOLVIMENTO.md). Os formulários, o modelo físico e os dicionários adotam os identificadores reais; classes conceituais usam nomes de domínio em português com mapeamento explícito.
+Estados de interface, fonte e componentes: [contrato de interfaces](INTERFACES.md). Padrões de programação diários: [PADROES_DESENVOLVIMENTO.md](PADROES_DESENVOLVIMENTO.md). Os formulários, o modelo físico e os dicionários adotam os identificadores reais; classes conceituais usam nomes de domínio em português com mapeamento explícito.
 
 ## 10. Testes, rastreabilidade e evidências
 
@@ -1423,7 +1423,7 @@ Cada RF está ligado a um contrato e a uma sequência no próprio formulário. P
 | mobile/test/cacheSafety.test.js | Remoção de credenciais aninhadas sem mutar objeto original | RF25 |
 | mobile/test/meetings.test.js e meetingMinutesPdf.test.js | Datas, lista, aprovadores, URL/HEAD/MIME/erros antes do navegador | RF02.01, RF02.06, RF02.09, RF02.10 |
 
-[Resultados registrados da revisão de código](../Synple/docs/VERIFICACAO_CORRECOES.md): 35 testes backend e 23 mobile aprovados, exportação de bundles e migração. Nesta revisão documental, extração de schema e renderização UML são validações de documentação; não são nova execução dos 58 testes ou dos APKs. [Registro desta revisão documental](VERIFICACAO_DOCUMENTACAO.md).
+[Resultados registrados da revisão de código](VERIFICACAO_CORRECOES.md): 35 testes backend e 23 mobile aprovados, exportação de bundles e migração. Nesta revisão documental, extração de schema e renderização UML são validações de documentação; não são nova execução dos 58 testes ou dos APKs. [Registro desta revisão documental](VERIFICACAO_DOCUMENTACAO.md).
 
 **Roteiro manual complementar:** executar RFs em Android e iOS, usando duas contas em dois aparelhos; testar offline, teclado/fonte/tema, OAuth, envio real de e-mail, biometria cancelada, mudança de propriedade, coordenação, aceite/recusa e PDF com ticket expirado. Registrar também limites conhecidos para não confundir resultado observado com comportamento desejado.
 
@@ -1446,4 +1446,4 @@ Cada RF está ligado a um contrato e a uma sequência no próprio formulário. P
 
 Antes de entregar: conferir padrão institucional fornecido pelo professor (o formulário original não está disponível neste checkout); manter esta especificação como referência principal, dicionários e fontes UML como anexos versionados; registrar commit/build/data da evidência; separar teste automatizado, renderização e teste físico; citar somente tecnologias instaladas; atualizar todas as fichas afetadas por mudança de contrato.
 
-Não há necessidade de anexar node_modules ou senhas para documentar. Dicionário físico e versões são regenerados com generate-data-dictionary.cjs; fontes UML com generate-uml.cjs; esta especificação com generate-main-spec.cjs. Qualquer regeneração exige revisão semântica dos textos manuais e conferência visual das imagens. [Índice geral do projeto](../Documentacao_do_ProjetoSynple.md).
+Não há necessidade de anexar node_modules ou senhas para documentar. Dicionário físico e versões são regenerados com generate-data-dictionary.cjs; fontes UML com generate-uml.cjs; esta especificação com generate-main-spec.cjs. Qualquer regeneração exige revisão semântica dos textos manuais e conferência visual das imagens. [Índice geral do projeto](Documentacao_do_ProjetoSynple.md).

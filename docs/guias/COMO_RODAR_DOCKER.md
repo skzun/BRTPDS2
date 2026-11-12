@@ -61,4 +61,4 @@ O boot aplica migrações e preserva dados. Somente para criar dados fictícios 
 - `npm run start:local`: Synple instalado pela rede local.
 - `npm run start:local:go`: Expo Go pela rede local.
 
-Somente os modos locais exigem computador e celular na mesma rede. Veja também o [README](README.md).
+Somente os modos locais exigem computador e celular na mesma rede. Veja também o [README](../../README.md).

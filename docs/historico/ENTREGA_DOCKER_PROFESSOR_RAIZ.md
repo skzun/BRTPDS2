@@ -1,6 +1,9 @@
 # 🎓 Entrega do Projeto Synple — Guia de Execução Docker para o Professor
 
-> **Inicialização atual:** siga [Como rodar](COMO_RODAR_DOCKER.md) ou o [README](README.md). O padrão é `iniciar.ps1` na raiz, com o Synple instalado (SDK 58) e túneis ngrok/Cloudflare para celular em outra rede. `npm start` em `Synple/mobile` também usa túneis. O boot aplica migrações sem seeds; as referências históricas abaixo a seed automático e Expo Go não descrevem o fluxo atual.
+> Documento histórico preservado em 12/11/2026. Para iniciar o projeto hoje, use o [guia atual](../guias/COMO_RODAR_DOCKER.md). Consulte a [central](../README.md) antes de seguir comandos antigos.
+
+
+> **Inicialização atual:** siga [Como rodar](../guias/COMO_RODAR_DOCKER.md) ou o [README](../../README.md). O padrão é `iniciar.ps1` na raiz, com o Synple instalado (SDK 58) e túneis ngrok/Cloudflare para celular em outra rede. `npm start` em `Synple/mobile` também usa túneis. O boot aplica migrações sem seeds; as referências históricas abaixo a seed automático e Expo Go não descrevem o fluxo atual.
 
 Este documento descreve a arquitetura em containers e todas as formas para o professor avaliar e rodar o projeto **Synple** utilizando **Docker**.
 

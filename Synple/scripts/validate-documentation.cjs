@@ -1,7 +1,15 @@
 const fs=require('fs');const path=require('path');
 const root=path.resolve(__dirname,'../..');
 const errors=[];
-const files=['docs/INCREMENTO_3.md','docs/ENTREGA_INCREMENTO_3.md','docs/VALIDACAO_EM_APARELHOS.md','Documentacao_do_ProjetoSynple.md','docs/incremento-1-especificacao-completa.md','docs/dicionario-banco-dados.md','docs/dicionario-classes.md','docs/tecnologias-versoes.md','docs/VERIFICACAO_DOCUMENTACAO.md','docs/Diagramas/Diagramas_Casos_de_Uso.md','docs/incremento-2-reunioes.md','Synple/DOCUMENTACAO_SOFTWARE.md','Synple/docs/INCREMENTO_2.md'];
+const files=['README.md','Synple/README.md','Synple/docs/README.md'];
+function collectDocuments(folder) {
+ for(const item of fs.readdirSync(path.join(root,folder),{withFileTypes:true})) {
+  const relative=folder+'/'+item.name;
+  if(item.isDirectory())collectDocuments(relative);
+  else if(item.name.endsWith('.md'))files.push(relative);
+ }
+}
+collectDocuments('docs');
 function anchors(file) {
  const source=fs.readFileSync(file,'utf8');const ids=new Set();const seen=new Map();
  for(const m of source.matchAll(/<a\s+id="([^"]+)"/g))ids.add(m[1]);
@@ -24,7 +32,7 @@ for(const rel of files) {
  }
 }
 const requirements=JSON.parse(fs.readFileSync(path.join(root,'docs/requisitos.snapshot.json'),'utf8'));
-const ids=new Set();const sourceDir=path.join(root,'docs/Diagramas/fontes');
+const ids=new Set();const sourceDir=path.join(root,'docs/Diagramas/ENTREGA_DEFINITIVA/fontes');
 const names=fs.readdirSync(sourceDir).filter(x=>x.endsWith('.puml'));
 const usecases=names.filter(n=>n.startsWith('uc-')).map(n=>fs.readFileSync(path.join(sourceDir,n),'utf8')).join('\n');
 for(const r of requirements) {
@@ -35,7 +43,7 @@ for(const r of requirements) {
 }
 for(const name of names) {
  const source=fs.readFileSync(path.join(sourceDir,name),'utf8');
- const svgFile=path.join(root,'docs/Diagramas/renderizados',name.replace('.puml','.svg'));
+ const svgFile=path.join(root,'docs/Diagramas/ENTREGA_DEFINITIVA/renderizados',name.replace('.puml','.svg'));
  if(!source.startsWith('@startuml')||!source.trim().endsWith('@enduml'))errors.push('Delimitadores UML inválidos: '+name);
  if(!fs.existsSync(svgFile)){errors.push('SVG ausente: '+name);continue;}
  const svg=fs.readFileSync(svgFile,'utf8');

@@ -4,7 +4,7 @@ Para o passo a passo geral de instalação, inicialização e uso, consulte [GUI
 
 O Synple usa o SDK nativo de login do Google em Android/iOS e `google-auth-library` no backend. A implementação não usa Firebase Authentication, Identity Platform nem APIs pagas: o login básico com as credenciais OAuth deste guia não exige plano pago do Google hoje.
 
-> Não é possível garantir preços ou políticas futuras de uma plataforma de terceiros. Custos de hospedagem e de publicação nas lojas, se houver, são independentes deste login. Veja a seção de custos em [DOCUMENTACAO_SOFTWARE.md](DOCUMENTACAO_SOFTWARE.md#custo-e-licenças).
+> Não é possível garantir preços ou políticas futuras de uma plataforma de terceiros. Custos de hospedagem e de publicação nas lojas, se houver, são independentes deste login. Consulte também a documentação técnica em [DOCUMENTACAO_SOFTWARE.md](../DOCUMENTACAO_SOFTWARE.md).
 
 ## 1. Criar as credenciais OAuth
 

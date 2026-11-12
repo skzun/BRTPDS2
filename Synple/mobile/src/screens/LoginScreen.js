@@ -19,7 +19,6 @@ export function LoginScreen({ onLogin, onGoogleLogin, onRegister, onRecoverAccou
   const [activationEmail, setActivationEmail] = useState('');
   const [activationCode, setActivationCode] = useState('');
   const [tab, setTab] = useState('LOGIN');
-  const [mode, setMode] = useState('USER');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [registration, setRegistration] = useState({ name: '', email: '', phone: '', password: '', confirmPassword: '' });
@@ -173,11 +172,6 @@ export function LoginScreen({ onLogin, onGoogleLogin, onRegister, onRecoverAccou
           {tab === 'LOGIN' && (
             <>
               <Text style={styles.cardTitle}>Entrar</Text>
-              <Text style={styles.hint}>Selecione o tipo de acesso.</Text>
-              <View style={styles.loginModeRow}>
-                <Choice label="Admin. do sistema" active={mode === 'SYSTEM_ADMIN'} onPress={() => setMode('SYSTEM_ADMIN')} />
-                <Choice label="Usuário" active={mode === 'USER'} onPress={() => setMode('USER')} />
-              </View>
               <Field label="E-mail" value={email} onChangeText={setEmail} placeholder="voce@email.com" keyboardType="email-address" />
               <Field label="Senha" value={password} onChangeText={setPassword} placeholder="Sua senha" secureTextEntry />
               <Pressable style={styles.forgotLink} onPress={() => { setTab('FORGOT'); setForgotEmail(email); setForgotStep(1); setResetCode(''); }}>
@@ -185,9 +179,9 @@ export function LoginScreen({ onLogin, onGoogleLogin, onRegister, onRecoverAccou
               </Pressable>
               <Pressable style={styles.primaryButton} disabled={isSubmitting} onPress={async () => {
                 setIsSubmitting(true);
-                try { await onLogin({ email, password, mode }); } finally { setIsSubmitting(false); }
+                try { await onLogin({ email, password }); } finally { setIsSubmitting(false); }
               }}>
-                <Text style={styles.primaryButtonText}>Entrar como {mode === 'SYSTEM_ADMIN' ? 'administrador do sistema' : 'usuário'}</Text>
+                <Text style={styles.primaryButtonText}>{isSubmitting ? 'Entrando…' : 'Entrar'}</Text>
               </Pressable>
               <GoogleLoginButton
                 disabled={(Platform.OS === 'web' && !googleRequest) || !isGoogleConfigured || (isExpoGo && Platform.OS !== 'web') || isGoogleSubmitting}

@@ -1,0 +1,20 @@
+{
+  "Documentacao_do_ProjetoSynple.md": "docs/Documentacao_do_ProjetoSynple.md",
+  "Analise_de_Mercado.md": "docs/Analise_de_Mercado.md",
+  "CONTINUAR_DEPOIS.md": "docs/historico/CONTINUAR_DEPOIS.md",
+  "COMO_RODAR_DOCKER.md": "docs/guias/COMO_RODAR_DOCKER.md",
+  "ENTREGA_DOCKER_PROFESSOR.md": "docs/historico/ENTREGA_DOCKER_PROFESSOR_RAIZ.md",
+  "Synple/COMO_RODAR_DOCKER.md": "docs/historico/COMO_RODAR_DOCKER_ANTIGO.md",
+  "Synple/ENTREGA_DOCKER_PROFESSOR.md": "docs/historico/ENTREGA_DOCKER_PROFESSOR_ANTIGO.md",
+  "Synple/DOCUMENTACAO_SOFTWARE.md": "docs/DOCUMENTACAO_SOFTWARE.md",
+  "Synple/GUIA_USO_E_INICIALIZACAO.md": "docs/guias/GUIA_USO_E_INICIALIZACAO.md",
+  "Synple/LOGIN_COM_GOOGLE.md": "docs/guias/LOGIN_COM_GOOGLE.md",
+  "Synple/backend/EMAIL_RECOVERY_SETUP.md": "docs/guias/EMAIL_RECOVERY_SETUP.md",
+  "Synple/docs/CORRECOES_AVALIACAO.md": "docs/CORRECOES_AVALIACAO.md",
+  "Synple/docs/INCREMENTO_2.md": "docs/INCREMENTO_2.md",
+  "Synple/docs/INTERFACES.md": "docs/INTERFACES.md",
+  "Synple/docs/PADROES_DESENVOLVIMENTO.md": "docs/PADROES_DESENVOLVIMENTO.md",
+  "Synple/docs/VERIFICACAO_CORRECOES.md": "docs/VERIFICACAO_CORRECOES.md",
+  "Synple/docs/VERIFICACAO_INCREMENTO_2.md": "docs/VERIFICACAO_INCREMENTO_2.md",
+  "Synple/docs/VERIFICACAO_INCREMENTO_3.md": "docs/VERIFICACAO_INCREMENTO_3.md"
+}

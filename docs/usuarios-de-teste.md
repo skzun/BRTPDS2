@@ -1,6 +1,6 @@
 # Guia de Demonstração e Usuários de Teste
 
-Para facilitar a avaliação prática pelo professor e equipe, o aplicativo **Synple** já vem pré-configurado com 3 perfis de usuários para testes imediatos sem necessidade de criar novos cadastros manualmente.
+As contas fictícias abaixo dependem da execução explícita do seed em uma instalação de demonstração. A inicialização normal aplica migrações e não cria nem redefine essas contas. Consulte o [guia de inicialização](guias/COMO_RODAR_DOCKER.md) antes de preparar os dados; as credenciais de demonstração não substituem contas reais.
 
 ---
 

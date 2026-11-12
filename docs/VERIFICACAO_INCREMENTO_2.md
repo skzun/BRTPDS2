@@ -46,7 +46,7 @@ Os PDFs são gerados em memória na API com `pdfkit` e fontes Noto Sans incorpor
 
 - Executar os cenários de aceitação do [incremento](INCREMENTO_2.md#12-critérios-e-roteiro-de-aceitação) em Android e iOS físicos, incluindo compartilhamento, teclado, troca de contas e sincronização entre dois aparelhos.
 - Executar CA17–CA20 da extensão de PDF: salvar/baixar pelo navegador em Android, iOS e computador; conferir a ata em cada situação, o aviso de documento não final, texto longo com acentos, versão, fuso e decisões. Registrar navegador/aparelho e evidências. A geração automatizada do arquivo, quando registrada, não substitui esse teste do download no dispositivo.
-- Confirmar a atualização de uma instalação já existente: `npm --prefix backend install` e reinício da API, ou `docker compose up -d --build`, seguidos do recarregamento do JavaScript no Expo/Metro. A opção de PDF não requer novo módulo nativo nem outro APK. Consulte [Gerar ata em PDF](../GUIA_USO_E_INICIALIZACAO.md#gerar-ata-em-pdf).
+- Confirmar a atualização de uma instalação já existente: `npm --prefix backend install` e reinício da API, ou `docker compose up -d --build`, seguidos do recarregamento do JavaScript no Expo/Metro. A opção de PDF não requer novo módulo nativo nem outro APK. Consulte [Gerar ata em PDF](guias/GUIA_USO_E_INICIALIZACAO.md#gerar-ata-em-pdf).
 - Registrar as evidências da equipe e os responsáveis por requisito.
 - Conferir o formulário institucional exigido pelo professor: o arquivo original do formulário não acompanhou a apresentação. As fichas existentes usam um modelo uniforme documentado.
 - Validar com a comunidade os dados adicionais de reunião; nenhum levantamento foi inventado.

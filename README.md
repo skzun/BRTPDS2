@@ -1,5 +1,7 @@
 # Synple — BRTPDS2
 
+[Central de documentação](docs/README.md) · [Mapa das pastas](docs/ORGANIZACAO_DO_PROJETO.md) · [Arquivos para revisão de limpeza](docs/REVISAO_DE_LIMPEZA.md)
+
 App Expo/React Native com API Express e PostgreSQL para organizações, comissões, reuniões e atas.
 
 ## Iniciar no Windows
@@ -60,11 +62,11 @@ Os testes de backend precisam do PostgreSQL e das dependências instaladas. Novo
 
 ## Documentação
 
-- [Correções e validações pendentes](Synple/docs/CORRECOES_AVALIACAO.md)
-- [Interfaces](Synple/docs/INTERFACES.md)
-- [Padrões de programação](Synple/docs/PADROES_DESENVOLVIMENTO.md)
-- [Google Login](Synple/LOGIN_COM_GOOGLE.md)
-- [Incremento 2](Synple/docs/INCREMENTO_2.md)
+- [Correções e validações pendentes](docs/CORRECOES_AVALIACAO.md)
+- [Interfaces](docs/INTERFACES.md)
+- [Padrões de programação](docs/PADROES_DESENVOLVIMENTO.md)
+- [Google Login](docs/guias/LOGIN_COM_GOOGLE.md)
+- [Incremento 2](docs/INCREMENTO_2.md)
 
 ## Entrega e validação do incremento 3
 

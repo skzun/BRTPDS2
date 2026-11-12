@@ -1,6 +1,6 @@
 # Synple — Incremento 2: reuniões das comissões
 
-Revisão: 30/10/2026. Este documento é o índice de módulo e roteiro de aceite. Os contratos completos são mantidos na [especificação principal](../../docs/incremento-1-especificacao-completa.md), para não repetir versões divergentes.
+Revisão: 30/10/2026. Este documento é o índice de módulo e roteiro de aceite. Os contratos completos são mantidos na [especificação principal](incremento-1-especificacao-completa.md), para não repetir versões divergentes.
 
 ## 1. Fontes, escopo e decisões
 
@@ -14,7 +14,7 @@ Coordenador atual da comissão ou proprietário da organização gere reunião/a
 
 ## 3. Diagrama de casos de uso
 
-![Casos de uso](../../docs/Diagramas/renderizados/uc-reunioes.svg)
+![Casos de uso](Diagramas/ENTREGA_DEFINITIVA/renderizados/uc-reunioes.svg)
 
 ## 4. Requisitos funcionais no formulário de caso de uso
 
@@ -22,16 +22,16 @@ Cada ficha tem campos/ações de interface, pré-condições, entradas, fluxo, e
 
 | ID | Nome | Contrato |
 | --- | --- | --- |
-| [RF02.01](../../docs/incremento-1-especificacao-completa.md#rf0201) | Agendar reunião da comissão | POST /meetings |
-| [RF02.02](../../docs/incremento-1-especificacao-completa.md#rf0202) | Selecionar e convidar integrantes no agendamento | POST /meetings, campo inviteeIds |
-| [RF02.03](../../docs/incremento-1-especificacao-completa.md#rf0203) | Responder convite de reunião | PATCH /meetings/:meetingId/invitation |
-| [RF02.04](../../docs/incremento-1-especificacao-completa.md#rf0204) | Registrar entrada | PATCH /meetings/:meetingId/attendance com action=ENTER |
-| [RF02.05](../../docs/incremento-1-especificacao-completa.md#rf0205) | Registrar saída | PATCH /meetings/:meetingId/attendance com action=EXIT |
-| [RF02.06](../../docs/incremento-1-especificacao-completa.md#rf0206) | Consultar e compartilhar lista de presença | GET /meetings/:meetingId/attendance |
-| [RF02.07](../../docs/incremento-1-especificacao-completa.md#rf0207) | Criar ou corrigir ata | POST /meetings/:meetingId/minutes |
-| [RF02.08](../../docs/incremento-1-especificacao-completa.md#rf0208) | Submeter ata para aprovação | POST /meetings/:meetingId/minutes/submit |
-| [RF02.09](../../docs/incremento-1-especificacao-completa.md#rf0209) | Aprovar ou solicitar correção da versão da ata | PATCH /meetings/:meetingId/minutes/approval |
-| [RF02.10](../../docs/incremento-1-especificacao-completa.md#rf0210) | Gerar PDF da ata salva | HEAD/GET /meetings/:meetingId/minutes/pdf; POST /auth/download-ticket |
+| [RF02.01](incremento-1-especificacao-completa.md#rf0201) | Agendar reunião da comissão | POST /meetings |
+| [RF02.02](incremento-1-especificacao-completa.md#rf0202) | Selecionar e convidar integrantes no agendamento | POST /meetings, campo inviteeIds |
+| [RF02.03](incremento-1-especificacao-completa.md#rf0203) | Responder convite de reunião | PATCH /meetings/:meetingId/invitation |
+| [RF02.04](incremento-1-especificacao-completa.md#rf0204) | Registrar entrada | PATCH /meetings/:meetingId/attendance com action=ENTER |
+| [RF02.05](incremento-1-especificacao-completa.md#rf0205) | Registrar saída | PATCH /meetings/:meetingId/attendance com action=EXIT |
+| [RF02.06](incremento-1-especificacao-completa.md#rf0206) | Consultar e compartilhar lista de presença | GET /meetings/:meetingId/attendance |
+| [RF02.07](incremento-1-especificacao-completa.md#rf0207) | Criar ou corrigir ata | POST /meetings/:meetingId/minutes |
+| [RF02.08](incremento-1-especificacao-completa.md#rf0208) | Submeter ata para aprovação | POST /meetings/:meetingId/minutes/submit |
+| [RF02.09](incremento-1-especificacao-completa.md#rf0209) | Aprovar ou solicitar correção da versão da ata | PATCH /meetings/:meetingId/minutes/approval |
+| [RF02.10](incremento-1-especificacao-completa.md#rf0210) | Gerar PDF da ata salva | HEAD/GET /meetings/:meetingId/minutes/pdf; POST /auth/download-ticket |
 
 ## 5. Regras de negócio
 
@@ -46,21 +46,21 @@ Cada ficha tem campos/ações de interface, pré-condições, entradas, fluxo, e
 
 ## 6. Diagrama de classes
 
-![Classes do domínio](../../docs/Diagramas/renderizados/classes-reunioes.svg)
+![Classes do domínio](Diagramas/ENTREGA_DEFINITIVA/renderizados/classes-reunioes.svg)
 
-![Operações dos módulos](../../docs/Diagramas/renderizados/classes-servicos.svg)
+![Operações dos módulos](Diagramas/ENTREGA_DEFINITIVA/renderizados/classes-servicos.svg)
 
 ### 6.1. Dicionário das classes
 
-[Classes, todos os atributos e operações exportadas](../../docs/dicionario-classes.md). As entidades são conceitos de análise; funções reais ficam nos módulos. Não há classes ORM ou métodos de instância inventados.
+[Classes, todos os atributos e operações exportadas](dicionario-classes.md). As entidades são conceitos de análise; funções reais ficam nos módulos. Não há classes ORM ou métodos de instância inventados.
 
 ## 7. Diagrama relacional
 
-![Tabelas de reunião](../../docs/Diagramas/renderizados/relacional-reunioes.svg)
+![Tabelas de reunião](Diagramas/ENTREGA_DEFINITIVA/renderizados/relacional-reunioes.svg)
 
 ### 7.1. Dicionário relacional
 
-[Dicionário físico completo](../../docs/dicionario-banco-dados.md) e [snapshot extraído do DDL](../../docs/modelo-fisico.snapshot.json). Inclui FKs compostas, ações de exclusão, UNIQUE, CHECK e índices. O conjunto UUID[] de aprovadores não tem FK individual; coerência depende das rotas. Não há CHECK SQL de ordem de presença; há validação na API.
+[Dicionário físico completo](dicionario-banco-dados.md) e [snapshot extraído do DDL](modelo-fisico.snapshot.json). Inclui FKs compostas, ações de exclusão, UNIQUE, CHECK e índices. O conjunto UUID[] de aprovadores não tem FK individual; coerência depende das rotas. Não há CHECK SQL de ordem de presença; há validação na API.
 
 ## 8. Contrato da API e sincronização
 
@@ -70,18 +70,18 @@ GET /sync retorna coleções autorizadas por papel/vínculo/histórico. O app su
 
 ## 9. Requisitos não funcionais
 
-[RNF01–RNF17 na especificação](../../docs/incremento-1-especificacao-completa.md#8-requisitos-não-funcionais): autenticação/autorização, integridade/concorrência, persistência confirmada, privacidade, compatibilidade, acessibilidade, desempenho medido, operação e PDF. Metas não medidas são declaradas pendentes; máscaras e seleção de tema ficam como funcionalidades.
+[RNF01–RNF17 na especificação](incremento-1-especificacao-completa.md#8-requisitos-não-funcionais): autenticação/autorização, integridade/concorrência, persistência confirmada, privacidade, compatibilidade, acessibilidade, desempenho medido, operação e PDF. Metas não medidas são declaradas pendentes; máscaras e seleção de tema ficam como funcionalidades.
 
 ## 10. Diagramas de sequência
 
 | Fluxo | Diagrama |
 | --- | --- |
-| RF02.01–02.03: agendar, convidar e responder | [SQ08](../../docs/Diagramas/renderizados/seq-agendamento.svg) |
-| RF02.04–02.06: entrada, saída e consulta de presença | [SQ09](../../docs/Diagramas/renderizados/seq-presenca.svg) |
-| RF02.07–02.09: rascunho, submissão e decisão | [SQ10](../../docs/Diagramas/renderizados/seq-ata.svg) |
-| RF02.10: PDF, acesso, versão e ticket | [SQ11](../../docs/Diagramas/renderizados/seq-pdf.svg) |
+| RF02.01–02.03: agendar, convidar e responder | [SQ08](Diagramas/ENTREGA_DEFINITIVA/renderizados/seq-agendamento.svg) |
+| RF02.04–02.06: entrada, saída e consulta de presença | [SQ09](Diagramas/ENTREGA_DEFINITIVA/renderizados/seq-presenca.svg) |
+| RF02.07–02.09: rascunho, submissão e decisão | [SQ10](Diagramas/ENTREGA_DEFINITIVA/renderizados/seq-ata.svg) |
+| RF02.10: PDF, acesso, versão e ticket | [SQ11](Diagramas/ENTREGA_DEFINITIVA/renderizados/seq-pdf.svg) |
 
-Consulta/compartilhamento de presença não é a mesma escrita de entrada/saída: ler a lista usa GET, com autorização por gestão/convite, e não altera presença. Fontes UML em ../../docs/Diagramas/fontes.
+Consulta/compartilhamento de presença não é a mesma escrita de entrada/saída: ler a lista usa GET, com autorização por gestão/convite, e não altera presença. Fontes UML em ../../docs/Diagramas/ENTREGA_DEFINITIVA/fontes.
 
 ## 11. Matriz de rastreabilidade
 
@@ -122,11 +122,11 @@ Estado de todos os cenários abaixo nesta revisão documental: **roteiro, não e
 
 ## 13. Preparar e demonstrar o incremento
 
-1. Atualizar checkout/dependências, preencher .env real de API/OAuth/SMTP e iniciar banco/API conforme [README](../../README.md). Boot migra sem seed automático; dados fictícios são preparação explícita.
+1. Atualizar checkout/dependências, preencher .env real de API/OAuth/SMTP e iniciar banco/API conforme [README](../README.md). Boot migra sem seed automático; dados fictícios são preparação explícita.
 2. Instalar novo development build por causa de SecureStore/biometria. Google exige assinatura/SHA-1 e Client IDs compatíveis. Não usar Expo Go para autenticação Google nativa.
 3. Preparar contas distintas e organização aprovada; confirmar vínculos e coordenador no banco. Não usar estado local antigo como prova de permissão.
 4. Em mobile, executar npm run tunnel, manter processo aberto e usar QR atual no Synple. Túnel Expo sozinho não expõe a API.
-5. Demonstrar CA01–CA20 e registrar resultado real. [Verificação anterior de código](VERIFICACAO_CORRECOES.md); [revisão documental](../../docs/VERIFICACAO_DOCUMENTACAO.md).
+5. Demonstrar CA01–CA20 e registrar resultado real. [Verificação anterior de código](VERIFICACAO_CORRECOES.md); [revisão documental](VERIFICACAO_DOCUMENTACAO.md).
 
 ### Pendências externas ao código
 

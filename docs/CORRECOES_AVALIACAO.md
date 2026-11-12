@@ -1,4 +1,4 @@
-> Registro histórico, anterior às correções atuais. Para o estado verificado, consulte [Entrega do incremento 3](../../docs/ENTREGA_INCREMENTO_3.md).
+> Registro histórico, anterior às correções atuais. Para o estado verificado, consulte [Entrega do incremento 3](ENTREGA_INCREMENTO_3.md).
 
 # Correções da avaliação do professor
 

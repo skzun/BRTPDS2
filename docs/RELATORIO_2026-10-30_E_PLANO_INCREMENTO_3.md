@@ -26,7 +26,7 @@ As correções resolveram parte das avaliações anteriores. Ainda faltam as reg
 | Criar inicializador portátil | iniciar.ps1 usa a pasta do próprio script, verifica Node/Docker, inicia serviços, espera /health, prepara exemplos .env quando ausentes e inicia os dois túneis. |
 | Atualizar atalhos .bat | Passam a chamar o inicializador, sem parar automaticamente serviços PostgreSQL de outros projetos. |
 
-**Arquivos principais:** [iniciar.ps1](../iniciar.ps1), [README](../README.md), [dev-tunnel.js](../Synple/scripts/dev-tunnel.js), [guia Google](../Synple/LOGIN_COM_GOOGLE.md).
+**Arquivos principais:** [iniciar.ps1](../iniciar.ps1), [README](../README.md), [dev-tunnel.js](../Synple/scripts/dev-tunnel.js), [guia Google](guias/LOGIN_COM_GOOGLE.md).
 
 Não foi comprovada uma inicialização completa, com envio real de e-mail e login Google em outro computador/celular. Para isso é necessário transportar a versão atualizada do código, configurar ambientes e instalar o build compatível.
 
@@ -126,7 +126,7 @@ Portanto, o patch instalado neste checkout já é 57.0.31. A faixa ~57.0.24 acei
 | PlantUML | 24 SVGs renderizados, com inspeção visual por amostra | Aceite semântico de toda a modelagem pelo professor |
 | Validador documental | Dez documentos, 268 referências locais,38 RFs únicos,24 SVGs/fontes e99 colunas conferidos | Formato institucional aprovado ou entrevistas/testes manuais concluídos |
 
-Os números de testes vêm do [relatório de execução de código](../Synple/docs/VERIFICACAO_CORRECOES.md). A [revisão documental](VERIFICACAO_DOCUMENTACAO.md) registra seus próprios procedimentos. **Não foi repetida a suíte de58 testes apenas para redigir este relatório.**
+Os números de testes vêm do [relatório de execução de código](VERIFICACAO_CORRECOES.md). A [revisão documental](VERIFICACAO_DOCUMENTACAO.md) registra seus próprios procedimentos. **Não foi repetida a suíte de58 testes apenas para redigir este relatório.**
 
 ## 4. Incremento 3 — pendências de código por comentário do professor
 
@@ -283,12 +283,12 @@ Esses totais são um retrato do checkout e mudam com novas alterações. O Git j
 
 ## 10. Arquivos e evidências para consultar
 
-- [Índice principal](../Documentacao_do_ProjetoSynple.md).
+- [Índice principal](Documentacao_do_ProjetoSynple.md).
 - [Especificação principal](incremento-1-especificacao-completa.md), [tecnologias/versões](tecnologias-versoes.md).
 - [UML/modelo relacional e fontes](Diagramas/Diagramas_Casos_de_Uso.md).
 - [Dicionário físico](dicionario-banco-dados.md) e [classes/operações](dicionario-classes.md).
-- [Correções implementadas e limites](../Synple/docs/CORRECOES_AVALIACAO.md).
-- [Testes da revisão de código](../Synple/docs/VERIFICACAO_CORRECOES.md) e [verificação documental](VERIFICACAO_DOCUMENTACAO.md).
-- [Interfaces](../Synple/docs/INTERFACES.md), [padrões de programação](../Synple/docs/PADROES_DESENVOLVIMENTO.md), [incremento2](../Synple/docs/INCREMENTO_2.md).
+- [Correções implementadas e limites](CORRECOES_AVALIACAO.md).
+- [Testes da revisão de código](VERIFICACAO_CORRECOES.md) e [verificação documental](VERIFICACAO_DOCUMENTACAO.md).
+- [Interfaces](INTERFACES.md), [padrões de programação](PADROES_DESENVOLVIMENTO.md), [incremento2](INCREMENTO_2.md).
 
 **Situação final registrada:** há uma base de segurança, gestão e documentação melhorada e verificada nos limites indicados. O Incremento3 ainda precisa de implementação, adequação ao padrão documental específico, decisões de regra e evidências de execução antes de ser apresentado como concluído.

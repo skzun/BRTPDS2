@@ -1,0 +1,1309 @@
+{
+  "generatedAt": "2026-11-12T04:27:46.287Z",
+  "scope": "Arquivos próprios e configurações por caminho/tamanho; sem ler valores de .env. Dependências, Git, caches e projetos nativos gerados excluídos da listagem individual.",
+  "trackedDependencyFiles": 6496,
+  "trackedEnvironmentFiles": [
+    "Synple/backend/.env"
+  ],
+  "omittedDirectories": [
+    ".git",
+    "Synple/.expo",
+    "Synple/backend/node_modules",
+    "Synple/mobile/.expo",
+    "Synple/mobile/android",
+    "Synple/mobile/dist",
+    "Synple/mobile/node_modules"
+  ],
+  "exactDuplicates": [],
+  "files": [
+    {
+      "path": ".gitignore",
+      "bytes": 278,
+      "tracked": true
+    },
+    {
+      "path": "docker-compose.yml",
+      "bytes": 1719,
+      "tracked": true
+    },
+    {
+      "path": "docs/Analise_de_Mercado.md",
+      "bytes": 9902,
+      "tracked": false,
+      "previousTrackedPath": "Analise_de_Mercado.md"
+    },
+    {
+      "path": "docs/CORRECOES_AVALIACAO.md",
+      "bytes": 11298,
+      "tracked": false,
+      "previousTrackedPath": "Synple/docs/CORRECOES_AVALIACAO.md"
+    },
+    {
+      "path": "docs/Diagramas/Diagramas_Casos_de_Uso.md",
+      "bytes": 9346,
+      "tracked": true
+    },
+    {
+      "path": "docs/Diagramas/ENTREGA_DEFINITIVA/fontes/classes-cadastro.puml",
+      "bytes": 1689,
+      "tracked": false,
+      "previousTrackedPath": "docs/Diagramas/fontes/classes-cadastro.puml"
+    },
+    {
+      "path": "docs/Diagramas/ENTREGA_DEFINITIVA/fontes/classes-incremento-3.puml",
+      "bytes": 1325,
+      "tracked": false,
+      "previousTrackedPath": "docs/Diagramas/fontes/classes-incremento-3.puml"
+    },
+    {
+      "path": "docs/Diagramas/ENTREGA_DEFINITIVA/fontes/classes-reunioes.puml",
+      "bytes": 1607,
+      "tracked": false,
+      "previousTrackedPath": "docs/Diagramas/fontes/classes-reunioes.puml"
+    },
+    {
+      "path": "docs/Diagramas/ENTREGA_DEFINITIVA/fontes/classes-servicos.puml",
+      "bytes": 2475,
+      "tracked": false,
+      "previousTrackedPath": "docs/Diagramas/fontes/classes-servicos.puml"
+    },
+    {
+      "path": "docs/Diagramas/ENTREGA_DEFINITIVA/fontes/implantacao.puml",
+      "bytes": 1405,
+      "tracked": false,
+      "previousTrackedPath": "docs/Diagramas/fontes/implantacao.puml"
+    },
+    {
+      "path": "docs/Diagramas/ENTREGA_DEFINITIVA/fontes/relacional-cadastro.puml",
+      "bytes": 2857,
+      "tracked": false,
+      "previousTrackedPath": "docs/Diagramas/fontes/relacional-cadastro.puml"
+    },
+    {
+      "path": "docs/Diagramas/ENTREGA_DEFINITIVA/fontes/relacional-incremento-3.puml",
+      "bytes": 3552,
+      "tracked": false,
+      "previousTrackedPath": "docs/Diagramas/fontes/relacional-incremento-3.puml"
+    },
+    {
+      "path": "docs/Diagramas/ENTREGA_DEFINITIVA/fontes/relacional-reunioes.puml",
+      "bytes": 4124,
+      "tracked": false,
+      "previousTrackedPath": "docs/Diagramas/fontes/relacional-reunioes.puml"
+    },
+    {
+      "path": "docs/Diagramas/ENTREGA_DEFINITIVA/fontes/relacional-seguranca.puml",
+      "bytes": 2167,
+      "tracked": false,
+      "previousTrackedPath": "docs/Diagramas/fontes/relacional-seguranca.puml"
+    },
+    {
+      "path": "docs/Diagramas/ENTREGA_DEFINITIVA/fontes/seq-agendamento.puml",
+      "bytes": 933,
+      "tracked": false,
+      "previousTrackedPath": "docs/Diagramas/fontes/seq-agendamento.puml"
+    },
+    {
+      "path": "docs/Diagramas/ENTREGA_DEFINITIVA/fontes/seq-anexos.puml",
+      "bytes": 914,
+      "tracked": false,
+      "previousTrackedPath": "docs/Diagramas/fontes/seq-anexos.puml"
+    },
+    {
+      "path": "docs/Diagramas/ENTREGA_DEFINITIVA/fontes/seq-ata.puml",
+      "bytes": 1250,
+      "tracked": false,
+      "previousTrackedPath": "docs/Diagramas/fontes/seq-ata.puml"
+    },
+    {
+      "path": "docs/Diagramas/ENTREGA_DEFINITIVA/fontes/seq-biometria.puml",
+      "bytes": 1290,
+      "tracked": false,
+      "previousTrackedPath": "docs/Diagramas/fontes/seq-biometria.puml"
+    },
+    {
+      "path": "docs/Diagramas/ENTREGA_DEFINITIVA/fontes/seq-cadastro.puml",
+      "bytes": 1253,
+      "tracked": false,
+      "previousTrackedPath": "docs/Diagramas/fontes/seq-cadastro.puml"
+    },
+    {
+      "path": "docs/Diagramas/ENTREGA_DEFINITIVA/fontes/seq-comando.puml",
+      "bytes": 1161,
+      "tracked": false,
+      "previousTrackedPath": "docs/Diagramas/fontes/seq-comando.puml"
+    },
+    {
+      "path": "docs/Diagramas/ENTREGA_DEFINITIVA/fontes/seq-convite-org.puml",
+      "bytes": 970,
+      "tracked": false,
+      "previousTrackedPath": "docs/Diagramas/fontes/seq-convite-org.puml"
+    },
+    {
+      "path": "docs/Diagramas/ENTREGA_DEFINITIVA/fontes/seq-editar-reuniao.puml",
+      "bytes": 864,
+      "tracked": false,
+      "previousTrackedPath": "docs/Diagramas/fontes/seq-editar-reuniao.puml"
+    },
+    {
+      "path": "docs/Diagramas/ENTREGA_DEFINITIVA/fontes/seq-login.puml",
+      "bytes": 1245,
+      "tracked": false,
+      "previousTrackedPath": "docs/Diagramas/fontes/seq-login.puml"
+    },
+    {
+      "path": "docs/Diagramas/ENTREGA_DEFINITIVA/fontes/seq-manual-consulta.puml",
+      "bytes": 368,
+      "tracked": false,
+      "previousTrackedPath": "docs/Diagramas/fontes/seq-manual-consulta.puml"
+    },
+    {
+      "path": "docs/Diagramas/ENTREGA_DEFINITIVA/fontes/seq-pdf.puml",
+      "bytes": 1041,
+      "tracked": false,
+      "previousTrackedPath": "docs/Diagramas/fontes/seq-pdf.puml"
+    },
+    {
+      "path": "docs/Diagramas/ENTREGA_DEFINITIVA/fontes/seq-presenca-pdf.puml",
+      "bytes": 745,
+      "tracked": false,
+      "previousTrackedPath": "docs/Diagramas/fontes/seq-presenca-pdf.puml"
+    },
+    {
+      "path": "docs/Diagramas/ENTREGA_DEFINITIVA/fontes/seq-presenca.puml",
+      "bytes": 999,
+      "tracked": false,
+      "previousTrackedPath": "docs/Diagramas/fontes/seq-presenca.puml"
+    },
+    {
+      "path": "docs/Diagramas/ENTREGA_DEFINITIVA/fontes/seq-recuperacao.puml",
+      "bytes": 1265,
+      "tracked": false,
+      "previousTrackedPath": "docs/Diagramas/fontes/seq-recuperacao.puml"
+    },
+    {
+      "path": "docs/Diagramas/ENTREGA_DEFINITIVA/fontes/seq-relatorio-participacao.puml",
+      "bytes": 586,
+      "tracked": false,
+      "previousTrackedPath": "docs/Diagramas/fontes/seq-relatorio-participacao.puml"
+    },
+    {
+      "path": "docs/Diagramas/ENTREGA_DEFINITIVA/fontes/seq-sincronizacao.puml",
+      "bytes": 915,
+      "tracked": false,
+      "previousTrackedPath": "docs/Diagramas/fontes/seq-sincronizacao.puml"
+    },
+    {
+      "path": "docs/Diagramas/ENTREGA_DEFINITIVA/fontes/seq-sistema.puml",
+      "bytes": 1013,
+      "tracked": false,
+      "previousTrackedPath": "docs/Diagramas/fontes/seq-sistema.puml"
+    },
+    {
+      "path": "docs/Diagramas/ENTREGA_DEFINITIVA/fontes/seq-transferencia.puml",
+      "bytes": 935,
+      "tracked": false,
+      "previousTrackedPath": "docs/Diagramas/fontes/seq-transferencia.puml"
+    },
+    {
+      "path": "docs/Diagramas/ENTREGA_DEFINITIVA/fontes/seq-votacoes.puml",
+      "bytes": 1374,
+      "tracked": false,
+      "previousTrackedPath": "docs/Diagramas/fontes/seq-votacoes.puml"
+    },
+    {
+      "path": "docs/Diagramas/ENTREGA_DEFINITIVA/fontes/uc-autenticacao.puml",
+      "bytes": 1217,
+      "tracked": false,
+      "previousTrackedPath": "docs/Diagramas/fontes/uc-autenticacao.puml"
+    },
+    {
+      "path": "docs/Diagramas/ENTREGA_DEFINITIVA/fontes/uc-incremento-3.puml",
+      "bytes": 1471,
+      "tracked": false,
+      "previousTrackedPath": "docs/Diagramas/fontes/uc-incremento-3.puml"
+    },
+    {
+      "path": "docs/Diagramas/ENTREGA_DEFINITIVA/fontes/uc-operacao.puml",
+      "bytes": 991,
+      "tracked": false,
+      "previousTrackedPath": "docs/Diagramas/fontes/uc-operacao.puml"
+    },
+    {
+      "path": "docs/Diagramas/ENTREGA_DEFINITIVA/fontes/uc-organizacoes.puml",
+      "bytes": 1418,
+      "tracked": false,
+      "previousTrackedPath": "docs/Diagramas/fontes/uc-organizacoes.puml"
+    },
+    {
+      "path": "docs/Diagramas/ENTREGA_DEFINITIVA/fontes/uc-reunioes.puml",
+      "bytes": 1588,
+      "tracked": false,
+      "previousTrackedPath": "docs/Diagramas/fontes/uc-reunioes.puml"
+    },
+    {
+      "path": "docs/Diagramas/ENTREGA_DEFINITIVA/manifesto.json",
+      "bytes": 9530,
+      "tracked": false
+    },
+    {
+      "path": "docs/Diagramas/ENTREGA_DEFINITIVA/README.md",
+      "bytes": 5438,
+      "tracked": false
+    },
+    {
+      "path": "docs/Diagramas/ENTREGA_DEFINITIVA/renderizados/classes-cadastro.svg",
+      "bytes": 23649,
+      "tracked": false,
+      "previousTrackedPath": "docs/Diagramas/renderizados/classes-cadastro.svg"
+    },
+    {
+      "path": "docs/Diagramas/ENTREGA_DEFINITIVA/renderizados/classes-incremento-3.svg",
+      "bytes": 19438,
+      "tracked": false,
+      "previousTrackedPath": "docs/Diagramas/renderizados/classes-incremento-3.svg"
+    },
+    {
+      "path": "docs/Diagramas/ENTREGA_DEFINITIVA/renderizados/classes-reunioes.svg",
+      "bytes": 22670,
+      "tracked": false,
+      "previousTrackedPath": "docs/Diagramas/renderizados/classes-reunioes.svg"
+    },
+    {
+      "path": "docs/Diagramas/ENTREGA_DEFINITIVA/renderizados/classes-servicos.svg",
+      "bytes": 24430,
+      "tracked": false,
+      "previousTrackedPath": "docs/Diagramas/renderizados/classes-servicos.svg"
+    },
+    {
+      "path": "docs/Diagramas/ENTREGA_DEFINITIVA/renderizados/implantacao.svg",
+      "bytes": 21937,
+      "tracked": false,
+      "previousTrackedPath": "docs/Diagramas/renderizados/implantacao.svg"
+    },
+    {
+      "path": "docs/Diagramas/ENTREGA_DEFINITIVA/renderizados/relacional-cadastro.svg",
+      "bytes": 23580,
+      "tracked": false,
+      "previousTrackedPath": "docs/Diagramas/renderizados/relacional-cadastro.svg"
+    },
+    {
+      "path": "docs/Diagramas/ENTREGA_DEFINITIVA/renderizados/relacional-incremento-3.svg",
+      "bytes": 32512,
+      "tracked": false,
+      "previousTrackedPath": "docs/Diagramas/renderizados/relacional-incremento-3.svg"
+    },
+    {
+      "path": "docs/Diagramas/ENTREGA_DEFINITIVA/renderizados/relacional-reunioes.svg",
+      "bytes": 35820,
+      "tracked": false,
+      "previousTrackedPath": "docs/Diagramas/renderizados/relacional-reunioes.svg"
+    },
+    {
+      "path": "docs/Diagramas/ENTREGA_DEFINITIVA/renderizados/relacional-seguranca.svg",
+      "bytes": 17922,
+      "tracked": false,
+      "previousTrackedPath": "docs/Diagramas/renderizados/relacional-seguranca.svg"
+    },
+    {
+      "path": "docs/Diagramas/ENTREGA_DEFINITIVA/renderizados/seq-agendamento.svg",
+      "bytes": 14164,
+      "tracked": false,
+      "previousTrackedPath": "docs/Diagramas/renderizados/seq-agendamento.svg"
+    },
+    {
+      "path": "docs/Diagramas/ENTREGA_DEFINITIVA/renderizados/seq-anexos.svg",
+      "bytes": 14911,
+      "tracked": false,
+      "previousTrackedPath": "docs/Diagramas/renderizados/seq-anexos.svg"
+    },
+    {
+      "path": "docs/Diagramas/ENTREGA_DEFINITIVA/renderizados/seq-ata.svg",
+      "bytes": 17792,
+      "tracked": false,
+      "previousTrackedPath": "docs/Diagramas/renderizados/seq-ata.svg"
+    },
+    {
+      "path": "docs/Diagramas/ENTREGA_DEFINITIVA/renderizados/seq-biometria.svg",
+      "bytes": 18355,
+      "tracked": false,
+      "previousTrackedPath": "docs/Diagramas/renderizados/seq-biometria.svg"
+    },
+    {
+      "path": "docs/Diagramas/ENTREGA_DEFINITIVA/renderizados/seq-cadastro.svg",
+      "bytes": 18647,
+      "tracked": false,
+      "previousTrackedPath": "docs/Diagramas/renderizados/seq-cadastro.svg"
+    },
+    {
+      "path": "docs/Diagramas/ENTREGA_DEFINITIVA/renderizados/seq-comando.svg",
+      "bytes": 15673,
+      "tracked": false,
+      "previousTrackedPath": "docs/Diagramas/renderizados/seq-comando.svg"
+    },
+    {
+      "path": "docs/Diagramas/ENTREGA_DEFINITIVA/renderizados/seq-convite-org.svg",
+      "bytes": 12316,
+      "tracked": false,
+      "previousTrackedPath": "docs/Diagramas/renderizados/seq-convite-org.svg"
+    },
+    {
+      "path": "docs/Diagramas/ENTREGA_DEFINITIVA/renderizados/seq-editar-reuniao.svg",
+      "bytes": 13999,
+      "tracked": false,
+      "previousTrackedPath": "docs/Diagramas/renderizados/seq-editar-reuniao.svg"
+    },
+    {
+      "path": "docs/Diagramas/ENTREGA_DEFINITIVA/renderizados/seq-login.svg",
+      "bytes": 20316,
+      "tracked": false,
+      "previousTrackedPath": "docs/Diagramas/renderizados/seq-login.svg"
+    },
+    {
+      "path": "docs/Diagramas/ENTREGA_DEFINITIVA/renderizados/seq-manual-consulta.svg",
+      "bytes": 7447,
+      "tracked": false,
+      "previousTrackedPath": "docs/Diagramas/renderizados/seq-manual-consulta.svg"
+    },
+    {
+      "path": "docs/Diagramas/ENTREGA_DEFINITIVA/renderizados/seq-pdf.svg",
+      "bytes": 15462,
+      "tracked": false,
+      "previousTrackedPath": "docs/Diagramas/renderizados/seq-pdf.svg"
+    },
+    {
+      "path": "docs/Diagramas/ENTREGA_DEFINITIVA/renderizados/seq-presenca-pdf.svg",
+      "bytes": 12280,
+      "tracked": false,
+      "previousTrackedPath": "docs/Diagramas/renderizados/seq-presenca-pdf.svg"
+    },
+    {
+      "path": "docs/Diagramas/ENTREGA_DEFINITIVA/renderizados/seq-presenca.svg",
+      "bytes": 15331,
+      "tracked": false,
+      "previousTrackedPath": "docs/Diagramas/renderizados/seq-presenca.svg"
+    },
+    {
+      "path": "docs/Diagramas/ENTREGA_DEFINITIVA/renderizados/seq-recuperacao.svg",
+      "bytes": 18383,
+      "tracked": false,
+      "previousTrackedPath": "docs/Diagramas/renderizados/seq-recuperacao.svg"
+    },
+    {
+      "path": "docs/Diagramas/ENTREGA_DEFINITIVA/renderizados/seq-relatorio-participacao.svg",
+      "bytes": 10072,
+      "tracked": false,
+      "previousTrackedPath": "docs/Diagramas/renderizados/seq-relatorio-participacao.svg"
+    },
+    {
+      "path": "docs/Diagramas/ENTREGA_DEFINITIVA/renderizados/seq-sincronizacao.svg",
+      "bytes": 13927,
+      "tracked": false,
+      "previousTrackedPath": "docs/Diagramas/renderizados/seq-sincronizacao.svg"
+    },
+    {
+      "path": "docs/Diagramas/ENTREGA_DEFINITIVA/renderizados/seq-sistema.svg",
+      "bytes": 13196,
+      "tracked": false,
+      "previousTrackedPath": "docs/Diagramas/renderizados/seq-sistema.svg"
+    },
+    {
+      "path": "docs/Diagramas/ENTREGA_DEFINITIVA/renderizados/seq-transferencia.svg",
+      "bytes": 12776,
+      "tracked": false,
+      "previousTrackedPath": "docs/Diagramas/renderizados/seq-transferencia.svg"
+    },
+    {
+      "path": "docs/Diagramas/ENTREGA_DEFINITIVA/renderizados/seq-votacoes.svg",
+      "bytes": 19361,
+      "tracked": false,
+      "previousTrackedPath": "docs/Diagramas/renderizados/seq-votacoes.svg"
+    },
+    {
+      "path": "docs/Diagramas/ENTREGA_DEFINITIVA/renderizados/uc-autenticacao.svg",
+      "bytes": 12995,
+      "tracked": false,
+      "previousTrackedPath": "docs/Diagramas/renderizados/uc-autenticacao.svg"
+    },
+    {
+      "path": "docs/Diagramas/ENTREGA_DEFINITIVA/renderizados/uc-incremento-3.svg",
+      "bytes": 15888,
+      "tracked": false,
+      "previousTrackedPath": "docs/Diagramas/renderizados/uc-incremento-3.svg"
+    },
+    {
+      "path": "docs/Diagramas/ENTREGA_DEFINITIVA/renderizados/uc-operacao.svg",
+      "bytes": 7574,
+      "tracked": false,
+      "previousTrackedPath": "docs/Diagramas/renderizados/uc-operacao.svg"
+    },
+    {
+      "path": "docs/Diagramas/ENTREGA_DEFINITIVA/renderizados/uc-organizacoes.svg",
+      "bytes": 13839,
+      "tracked": false,
+      "previousTrackedPath": "docs/Diagramas/renderizados/uc-organizacoes.svg"
+    },
+    {
+      "path": "docs/Diagramas/ENTREGA_DEFINITIVA/renderizados/uc-reunioes.svg",
+      "bytes": 14788,
+      "tracked": false,
+      "previousTrackedPath": "docs/Diagramas/renderizados/uc-reunioes.svg"
+    },
+    {
+      "path": "docs/Diagramas/README.md",
+      "bytes": 678,
+      "tracked": false
+    },
+    {
+      "path": "docs/Diagramas/VERSOES_ANTERIORES/fontes/classes-incremento-3.puml",
+      "bytes": 786,
+      "tracked": false,
+      "previousTrackedPath": "Synple/docs/Diagramas/fontes/classes-incremento-3.puml"
+    },
+    {
+      "path": "docs/Diagramas/VERSOES_ANTERIORES/fontes/relacional-incremento-3.puml",
+      "bytes": 1006,
+      "tracked": false,
+      "previousTrackedPath": "Synple/docs/Diagramas/fontes/relacional-incremento-3.puml"
+    },
+    {
+      "path": "docs/Diagramas/VERSOES_ANTERIORES/fontes/seq-manual-consulta.puml",
+      "bytes": 333,
+      "tracked": false,
+      "previousTrackedPath": "Synple/docs/Diagramas/fontes/seq-manual-consulta.puml"
+    },
+    {
+      "path": "docs/Diagramas/VERSOES_ANTERIORES/fontes/seq-relatorio-participacao.puml",
+      "bytes": 582,
+      "tracked": false,
+      "previousTrackedPath": "Synple/docs/Diagramas/fontes/seq-relatorio-participacao.puml"
+    },
+    {
+      "path": "docs/Diagramas/VERSOES_ANTERIORES/fontes/seq-votacoes.puml",
+      "bytes": 1010,
+      "tracked": false,
+      "previousTrackedPath": "Synple/docs/Diagramas/fontes/seq-votacoes.puml"
+    },
+    {
+      "path": "docs/Diagramas/VERSOES_ANTERIORES/README.md",
+      "bytes": 664,
+      "tracked": false
+    },
+    {
+      "path": "docs/dicionario-banco-dados.md",
+      "bytes": 37976,
+      "tracked": true
+    },
+    {
+      "path": "docs/dicionario-classes.md",
+      "bytes": 32309,
+      "tracked": true
+    },
+    {
+      "path": "docs/Documentacao_do_ProjetoSynple.md",
+      "bytes": 3814,
+      "tracked": false,
+      "previousTrackedPath": "Documentacao_do_ProjetoSynple.md"
+    },
+    {
+      "path": "docs/DOCUMENTACAO_SOFTWARE.md",
+      "bytes": 3750,
+      "tracked": false,
+      "previousTrackedPath": "Synple/DOCUMENTACAO_SOFTWARE.md"
+    },
+    {
+      "path": "docs/ENTREGA_INCREMENTO_3.md",
+      "bytes": 6679,
+      "tracked": true
+    },
+    {
+      "path": "docs/guias/COMO_RODAR_DOCKER.md",
+      "bytes": 2663,
+      "tracked": false,
+      "previousTrackedPath": "COMO_RODAR_DOCKER.md"
+    },
+    {
+      "path": "docs/guias/EMAIL_RECOVERY_SETUP.md",
+      "bytes": 1665,
+      "tracked": false,
+      "previousTrackedPath": "Synple/backend/EMAIL_RECOVERY_SETUP.md"
+    },
+    {
+      "path": "docs/guias/GUIA_USO_E_INICIALIZACAO.md",
+      "bytes": 17139,
+      "tracked": false,
+      "previousTrackedPath": "Synple/GUIA_USO_E_INICIALIZACAO.md"
+    },
+    {
+      "path": "docs/guias/LOGIN_COM_GOOGLE.md",
+      "bytes": 7132,
+      "tracked": false,
+      "previousTrackedPath": "Synple/LOGIN_COM_GOOGLE.md"
+    },
+    {
+      "path": "docs/guias/MANUAL_DO_USUARIO.md",
+      "bytes": 3669,
+      "tracked": false
+    },
+    {
+      "path": "docs/historico/COMO_RODAR_DOCKER_ANTIGO.md",
+      "bytes": 6110,
+      "tracked": false,
+      "previousTrackedPath": "Synple/COMO_RODAR_DOCKER.md"
+    },
+    {
+      "path": "docs/historico/CONTINUAR_DEPOIS.md",
+      "bytes": 12375,
+      "tracked": false,
+      "previousTrackedPath": "CONTINUAR_DEPOIS.md"
+    },
+    {
+      "path": "docs/historico/ENTREGA_DOCKER_PROFESSOR_ANTIGO.md",
+      "bytes": 6230,
+      "tracked": false,
+      "previousTrackedPath": "Synple/ENTREGA_DOCKER_PROFESSOR.md"
+    },
+    {
+      "path": "docs/historico/ENTREGA_DOCKER_PROFESSOR_RAIZ.md",
+      "bytes": 4854,
+      "tracked": false,
+      "previousTrackedPath": "ENTREGA_DOCKER_PROFESSOR.md"
+    },
+    {
+      "path": "docs/INCREMENTO_2.md",
+      "bytes": 12026,
+      "tracked": false,
+      "previousTrackedPath": "Synple/docs/INCREMENTO_2.md"
+    },
+    {
+      "path": "docs/INCREMENTO_3.md",
+      "bytes": 10213,
+      "tracked": true
+    },
+    {
+      "path": "docs/incremento-1-especificacao-completa.md",
+      "bytes": 108426,
+      "tracked": true
+    },
+    {
+      "path": "docs/incremento-2-reunioes.md",
+      "bytes": 897,
+      "tracked": true
+    },
+    {
+      "path": "docs/INTERFACES.md",
+      "bytes": 2566,
+      "tracked": false,
+      "previousTrackedPath": "Synple/docs/INTERFACES.md"
+    },
+    {
+      "path": "docs/modelo-fisico.snapshot.json",
+      "bytes": 49631,
+      "tracked": true
+    },
+    {
+      "path": "docs/ORGANIZACAO_DO_PROJETO.md",
+      "bytes": 7634,
+      "tracked": false
+    },
+    {
+      "path": "docs/PADROES_DESENVOLVIMENTO.md",
+      "bytes": 2510,
+      "tracked": false,
+      "previousTrackedPath": "Synple/docs/PADROES_DESENVOLVIMENTO.md"
+    },
+    {
+      "path": "docs/README.md",
+      "bytes": 4149,
+      "tracked": false
+    },
+    {
+      "path": "docs/RELATORIO_2026-10-30_E_PLANO_INCREMENTO_3.md",
+      "bytes": 36181,
+      "tracked": true
+    },
+    {
+      "path": "docs/requisitos.snapshot.json",
+      "bytes": 48373,
+      "tracked": true
+    },
+    {
+      "path": "docs/REVISAO_COMENTARIOS_PROFESSOR_2026-11-06.md",
+      "bytes": 22311,
+      "tracked": true
+    },
+    {
+      "path": "docs/REVISAO_DE_LIMPEZA.md",
+      "bytes": 4830,
+      "tracked": false
+    },
+    {
+      "path": "docs/tecnologias-versoes.md",
+      "bytes": 3705,
+      "tracked": true
+    },
+    {
+      "path": "docs/usuarios-de-teste.md",
+      "bytes": 2858,
+      "tracked": true
+    },
+    {
+      "path": "docs/VALIDACAO_EM_APARELHOS.md",
+      "bytes": 2348,
+      "tracked": true
+    },
+    {
+      "path": "docs/VERIFICACAO_CORRECOES.md",
+      "bytes": 3228,
+      "tracked": false,
+      "previousTrackedPath": "Synple/docs/VERIFICACAO_CORRECOES.md"
+    },
+    {
+      "path": "docs/VERIFICACAO_DOCUMENTACAO.md",
+      "bytes": 5226,
+      "tracked": true
+    },
+    {
+      "path": "docs/VERIFICACAO_INCREMENTO_2.md",
+      "bytes": 5679,
+      "tracked": false,
+      "previousTrackedPath": "Synple/docs/VERIFICACAO_INCREMENTO_2.md"
+    },
+    {
+      "path": "docs/VERIFICACAO_INCREMENTO_3.md",
+      "bytes": 11323,
+      "tracked": false,
+      "previousTrackedPath": "Synple/docs/VERIFICACAO_INCREMENTO_3.md"
+    },
+    {
+      "path": "iniciar_docker.bat",
+      "bytes": 110,
+      "tracked": true
+    },
+    {
+      "path": "iniciar.ps1",
+      "bytes": 2907,
+      "tracked": true
+    },
+    {
+      "path": "package-lock.json",
+      "bytes": 92,
+      "tracked": true
+    },
+    {
+      "path": "README.md",
+      "bytes": 4441,
+      "tracked": true
+    },
+    {
+      "path": "Synple/backend/.dockerignore",
+      "bytes": 53,
+      "tracked": true
+    },
+    {
+      "path": "Synple/backend/.env",
+      "bytes": 783,
+      "tracked": true
+    },
+    {
+      "path": "Synple/backend/.env.example",
+      "bytes": 264,
+      "tracked": true
+    },
+    {
+      "path": "Synple/backend/.gitignore",
+      "bytes": 82,
+      "tracked": true
+    },
+    {
+      "path": "Synple/backend/Dockerfile",
+      "bytes": 484,
+      "tracked": true
+    },
+    {
+      "path": "Synple/backend/package-lock.json",
+      "bytes": 55124,
+      "tracked": true
+    },
+    {
+      "path": "Synple/backend/package.json",
+      "bytes": 631,
+      "tracked": true
+    },
+    {
+      "path": "Synple/backend/src/assets/fonts/NotoSans-Bold.ttf",
+      "bytes": 575740,
+      "tracked": true
+    },
+    {
+      "path": "Synple/backend/src/assets/fonts/NotoSans-Regular.ttf",
+      "bytes": 569208,
+      "tracked": true
+    },
+    {
+      "path": "Synple/backend/src/assets/fonts/OFL.txt",
+      "bytes": 4377,
+      "tracked": true
+    },
+    {
+      "path": "Synple/backend/src/assets/fonts/SOURCES.txt",
+      "bytes": 585,
+      "tracked": true
+    },
+    {
+      "path": "Synple/backend/src/db/connection.js",
+      "bytes": 1265,
+      "tracked": true
+    },
+    {
+      "path": "Synple/backend/src/db/init-db.js",
+      "bytes": 7763,
+      "tracked": true
+    },
+    {
+      "path": "Synple/backend/src/db/migrate.js",
+      "bytes": 1008,
+      "tracked": true
+    },
+    {
+      "path": "Synple/backend/src/db/schema.sql",
+      "bytes": 13121,
+      "tracked": true
+    },
+    {
+      "path": "Synple/backend/src/db/seed.sql",
+      "bytes": 3170,
+      "tracked": true
+    },
+    {
+      "path": "Synple/backend/src/routes/auth.js",
+      "bytes": 16015,
+      "tracked": true
+    },
+    {
+      "path": "Synple/backend/src/routes/commissions.js",
+      "bytes": 11795,
+      "tracked": true
+    },
+    {
+      "path": "Synple/backend/src/routes/health.js",
+      "bytes": 373,
+      "tracked": true
+    },
+    {
+      "path": "Synple/backend/src/routes/meetings.js",
+      "bytes": 39371,
+      "tracked": true
+    },
+    {
+      "path": "Synple/backend/src/routes/organizations.js",
+      "bytes": 14070,
+      "tracked": true
+    },
+    {
+      "path": "Synple/backend/src/routes/sync.js",
+      "bytes": 5116,
+      "tracked": true
+    },
+    {
+      "path": "Synple/backend/src/routes/system.js",
+      "bytes": 849,
+      "tracked": true
+    },
+    {
+      "path": "Synple/backend/src/routes/users.js",
+      "bytes": 5954,
+      "tracked": true
+    },
+    {
+      "path": "Synple/backend/src/server.js",
+      "bytes": 3553,
+      "tracked": true
+    },
+    {
+      "path": "Synple/backend/src/services/attendancePdf.js",
+      "bytes": 1804,
+      "tracked": true
+    },
+    {
+      "path": "Synple/backend/src/services/authorization.js",
+      "bytes": 2461,
+      "tracked": true
+    },
+    {
+      "path": "Synple/backend/src/services/mailer.js",
+      "bytes": 4922,
+      "tracked": true
+    },
+    {
+      "path": "Synple/backend/src/services/meetingMinutesPdf.js",
+      "bytes": 11327,
+      "tracked": true
+    },
+    {
+      "path": "Synple/backend/src/services/security.js",
+      "bytes": 5962,
+      "tracked": true
+    },
+    {
+      "path": "Synple/backend/src/utils/network.js",
+      "bytes": 979,
+      "tracked": true
+    },
+    {
+      "path": "Synple/backend/test/backend.test.js",
+      "bytes": 4139,
+      "tracked": true
+    },
+    {
+      "path": "Synple/backend/test/fixtures/minutesPdfSnapshot.js",
+      "bytes": 2058,
+      "tracked": true
+    },
+    {
+      "path": "Synple/backend/test/meetingMinutesPdf.test.js",
+      "bytes": 1778,
+      "tracked": true
+    },
+    {
+      "path": "Synple/backend/test/meetings.test.js",
+      "bytes": 32309,
+      "tracked": true
+    },
+    {
+      "path": "Synple/backend/test/migrate.test.js",
+      "bytes": 2405,
+      "tracked": true
+    },
+    {
+      "path": "Synple/backend/test/security.test.js",
+      "bytes": 12300,
+      "tracked": true
+    },
+    {
+      "path": "Synple/backend/test/voting.test.js",
+      "bytes": 13809,
+      "tracked": true
+    },
+    {
+      "path": "Synple/docker-compose.yml",
+      "bytes": 2052,
+      "tracked": true
+    },
+    {
+      "path": "Synple/docs/README.md",
+      "bytes": 421,
+      "tracked": false
+    },
+    {
+      "path": "Synple/dump_banco_synple.sql",
+      "bytes": 13941,
+      "tracked": true
+    },
+    {
+      "path": "Synple/iniciar_docker.bat",
+      "bytes": 113,
+      "tracked": true
+    },
+    {
+      "path": "Synple/mobile/.claude/settings.json",
+      "bytes": 76,
+      "tracked": true
+    },
+    {
+      "path": "Synple/mobile/.env",
+      "bytes": 325,
+      "tracked": false
+    },
+    {
+      "path": "Synple/mobile/.env.example",
+      "bytes": 242,
+      "tracked": true
+    },
+    {
+      "path": "Synple/mobile/.env.local",
+      "bytes": 49,
+      "tracked": false
+    },
+    {
+      "path": "Synple/mobile/.gitignore",
+      "bytes": 487,
+      "tracked": true
+    },
+    {
+      "path": "Synple/mobile/AGENTS.md",
+      "bytes": 121,
+      "tracked": true
+    },
+    {
+      "path": "Synple/mobile/App.js",
+      "bytes": 43397,
+      "tracked": true
+    },
+    {
+      "path": "Synple/mobile/app.json",
+      "bytes": 2039,
+      "tracked": true
+    },
+    {
+      "path": "Synple/mobile/assets/android-icon-background.png",
+      "bytes": 17549,
+      "tracked": true
+    },
+    {
+      "path": "Synple/mobile/assets/android-icon-foreground.png",
+      "bytes": 78796,
+      "tracked": true
+    },
+    {
+      "path": "Synple/mobile/assets/android-icon-monochrome.png",
+      "bytes": 4140,
+      "tracked": true
+    },
+    {
+      "path": "Synple/mobile/assets/favicon.png",
+      "bytes": 1129,
+      "tracked": true
+    },
+    {
+      "path": "Synple/mobile/assets/icon.png",
+      "bytes": 393493,
+      "tracked": true
+    },
+    {
+      "path": "Synple/mobile/assets/splash-icon.png",
+      "bytes": 17547,
+      "tracked": true
+    },
+    {
+      "path": "Synple/mobile/assets/synple-icon.png",
+      "bytes": 93254,
+      "tracked": true
+    },
+    {
+      "path": "Synple/mobile/assets/synple-splash.png",
+      "bytes": 157871,
+      "tracked": true
+    },
+    {
+      "path": "Synple/mobile/CLAUDE.md",
+      "bytes": 12,
+      "tracked": true
+    },
+    {
+      "path": "Synple/mobile/eas.json",
+      "bytes": 343,
+      "tracked": true
+    },
+    {
+      "path": "Synple/mobile/index.js",
+      "bytes": 106,
+      "tracked": true
+    },
+    {
+      "path": "Synple/mobile/LICENSE",
+      "bytes": 1127,
+      "tracked": true
+    },
+    {
+      "path": "Synple/mobile/metro.config.js",
+      "bytes": 1655,
+      "tracked": true
+    },
+    {
+      "path": "Synple/mobile/package-lock.json",
+      "bytes": 275611,
+      "tracked": true
+    },
+    {
+      "path": "Synple/mobile/package.json",
+      "bytes": 1808,
+      "tracked": true
+    },
+    {
+      "path": "Synple/mobile/scripts/detect-ip.js",
+      "bytes": 1792,
+      "tracked": true
+    },
+    {
+      "path": "Synple/mobile/src/components/ActionPressable.js",
+      "bytes": 715,
+      "tracked": true
+    },
+    {
+      "path": "Synple/mobile/src/components/AppHeader.js",
+      "bytes": 863,
+      "tracked": true
+    },
+    {
+      "path": "Synple/mobile/src/components/FormControls.js",
+      "bytes": 5837,
+      "tracked": true
+    },
+    {
+      "path": "Synple/mobile/src/components/KeyboardScrollView.js",
+      "bytes": 1598,
+      "tracked": true
+    },
+    {
+      "path": "Synple/mobile/src/components/MeetingEditor.js",
+      "bytes": 4291,
+      "tracked": true
+    },
+    {
+      "path": "Synple/mobile/src/components/MeetingResources.js",
+      "bytes": 5046,
+      "tracked": true
+    },
+    {
+      "path": "Synple/mobile/src/components/NavigationTabs.js",
+      "bytes": 1910,
+      "tracked": true
+    },
+    {
+      "path": "Synple/mobile/src/constants/data.js",
+      "bytes": 1716,
+      "tracked": true
+    },
+    {
+      "path": "Synple/mobile/src/constants/network.json",
+      "bytes": 90,
+      "tracked": true
+    },
+    {
+      "path": "Synple/mobile/src/constants/status.js",
+      "bytes": 562,
+      "tracked": true
+    },
+    {
+      "path": "Synple/mobile/src/hooks/useSynpleData.js",
+      "bytes": 1822,
+      "tracked": true
+    },
+    {
+      "path": "Synple/mobile/src/screens/AdminManagementScreen.js",
+      "bytes": 3980,
+      "tracked": true
+    },
+    {
+      "path": "Synple/mobile/src/screens/CommissionsScreen.js",
+      "bytes": 12055,
+      "tracked": true
+    },
+    {
+      "path": "Synple/mobile/src/screens/LoginScreen.js",
+      "bytes": 19075,
+      "tracked": true
+    },
+    {
+      "path": "Synple/mobile/src/screens/ManualScreen.js",
+      "bytes": 3530,
+      "tracked": true
+    },
+    {
+      "path": "Synple/mobile/src/screens/MeetingParticipationScreen.js",
+      "bytes": 2757,
+      "tracked": true
+    },
+    {
+      "path": "Synple/mobile/src/screens/MeetingsScreen.js",
+      "bytes": 26318,
+      "tracked": true
+    },
+    {
+      "path": "Synple/mobile/src/screens/MyOrganizationScreen.js",
+      "bytes": 13339,
+      "tracked": true
+    },
+    {
+      "path": "Synple/mobile/src/screens/OrganizationsScreen.js",
+      "bytes": 3441,
+      "tracked": true
+    },
+    {
+      "path": "Synple/mobile/src/screens/ProfileScreen.js",
+      "bytes": 3388,
+      "tracked": true
+    },
+    {
+      "path": "Synple/mobile/src/screens/SystemScreen.js",
+      "bytes": 3681,
+      "tracked": true
+    },
+    {
+      "path": "Synple/mobile/src/services/api.js",
+      "bytes": 27097,
+      "tracked": true
+    },
+    {
+      "path": "Synple/mobile/src/services/cacheSafety.js",
+      "bytes": 470,
+      "tracked": true
+    },
+    {
+      "path": "Synple/mobile/src/services/formatters.js",
+      "bytes": 1106,
+      "tracked": true
+    },
+    {
+      "path": "Synple/mobile/src/services/meetingMinutesPdf.js",
+      "bytes": 2420,
+      "tracked": true
+    },
+    {
+      "path": "Synple/mobile/src/services/meetings.js",
+      "bytes": 5905,
+      "tracked": true
+    },
+    {
+      "path": "Synple/mobile/src/services/session.js",
+      "bytes": 2046,
+      "tracked": true
+    },
+    {
+      "path": "Synple/mobile/src/services/storage.js",
+      "bytes": 482,
+      "tracked": true
+    },
+    {
+      "path": "Synple/mobile/src/services/validation.js",
+      "bytes": 2190,
+      "tracked": true
+    },
+    {
+      "path": "Synple/mobile/src/styles/theme.js",
+      "bytes": 10823,
+      "tracked": true
+    },
+    {
+      "path": "Synple/mobile/test/cacheSafety.test.js",
+      "bytes": 570,
+      "tracked": true
+    },
+    {
+      "path": "Synple/mobile/test/meetingMinutesPdf.test.js",
+      "bytes": 2593,
+      "tracked": true
+    },
+    {
+      "path": "Synple/mobile/test/meetings.test.js",
+      "bytes": 6500,
+      "tracked": true
+    },
+    {
+      "path": "Synple/mobile/test/session.test.js",
+      "bytes": 2542,
+      "tracked": true
+    },
+    {
+      "path": "Synple/mobile/test/validation.test.js",
+      "bytes": 3790,
+      "tracked": true
+    },
+    {
+      "path": "Synple/package.json",
+      "bytes": 792,
+      "tracked": true
+    },
+    {
+      "path": "Synple/README.md",
+      "bytes": 645,
+      "tracked": false
+    },
+    {
+      "path": "Synple/scripts/check-source.cjs",
+      "bytes": 1566,
+      "tracked": true
+    },
+    {
+      "path": "Synple/scripts/consolidate-documentation.cjs",
+      "bytes": 19893,
+      "tracked": true
+    },
+    {
+      "path": "Synple/scripts/delivery-requirements.cjs",
+      "bytes": 6643,
+      "tracked": true
+    },
+    {
+      "path": "Synple/scripts/delivery-uml.cjs",
+      "bytes": 7605,
+      "tracked": true
+    },
+    {
+      "path": "Synple/scripts/dev-tunnel.js",
+      "bytes": 5496,
+      "tracked": true
+    },
+    {
+      "path": "Synple/scripts/dev.js",
+      "bytes": 992,
+      "tracked": true
+    },
+    {
+      "path": "Synple/scripts/diagram-locations.json",
+      "bytes": 8417,
+      "tracked": false
+    },
+    {
+      "path": "Synple/scripts/documentation-locations.json",
+      "bytes": 1316,
+      "tracked": false
+    },
+    {
+      "path": "Synple/scripts/documentation-paths.cjs",
+      "bytes": 1116,
+      "tracked": false
+    },
+    {
+      "path": "Synple/scripts/generate-class-dictionary.cjs",
+      "bytes": 17007,
+      "tracked": true
+    },
+    {
+      "path": "Synple/scripts/generate-data-dictionary.cjs",
+      "bytes": 18105,
+      "tracked": true
+    },
+    {
+      "path": "Synple/scripts/generate-main-spec.cjs",
+      "bytes": 58288,
+      "tracked": true
+    },
+    {
+      "path": "Synple/scripts/generate-uml.cjs",
+      "bytes": 24596,
+      "tracked": true
+    },
+    {
+      "path": "Synple/scripts/index-diagrams.cjs",
+      "bytes": 4722,
+      "tracked": false
+    },
+    {
+      "path": "Synple/scripts/inventory-project.cjs",
+      "bytes": 4307,
+      "tracked": false
+    },
+    {
+      "path": "Synple/scripts/organize-diagrams.cjs",
+      "bytes": 3413,
+      "tracked": false
+    },
+    {
+      "path": "Synple/scripts/organize-documentation.cjs",
+      "bytes": 2195,
+      "tracked": false
+    },
+    {
+      "path": "Synple/scripts/validate-documentation.cjs",
+      "bytes": 4547,
+      "tracked": true
+    },
+    {
+      "path": "Synple/synple-backend.tar",
+      "bytes": 51041280,
+      "tracked": true
+    }
+  ]
+}

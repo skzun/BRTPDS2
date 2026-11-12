@@ -1,10 +1,13 @@
 # 🐳 Como Rodar o Synple via CMD com Docker
 
-> **Procedimento atualizado em 30/10/2026:** siga o [README da raiz](../README.md) e `../iniciar.ps1`. O boot aplica migrações e preserva senhas; não executa seeds. Para uma instalação nova de demonstração, use explicitamente `docker compose exec backend npm run init-db`. O login Google/biometria exige novo development build e `npm --prefix mobile run tunnel`. As instruções históricas abaixo sobre criação automática de contas e uso do Expo Go não descrevem esse fluxo.
+> Documento histórico preservado em 12/11/2026. Para iniciar o projeto hoje, use o [guia atual](../guias/COMO_RODAR_DOCKER.md). Consulte a [central](../README.md) antes de seguir comandos antigos.
+
+
+> **Procedimento atualizado em 30/10/2026:** siga o [README da raiz](../../README.md) e `../iniciar.ps1`. O boot aplica migrações e preserva senhas; não executa seeds. Para uma instalação nova de demonstração, use explicitamente `docker compose exec backend npm run init-db`. O login Google/biometria exige novo development build e `npm --prefix mobile run tunnel`. As instruções históricas abaixo sobre criação automática de contas e uso do Expo Go não descrevem esse fluxo.
 
 Este guia contém **todos os comandos e passos necessários** para rodar o Banco de Dados (PostgreSQL) e o Backend (API Node.js) em qualquer computador utilizando Docker via CMD (Prompt de Comando).
 
-Para o passo a passo completo de instalação, uso do app, login Google e recuperação de senha, consulte [GUIA_USO_E_INICIALIZACAO.md](GUIA_USO_E_INICIALIZACAO.md). O mesmo guia explica como [gerar, salvar e compartilhar a ata em PDF](GUIA_USO_E_INICIALIZACAO.md#gerar-ata-em-pdf).
+Para o passo a passo completo de instalação, uso do app, login Google e recuperação de senha, consulte [GUIA_USO_E_INICIALIZACAO.md](../guias/GUIA_USO_E_INICIALIZACAO.md). O mesmo guia explica como [gerar, salvar e compartilhar a ata em PDF](../guias/GUIA_USO_E_INICIALIZACAO.md#gerar-ata-em-pdf).
 
 ---
 
@@ -80,7 +83,7 @@ npm run start:go
 ```
 Esse comando inicia o Expo Go e detecta o IP atual do notebook automaticamente. Para usar o development build do Synple (necessário ao Google Login), execute `npm run start:dev-client`. O celular físico precisa estar na mesma rede Wi-Fi; navegador e emulador Android usam `http://localhost:3001`, e no emulador Android `10.0.2.2` aponta para o computador hospedeiro.
 
-Para testar em outra rede, inicie backend, túnel da API e Metro com `npm run dev:tunnel` na raiz do projeto (ou `npm --prefix mobile run tunnel`). O `npx expo start --tunnel` sozinho encaminha apenas o Metro; a porta `3001` da API precisa do túnel separado que o script inicia. Para uso somente na rede local, com Docker/API já ativos, rode `npm --prefix mobile run start:go` para Expo Go ou `npm --prefix mobile run start:dev-client` para o development build; os scripts detectam o IP local. O login Google não roda no Expo Go; para ele use development build. Consulte [LOGIN_COM_GOOGLE.md](LOGIN_COM_GOOGLE.md).
+Para testar em outra rede, inicie backend, túnel da API e Metro com `npm run dev:tunnel` na raiz do projeto (ou `npm --prefix mobile run tunnel`). O `npx expo start --tunnel` sozinho encaminha apenas o Metro; a porta `3001` da API precisa do túnel separado que o script inicia. Para uso somente na rede local, com Docker/API já ativos, rode `npm --prefix mobile run start:go` para Expo Go ou `npm --prefix mobile run start:dev-client` para o development build; os scripts detectam o IP local. O login Google não roda no Expo Go; para ele use development build. Consulte [LOGIN_COM_GOOGLE.md](../guias/LOGIN_COM_GOOGLE.md).
 
 Antes de abrir o Expo, confirme que a API (e não apenas o PostgreSQL) responde no notebook:
 
@@ -119,4 +122,4 @@ O Docker Desktop está fechado. Abra o **Docker Desktop** no menu Iniciar do Win
 
 ### 3. A ata não gera PDF
 
-Reconstrua a API com `docker compose up -d --build`, recarregue o app e salve a ata antes de gerar o arquivo. Mantenha a API ou o túnel acessível ao navegador do celular. Para baixar no Android/iOS, siga [Gerar ata em PDF](GUIA_USO_E_INICIALIZACAO.md#gerar-ata-em-pdf).
+Reconstrua a API com `docker compose up -d --build`, recarregue o app e salve a ata antes de gerar o arquivo. Mantenha a API ou o túnel acessível ao navegador do celular. Para baixar no Android/iOS, siga [Gerar ata em PDF](../guias/GUIA_USO_E_INICIALIZACAO.md#gerar-ata-em-pdf).

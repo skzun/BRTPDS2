@@ -1,5 +1,8 @@
 # Retomar a preparação da entrega — Synple
 
+> Documento histórico preservado em 12/11/2026. Para iniciar o projeto hoje, use o [guia atual](../guias/COMO_RODAR_DOCKER.md). Consulte a [central](../README.md) antes de seguir comandos antigos.
+
+
 **Trabalho interrompido por solicitação do usuário em 06/11/2026 (America/Sao_Paulo).**
 Repositório: `C:\Users\ALUNO\Documents\GitHub\BRTPDS2`.
 
@@ -76,9 +79,9 @@ Dependências adicionadas e lockfile atualizado:
 - Manual dentro do aplicativo atualizado.
 - Relatórios antigos marcados como históricos.
 - Novos documentos:
-  - [Estado da entrega](docs/ENTREGA_INCREMENTO_3.md)
-  - [Roteiro em aparelhos](docs/VALIDACAO_EM_APARELHOS.md)
-  - [Inspeção anterior às correções](docs/REVISAO_COMENTARIOS_PROFESSOR_2026-11-06.md)
+  - [Estado da entrega](../ENTREGA_INCREMENTO_3.md)
+  - [Roteiro em aparelhos](../VALIDACAO_EM_APARELHOS.md)
+  - [Inspeção anterior às correções](../REVISAO_COMENTARIOS_PROFESSOR_2026-11-06.md)
 
 Geradores novos: `Synple/scripts/delivery-requirements.cjs` e `delivery-uml.cjs`. Eles complementam os geradores existentes; não remover.
 
@@ -119,7 +122,7 @@ Revisar especialmente:
 - criação/edição e reconfirmação de convites;
 - visualização do texto compartilhado nas diferentes seções;
 - política de presença (hoje limitada ao período da reunião) e compatibilidade com o aceite do professor;
-- cópias antigas de diagramas em `Synple/docs/Diagramas/fontes` versus fontes canônicas em `docs/Diagramas/fontes`.
+- cópias antigas de diagramas em `docs/Diagramas/VERSOES_ANTERIORES/fontes` versus fontes canônicas em `docs/Diagramas/ENTREGA_DEFINITIVA/fontes`.
 
 ### 2. Reexecutar as verificações
 
@@ -143,7 +146,7 @@ node Synple/scripts/generate-data-dictionary.cjs
 node Synple/scripts/generate-class-dictionary.cjs
 node Synple/scripts/generate-main-spec.cjs
 node Synple/scripts/generate-uml.cjs
-java -jar .verification-build/plantuml.jar -charset UTF-8 -tsvg -o ../renderizados "docs/Diagramas/fontes/*.puml"
+java -jar .verification-build/plantuml.jar -charset UTF-8 -tsvg -o ../renderizados "docs/Diagramas/ENTREGA_DEFINITIVA/fontes/*.puml"
 node Synple/scripts/validate-documentation.cjs
 ```
 

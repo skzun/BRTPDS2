@@ -1,8 +1,11 @@
 # Synple — guia de uso e inicialização
 
+> Guia detalhado de outubro preservado para consulta. O [manual atual do usuário](MANUAL_DO_USUARIO.md) e o [procedimento atual de inicialização](COMO_RODAR_DOCKER.md) têm precedência em caso de divergência. Os comandos deste guia se referem aos diretórios do projeto, não à pasta em que este documento está salvo.
+
+
 Atualizado em 22/10/2026.
 
-Este guia explica como preparar o projeto, iniciar a API e abrir o app no celular. Para login Google, consulte também [LOGIN_COM_GOOGLE.md](LOGIN_COM_GOOGLE.md). Para configurar o envio de códigos de recuperação, consulte [backend/EMAIL_RECOVERY_SETUP.md](backend/EMAIL_RECOVERY_SETUP.md). Os requisitos, diagramas e roteiro de avaliação do módulo de reuniões estão em [docs/INCREMENTO_2.md](docs/INCREMENTO_2.md).
+Este guia explica como preparar o projeto, iniciar a API e abrir o app no celular. Para login Google, consulte também [LOGIN_COM_GOOGLE.md](LOGIN_COM_GOOGLE.md). Para configurar o envio de códigos de recuperação, consulte [backend/EMAIL_RECOVERY_SETUP.md](EMAIL_RECOVERY_SETUP.md). Os requisitos, diagramas e roteiro de avaliação do módulo de reuniões estão em [docs/INCREMENTO_2.md](../INCREMENTO_2.md).
 
 ## 1. O que instalar
 
@@ -32,7 +35,7 @@ Copy-Item mobile/.env.example mobile/.env
 
 O mobile precisa dos IDs Android, iOS e Web. O backend precisa dos IDs permitidos em `GOOGLE_OAUTH_CLIENT_IDS`. Os Client IDs são identificadores públicos; senha de app Gmail, senha do banco e outros segredos ficam somente em `backend/.env`. Veja [LOGIN_COM_GOOGLE.md](LOGIN_COM_GOOGLE.md) para configurar os IDs e certificados.
 
-Para recuperação de senha, configure `SMTP_SERVICE`, `SMTP_USER`, `SMTP_PASS` (Senha de app do Gmail) e `EMAIL_FROM` em `backend/.env`. Não use a senha normal do Gmail. O passo a passo está em [backend/EMAIL_RECOVERY_SETUP.md](backend/EMAIL_RECOVERY_SETUP.md).
+Para recuperação de senha, configure `SMTP_SERVICE`, `SMTP_USER`, `SMTP_PASS` (Senha de app do Gmail) e `EMAIL_FROM` em `backend/.env`. Não use a senha normal do Gmail. O passo a passo está em [backend/EMAIL_RECOVERY_SETUP.md](EMAIL_RECOVERY_SETUP.md).
 
 ## 3. Instalar dependências e preparar o banco
 
@@ -139,7 +142,7 @@ Use **Atualizar reuniões e aprovações** para ver respostas de outras contas. 
 
 Quem for removido da comissão continua acessando em **Reuniões** os encontros para os quais já tinha convite. Se registrou entrada e integra os aprovadores da ata submetida, ainda precisa decidir sobre essa versão. O acesso histórico não mantém a permissão de agendar/editar atas por um cargo que a pessoa deixou de exercer.
 
-O [documento do incremento 2](docs/INCREMENTO_2.md) inclui o roteiro completo de demonstração, critérios de aceitação e as limitações de autenticação da API antes de uso público em produção.
+O [documento do incremento 2](../INCREMENTO_2.md) inclui o roteiro completo de demonstração, critérios de aceitação e as limitações de autenticação da API antes de uso público em produção.
 
 ### Gerar ata em PDF
 

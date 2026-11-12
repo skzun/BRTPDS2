@@ -1,0 +1,270 @@
+{
+  "selectionDate": "2026-11-12",
+  "diagrams": 33,
+  "files": [
+    {
+      "file": "fontes/classes-cadastro.puml",
+      "sha256": "f799da0ff01e0e73a8e20bcc3fdf0d0204866a0f98bd387ecdd06506d57766ba"
+    },
+    {
+      "file": "renderizados/classes-cadastro.svg",
+      "sha256": "3f5d32c172c224ca01745008b47ac5197aacc90e02ed2027ba5265babd5e70b5"
+    },
+    {
+      "file": "fontes/classes-incremento-3.puml",
+      "sha256": "d7fec9fbffa956e65c32e12e1cbbf4a35f986911693306a53a884cc4ccc0cd02"
+    },
+    {
+      "file": "renderizados/classes-incremento-3.svg",
+      "sha256": "6ef73b2feb34d1a919e49f4e890e443c89e07717356453fd10840a07847ce886"
+    },
+    {
+      "file": "fontes/classes-reunioes.puml",
+      "sha256": "cef48bbe26f27a751e5708a00f8e49a1be75cc3cc2f9111c03f5a22a4b638749"
+    },
+    {
+      "file": "renderizados/classes-reunioes.svg",
+      "sha256": "d3a54cef4f3c8c47fa4561d6e3b9a150b4213054b1d59c39739bfce81f8a4d09"
+    },
+    {
+      "file": "fontes/classes-servicos.puml",
+      "sha256": "8aa5ff25694f086bc5c5d6d881d85224469670797be4630d83f248b4393b349e"
+    },
+    {
+      "file": "renderizados/classes-servicos.svg",
+      "sha256": "9a69ee8e4f9301890de3d7a6ff4a640c250f072659e440a2e9993ce818b7f3ee"
+    },
+    {
+      "file": "fontes/implantacao.puml",
+      "sha256": "aca4d6809aa97ee71a1ef4af2abf3407e3b21582033bcc0519f38fee888544a3"
+    },
+    {
+      "file": "renderizados/implantacao.svg",
+      "sha256": "dfe46ffee6586ab9da87d52295cde7161649bf5a156a012fd0c823dc2d208677"
+    },
+    {
+      "file": "fontes/relacional-cadastro.puml",
+      "sha256": "1afdd6ff2c5e9b4bb38010410166fdc186739f490ea78809f63e94d3fb260f3a"
+    },
+    {
+      "file": "renderizados/relacional-cadastro.svg",
+      "sha256": "5e87b7b37193cb312477323f77da92a70f3e73a194e9fe1080f32e4d60a63097"
+    },
+    {
+      "file": "fontes/relacional-incremento-3.puml",
+      "sha256": "ed86cd14854480e21f0cc0f309dcbd6c0f7954aa73bfff021b21c2ae702973cf"
+    },
+    {
+      "file": "renderizados/relacional-incremento-3.svg",
+      "sha256": "6a9fd7849fdb6667d727566c0a2f2647c94630f9a85941a70bac7037a4a5ce28"
+    },
+    {
+      "file": "fontes/relacional-reunioes.puml",
+      "sha256": "1717fc2db0c5d6c17230b1ca3f462f0d2b3579fa1aad85321d8cddc7da9027c6"
+    },
+    {
+      "file": "renderizados/relacional-reunioes.svg",
+      "sha256": "55dff3893c5dd555d717894092318b79f5a0d4ebb9c496f21c2d01238baeed41"
+    },
+    {
+      "file": "fontes/relacional-seguranca.puml",
+      "sha256": "bcc2da06579e1e2bdc5c13e71b642799ea725f25994c30b371afc0c390cc46e9"
+    },
+    {
+      "file": "renderizados/relacional-seguranca.svg",
+      "sha256": "ef463bbe532798b42d36aa13d400243a41a1000b206b24755fd2d43d22cbdbc6"
+    },
+    {
+      "file": "fontes/seq-agendamento.puml",
+      "sha256": "690664bcf4d9fc47d1311a42dcf959316d115f95d43379b5275617172a24360e"
+    },
+    {
+      "file": "renderizados/seq-agendamento.svg",
+      "sha256": "7786356789445044030807d23288e5f5a1447d872a6116fa9c49a5372d0e65e8"
+    },
+    {
+      "file": "fontes/seq-anexos.puml",
+      "sha256": "bfc68acf48059bb03a09f365d182fbbc20f4db9eddbb0b96498d777aa01955dc"
+    },
+    {
+      "file": "renderizados/seq-anexos.svg",
+      "sha256": "a3da4f1cf7675d783959ae5d4a2a6ace690e45c8857aed10f8aa233591aeb448"
+    },
+    {
+      "file": "fontes/seq-ata.puml",
+      "sha256": "2542c473f50643ebd364069eb03057a74f5baa43b2408926026f29d5c4e3ef92"
+    },
+    {
+      "file": "renderizados/seq-ata.svg",
+      "sha256": "6f5ca4aeba7d5148ae1bfbcc9513d1185922bf1e4bc1052a323032515be99831"
+    },
+    {
+      "file": "fontes/seq-biometria.puml",
+      "sha256": "b6ec6cb4fc440deea1d688c0159f71aa5a5c1961dd619bfc8834eae5f0c85c26"
+    },
+    {
+      "file": "renderizados/seq-biometria.svg",
+      "sha256": "7565aecb1179f526f210f7f3830924fc2860b52c23cf39c1cfb5f36cae293592"
+    },
+    {
+      "file": "fontes/seq-cadastro.puml",
+      "sha256": "3ad29270c58dba66b2a58673d20524a0cd0eb503ebfe890560bd43c78d1c5e4e"
+    },
+    {
+      "file": "renderizados/seq-cadastro.svg",
+      "sha256": "6990611da8b4be8377aa9ad8cea4f0a6e69e80421e3251de5ccff2e75adebbfa"
+    },
+    {
+      "file": "fontes/seq-comando.puml",
+      "sha256": "8365c761ec68055c6cf75e13c920acd5edb624f6bb83a374255929426883352a"
+    },
+    {
+      "file": "renderizados/seq-comando.svg",
+      "sha256": "b4fc411da67a1fd2a0d6d427dfcd277efd79650f49a268d0c3ef2fba0214d2e2"
+    },
+    {
+      "file": "fontes/seq-convite-org.puml",
+      "sha256": "45c8d10c1100d124f353cc0cb538db0f0b689ed1c0579db8cf60e5c271ec00bc"
+    },
+    {
+      "file": "renderizados/seq-convite-org.svg",
+      "sha256": "fd20f6e3f1da88b2a3eac66a08d7407c7ae8e5dac2f06d86c48568fcc40d19e7"
+    },
+    {
+      "file": "fontes/seq-editar-reuniao.puml",
+      "sha256": "0a250e54114fdc3a169b1b1035e5c87d0f23ffdcd88c2e39a0cc542098f90b57"
+    },
+    {
+      "file": "renderizados/seq-editar-reuniao.svg",
+      "sha256": "75aa90ad4f23f7e99e8df52a778fa10e19f5c7232d0b758f784a4e75b2172897"
+    },
+    {
+      "file": "fontes/seq-login.puml",
+      "sha256": "e839c2dbd05083d61150bcbf8305fd63dc61460f97f9b74247bccdd00c126b5a"
+    },
+    {
+      "file": "renderizados/seq-login.svg",
+      "sha256": "e4c05c77760ffcdac2a63b5fbd5ecc94c8620c7ab32bcba6d27ae02af14e05c1"
+    },
+    {
+      "file": "fontes/seq-manual-consulta.puml",
+      "sha256": "698451baf8be6dae1c83cb639a2d54215c9d9c42d4adebb3e2094f4633ca9220"
+    },
+    {
+      "file": "renderizados/seq-manual-consulta.svg",
+      "sha256": "c8547378f60e11b507e8fd647de0b153c2e3694c52fb4434b2cec1fc6703583e"
+    },
+    {
+      "file": "fontes/seq-pdf.puml",
+      "sha256": "31e8e09b4c9db3c9ab53d09d5bae8cd3875925b399444ac1a453b527a0d3ad44"
+    },
+    {
+      "file": "renderizados/seq-pdf.svg",
+      "sha256": "a35cb47af06f9fcd2ea400312fb61e5d4846c768ebcad18304d7ff3fe08fe92c"
+    },
+    {
+      "file": "fontes/seq-presenca-pdf.puml",
+      "sha256": "a7e931d05f3eae0a19e484c48fdeb1e0fadcb33f06de33bb449acff08e778ffa"
+    },
+    {
+      "file": "renderizados/seq-presenca-pdf.svg",
+      "sha256": "59570c8dd284c84356813f22c2e7b6945667fed82ee6067d56cebaca8cb476d7"
+    },
+    {
+      "file": "fontes/seq-presenca.puml",
+      "sha256": "86c852951eb5b6d20aa05cfbd8b10159bd6385c0144425de710397957d282d07"
+    },
+    {
+      "file": "renderizados/seq-presenca.svg",
+      "sha256": "a373730ff150ee3bcbf2f881075906614e2f7649f9b158f1f1a623bce8df1c50"
+    },
+    {
+      "file": "fontes/seq-recuperacao.puml",
+      "sha256": "a489a8cb25ca9966135b90467a5d96bb7f3ba1ab014c7aeded3460a2ee82c8cf"
+    },
+    {
+      "file": "renderizados/seq-recuperacao.svg",
+      "sha256": "400f81f32d4dd8be17a4b0a393871b4748fdf88d57e5048ca179d880f5016ad6"
+    },
+    {
+      "file": "fontes/seq-relatorio-participacao.puml",
+      "sha256": "8920c5b7f70802f8c16a797357883c264a9292db9f3b51c223b1d4b315fa99f5"
+    },
+    {
+      "file": "renderizados/seq-relatorio-participacao.svg",
+      "sha256": "3869c697b1efda8fba85644f2d191f51d6706e24e0e0dc5404b9f3e1e97591d5"
+    },
+    {
+      "file": "fontes/seq-sincronizacao.puml",
+      "sha256": "42049bf14c119afeaeda507b9e76dd3d1ab1e459a3351733a3fb988c332a6794"
+    },
+    {
+      "file": "renderizados/seq-sincronizacao.svg",
+      "sha256": "3cf8b312f8ba25ca86af66743b64a1a8c0426daddb79e78851ea69df796f5738"
+    },
+    {
+      "file": "fontes/seq-sistema.puml",
+      "sha256": "3a69cf426a7ae219b978be1048a1b0778f7e2246d422a7005cba7a51fdc9695a"
+    },
+    {
+      "file": "renderizados/seq-sistema.svg",
+      "sha256": "c235dc8c9366bb791dcc0811e95a8601ab29c15dc7b94c3edc9e8b724af5a98f"
+    },
+    {
+      "file": "fontes/seq-transferencia.puml",
+      "sha256": "f85fb092320cc4143393c3d4ef8e6b69058e0a059d1e4ed467b3d0bf16f13541"
+    },
+    {
+      "file": "renderizados/seq-transferencia.svg",
+      "sha256": "03acc21e7ec425a9940da562a40e7e7cdd485ccaca83f5e086aeee1cf5b49606"
+    },
+    {
+      "file": "fontes/seq-votacoes.puml",
+      "sha256": "c3df8fc6e421271875ca3212338610b98d307dd7a064616fbb8ab1e86736b8ad"
+    },
+    {
+      "file": "renderizados/seq-votacoes.svg",
+      "sha256": "e5153d44fe797b162077a97f3bb428817862bf60b1ca12b6833049283ed0d496"
+    },
+    {
+      "file": "fontes/uc-autenticacao.puml",
+      "sha256": "48f252a05812e65b7b47013f369e02aff7efaebb6a4f723282a00aa6b5eb2a02"
+    },
+    {
+      "file": "renderizados/uc-autenticacao.svg",
+      "sha256": "92e5912e7c79c5a11f32a61bab0ecb96f4de5e970e5e230da50262739b2eacbf"
+    },
+    {
+      "file": "fontes/uc-incremento-3.puml",
+      "sha256": "d27519278b202fff1de9d9b3278681fcf3c5939cd0b00b547e254a3b8207035d"
+    },
+    {
+      "file": "renderizados/uc-incremento-3.svg",
+      "sha256": "7c4cd7f5661bc81ecb0bb35a2a935af2aa938cd4a0943ba694122887f35d522d"
+    },
+    {
+      "file": "fontes/uc-operacao.puml",
+      "sha256": "1bd5f01f56f1ef00689016b59d6769aca9c35316d550cdc6e90fed908a98a95a"
+    },
+    {
+      "file": "renderizados/uc-operacao.svg",
+      "sha256": "1517e8dcc22561a847844b327639f8bf483fadaa4421fb207a529045831e3103"
+    },
+    {
+      "file": "fontes/uc-organizacoes.puml",
+      "sha256": "41d68121ba58a920bc616c52db342d990f3451f39a36972f20088122fc50d3ba"
+    },
+    {
+      "file": "renderizados/uc-organizacoes.svg",
+      "sha256": "06b79f26dbde9f31c6074754e05d538dc3315cec22abcbe13c436b1651a187d1"
+    },
+    {
+      "file": "fontes/uc-reunioes.puml",
+      "sha256": "13d32dbc8a349848968cb4341f35c48fc1058c5a4c1d0edf89f0e88d18afb4a2"
+    },
+    {
+      "file": "renderizados/uc-reunioes.svg",
+      "sha256": "93f49fbe08343e053bc4c7eb3a2eaab49feedfe27a2e2062ad457f34d8c6207f"
+    }
+  ]
+}

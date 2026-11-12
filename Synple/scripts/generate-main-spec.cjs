@@ -75,8 +75,8 @@ const R=[
  ['Acionar Sair ou confirmar Limpar cache e sair.','Solicitar revogação da sessão atual no servidor.','Apagar token da memória/SecureStore e substituir snapshot local por estrutura vazia.','Retornar ao login; registros do PostgreSQL permanecem.'],
  'Cancelar a confirmação preserva sessão/cache. Se a API não for alcançada, a limpeza local ainda ocorre; revogação remota não é garantida e token expira no prazo original. Não se trata de restauração de backup nem reset do banco.',
  'DELETE auth_sessions quando alcançável; remoção de synple.session.v1 do SecureStore; JSON local vazio.', 'POST /auth/logout','seq-sistema'],
-['RF19','Entrar com e-mail e senha','Visitante','Login → E-mail/Senha → botão Entrar como usuário ou administrador','Conta existente, ativa e API disponível.',
- ['Preencher e-mail/senha; validar formato do e-mail e presença da senha no app.','Enviar credenciais ao servidor; seleção de modo não concede papel administrativo.','A API normaliza dados, compara bcrypt, verifica ativação e aplica limites.','Emitir sessão opaca de sete dias; devolver perfil sem hash de senha.','Guardar token em memória e tentar armazenamento biométrico protegido; consultar snapshot e abrir área conforme systemRole real.'],
+['RF19','Entrar com e-mail e senha','Visitante','Login → E-mail/Senha → botão Entrar; perfil identificado pelo servidor','Conta existente, ativa e API disponível.',
+ ['Preencher e-mail/senha; validar formato do e-mail e presença da senha no app.','Enviar e-mail e senha ao servidor; o perfil da conta define o papel administrativo.','A API normaliza dados, compara bcrypt, verifica ativação e aplica limites.','Emitir sessão opaca de sete dias; devolver perfil sem hash de senha.','Guardar token em memória e tentar armazenamento biométrico protegido; consultar snapshot e abrir área conforme systemRole real.'],
  'Conta ausente/senha inválida: 401; conta pendente: 403; limite: 429. Não há autenticação por senha local nem senhas alternativas de demonstração.',
  'auth_sessions.token_hash/user_id/expires_at. Token bruto não é guardado no banco ou AsyncStorage.', 'POST /auth/login; GET /sync','seq-login'],
 ['RF20','Entrar/cadastrar com Google','Visitante','Login ou Criar conta → Continuar com Google','Client IDs Web/plataforma e backend configurados; development build compatível no celular.',
@@ -108,7 +108,7 @@ const R=[
  'Token expirado/revogado ou falha de validação exige login; no fluxo atual também limpa a sessão local após falha. Sem hardware/enrollment, web ou falha ao gravar SecureStore, token fica só em memória. Não há garantia de entrada offline nem teste físico comprovado nesta revisão.',
  'SecureStore synple.session.v1 protegido; memória do app; auth_sessions no servidor.', 'GET /auth/me','seq-biometria'],
 ['RF27','Excluir conta administrativamente','Administrador do sistema','Gestão → usuário → Remover → confirmação','Conta alvo existente e diferente do administrador ativo; interface também restringe remoção de outro administrador.',
- ['Selecionar usuário e confirmar a exclusão.','API verifica SYSTEM_ADMIN e inicia transação.','Bloquear remoção do próprio administrador, de coordenador atual e de aprovador fixado em ata em revisão/aprovada.','Executar DELETE conforme FKs; em sucesso confirmar e remover dados locais correspondentes.'],
+ ['Selecionar usuário e confirmar a exclusão.','API verifica SYSTEM_ADMIN e inicia transação.','Bloquear remoção do próprio administrador, de coordenador atual, de aprovador fixado em ata em revisão/aprovada e de usuário com voto registrado em votação.','Executar DELETE conforme FKs; em sucesso confirmar e remover dados locais correspondentes.'],
  'É necessário transferir coordenação antes de remover coordenador. Referências históricas sem cascata podem impedir exclusão; conflitos retornam 409. A proteção contra excluir qualquer outro SYSTEM_ADMIN está na interface, não como regra equivalente em todas as ramificações do backend.',
  'users e cascatas/restrições reais das FKs; sessões são removidas por cascata.', 'DELETE /users/:id','seq-comando'],
 ['RF28','Alterar nome/CNPJ da organização','Proprietário da organização','Minha organização → Dados da organização → campos Nome/CNPJ → Salvar organização → confirmação','Organização selecionada; sessão do proprietário.',
@@ -354,6 +354,6 @@ Antes de entregar: conferir padrão institucional fornecido pelo professor (o fo
 Não há necessidade de anexar node_modules ou senhas para documentar. Dicionário físico e versões são regenerados com generate-data-dictionary.cjs; fontes UML com generate-uml.cjs; esta especificação com generate-main-spec.cjs. Qualquer regeneração exige revisão semântica dos textos manuais e conferência visual das imagens. [Índice geral do projeto](../Documentacao_do_ProjetoSynple.md).
 `;
 md=md.replace(/\\\{/g,'{').replace(/\\\}/g,'}');
-fs.writeFileSync(path.join(docs,'incremento-1-especificacao-completa.md'),md);
+fs.writeFileSync(path.join(docs,'incremento-1-especificacao-completa.md'),require('./documentation-paths.cjs').relocateDocument('docs/incremento-1-especificacao-completa.md',md).text);
 fs.writeFileSync(path.join(docs,'requisitos.snapshot.json'),JSON.stringify(R.map(([id,name,actor,trigger,pre,steps,exceptions,data,api,sequence])=>({id,name,actor,trigger,pre,steps,exceptions,data,api,sequence})),null,2)+'\n');
 console.log(`${R.length} requisitos funcionais consolidados na especificação principal.`);

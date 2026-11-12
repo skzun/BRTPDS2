@@ -1,5 +1,6 @@
 const fs=require('fs');const path=require('path');const root=path.resolve(__dirname,'../..');
-const write=(file,text)=>fs.writeFileSync(path.join(root,file),text);
+const { relocateDocument } = require('./documentation-paths.cjs');
+const write=(file,text)=>{ const output=file.endsWith('.md')?relocateDocument(file,text):{file,text}; fs.mkdirSync(path.dirname(path.join(root,output.file)),{recursive:true}); fs.writeFileSync(path.join(root,output.file),output.text); };
 const edit=(file,fn)=>write(file,fn(fs.readFileSync(path.join(root,file),'utf8').replace(/\r\n/g,'\n')));
 edit('Synple/scripts/generate-main-spec.cjs',s=>s.replace('RF19–RF26 explicitam contas/sessão/convites antes misturados a outros fluxos.','RF19–RF28 explicitam contas/sessão/convites e gestão antes misturados a outros fluxos.'));
 write('Documentacao_do_ProjetoSynple.md',`# Documentação do projeto Synple

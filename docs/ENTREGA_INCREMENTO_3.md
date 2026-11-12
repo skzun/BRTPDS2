@@ -2,6 +2,8 @@
 
 Revisão: 06/11/2026, America/Sao_Paulo. Este documento registra o estado do checkout após as correções, sem afirmar publicação de commit, instalação em celulares ou validação com a comunidade.
 
+Verificação complementar em 11/11/2026, documentação concluída em 12/11/2026: [votação, correções, 78 testes e conferência dos slides](VERIFICACAO_INCREMENTO_3.md). Consulte esse relatório para o estado mais recente e as pendências de entrega.
+
 ## O que foi corrigido
 
 - Datas: backend rejeita início passado, término inválido, convite após término e presença fora do período. A validação devolve todos os erros de campo.

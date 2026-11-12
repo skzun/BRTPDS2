@@ -25,7 +25,7 @@ Renderizar sem erro valida sintaxe, mas não certifica sozinho semântica UML. A
 
 ## Evidências de software preexistentes
 
-O [relatório da revisão de código](../Synple/docs/VERIFICACAO_CORRECOES.md) registra35 testes backend,23 mobile, exportação Android/iOS/Web e migração. Esses resultados pertencem àquela execução; não foram apresentados como nova bateria de testes nesta revisão de Markdown/diagramas. A geração de diagramas e o parser de documentos não validam funcionamento de um APK.
+O [relatório da revisão de código](VERIFICACAO_CORRECOES.md) registra35 testes backend,23 mobile, exportação Android/iOS/Web e migração. Esses resultados pertencem àquela execução; não foram apresentados como nova bateria de testes nesta revisão de Markdown/diagramas. A geração de diagramas e o parser de documentos não validam funcionamento de um APK.
 
 ## Pendências e limites
 
@@ -40,7 +40,7 @@ O [relatório da revisão de código](../Synple/docs/VERIFICACAO_CORRECOES.md) r
 2. node Synple/scripts/generate-class-dictionary.cjs.
 3. node Synple/scripts/generate-main-spec.cjs.
 4. node Synple/scripts/generate-uml.cjs.
-5. Renderizar fontes com PlantUML: java -jar plantuml.jar -charset UTF-8 -tsvg -o ../renderizados "docs/Diagramas/fontes/*.puml".
+5. Renderizar fontes com PlantUML: java -jar plantuml.jar -charset UTF-8 -tsvg -o ../renderizados "docs/Diagramas/ENTREGA_DEFINITIVA/fontes/*.puml".
 6. node Synple/scripts/validate-documentation.cjs.
 
 Alterar código/DDL exige regenerar e revisar contratos; o conteúdo narrativo é explicitamente mantido no gerador da especificação. A geração não substitui revisão humana das regras e novas evidências de execução.

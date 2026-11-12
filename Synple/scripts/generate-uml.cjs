@@ -1,7 +1,7 @@
 const fs = require('fs'); const path = require('path');
 const root = path.resolve(__dirname,'../..');
 const dir = path.join(root,'docs/Diagramas');
-const src = path.join(dir,'fontes'); fs.mkdirSync(src,{recursive:true});
+const src = path.join(dir,'ENTREGA_DEFINITIVA','fontes'); fs.mkdirSync(src,{recursive:true});
 const style = `@startuml
 !pragma layout smetana
 skinparam backgroundColor white
@@ -548,5 +548,7 @@ for(const name of Object.keys(diagrams)) {
  md+=`## ${name}\n\n![${name}](renderizados/${name}.svg)\n\n[Fonte editável](fontes/${name}.puml) · [SVG](renderizados/${name}.svg)\n\n`;
 }
 md+='## Reprodução\n\nGerar fontes: `node Synple/scripts/generate-uml.cjs` após gerar o snapshot do DDL. Renderizar com Java e o PlantUML oficial: `java -jar plantuml.jar -tsvg -o ../renderizados docs/Diagramas/fontes/*.puml`. O JAR não é dependência do app nem foi incluído no repositório. Referências: [UML 2.5.1 — OMG](https://www.omg.org/spec/UML/2.5.1/About-UML), [casos de uso PlantUML](https://plantuml.com/use-case-diagram), [classes PlantUML](https://plantuml.com/class-diagram). Renderização sem erro comprova sintaxe; a conferência de atores, multiplicidades e comportamento exige confrontar o modelo com o código.\n';
+md=md.replaceAll('(renderizados/','(ENTREGA_DEFINITIVA/renderizados/').replaceAll('(fontes/','(ENTREGA_DEFINITIVA/fontes/').replaceAll('docs/Diagramas/fontes/','docs/Diagramas/ENTREGA_DEFINITIVA/fontes/');
+md=md.replaceAll('`fontes/`','`ENTREGA_DEFINITIVA/fontes/`').replaceAll('`renderizados/`','`ENTREGA_DEFINITIVA/renderizados/`');
 fs.writeFileSync(path.join(dir,'Diagramas_Casos_de_Uso.md'),md);
 console.log(`${Object.keys(diagrams).length} fontes PlantUML geradas.`);

@@ -97,12 +97,12 @@ API privada com prefixo `/api` e Bearer de sessão. Rotas: POST `/meetings/:meet
 
 ## Diagramas e dicionários
 
-- Casos de uso: [fonte UML](Diagramas/fontes/uc-incremento-3.puml).
-- Modelo de classes: [fonte UML](Diagramas/fontes/classes-incremento-3.puml).
-- Modelo relacional: [fonte PlantUML](Diagramas/fontes/relacional-incremento-3.puml).
-- Sequência de votação: [fonte UML](Diagramas/fontes/seq-votacoes.puml).
-- Sequência do relatório: [fonte UML](Diagramas/fontes/seq-relatorio-participacao.puml).
-- Sequência do manual: [fonte UML](Diagramas/fontes/seq-manual-consulta.puml).
+- Casos de uso: [fonte UML](Diagramas/ENTREGA_DEFINITIVA/fontes/uc-incremento-3.puml).
+- Modelo de classes: [fonte UML](Diagramas/ENTREGA_DEFINITIVA/fontes/classes-incremento-3.puml).
+- Modelo relacional: [fonte PlantUML](Diagramas/ENTREGA_DEFINITIVA/fontes/relacional-incremento-3.puml).
+- Sequência de votação: [fonte UML](Diagramas/ENTREGA_DEFINITIVA/fontes/seq-votacoes.puml).
+- Sequência do relatório: [fonte UML](Diagramas/ENTREGA_DEFINITIVA/fontes/seq-relatorio-participacao.puml).
+- Sequência do manual: [fonte UML](Diagramas/ENTREGA_DEFINITIVA/fontes/seq-manual-consulta.puml).
 - [Dicionário físico](dicionario-banco-dados.md#tabela-meeting_votes) e [dicionário de classes](dicionario-classes.md#votacao).
 
 ## Rastreabilidade e aceite
