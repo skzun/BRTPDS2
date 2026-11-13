@@ -17,14 +17,13 @@ function publico(text) {
   text = text.replace(/\[([^\]]*)\]\((?:Solicitacoes-do-professor|Verificacao-Incremento-3)(?:#[^)]*)?\)/g, '$1');
   const linhas = text.split('\n').filter(line => !ACADEMICO.test(visivel(line)));
   return linhas.map(line => line.split(/(\]\([^)]*\)|`[^`]*`)/).map((part, i) => i % 2 ? part : part
-    .replace(/(?<![-\w])Incrementos(?![-\w])/g, 'Módulos').replace(/(?<![-\w])incrementos(?![-\w])/g, 'módulos')
-    .replace(/(?<![-\w])Incremento(?=\s+\d)/g, 'Módulo').replace(/(?<![-\w])incremento(?=\s+\d)/g, 'módulo')
-    .replace(/\b(do|no|o|O|este|Este|deste|neste|desse|cada|um|novo|próprio|último|próximo)\s+incremento(?![-\w])/g, '$1 módulo')
     .replace(/Entrega definitiva/g, 'Versão atual').replace(/entrega definitiva/g, 'versão atual')
     .replace('identifica a versão escolhida para entregar', 'identifica o conjunto vigente')
     .replace('para rastrear a entrega anterior', 'para rastrear a versão anterior')
     .replace('Pacote dos diagramas para entrega', 'Pacote dos diagramas')
-    .replace(/^# Synple — Módulo 3$/, '# Synple — Votações, relatório e manual')
+    .replace(/^# Synple — Incremento 3$/, '# Synple — Votações, relatório e manual (Incremento 3)')
+    .replace(/^# Synple — Incremento 2: reuniões das comissões$/, '# Synple — Reuniões, presença e atas (Incremento 2)')
+    .replace(/^# Especificação principal de engenharia de software — Synple$/, '# Especificação (Incremento 1) — Synple')
   ).join('')).join('\n').replace(/\n{3,}/g, '\n\n');
 }
 const pages = {

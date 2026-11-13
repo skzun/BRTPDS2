@@ -9,9 +9,9 @@
 
 ### Documentação
 
-- [Especificação](Especificacao)
-- [Reuniões e atas](Reunioes-e-Atas)
-- [Votações e relatório](Votacoes-Relatorio-e-Manual)
+- [Especificação (Incremento 1)](Especificacao)
+- [Reuniões e atas (Incremento 2)](Reunioes-e-Atas)
+- [Votações e relatório (Incremento 3)](Votacoes-Relatorio-e-Manual)
 - [Rastreabilidade](Rastreabilidade)
 - [Diagramas](Diagramas)
 - [Classes](Dicionario-de-Classes)

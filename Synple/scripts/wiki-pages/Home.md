@@ -14,9 +14,9 @@ O aplicativo utiliza uma API Node.js e PostgreSQL. Login, consultas e alteraçõ
 
 ## Documentação técnica
 
-- [Especificação: requisitos, casos de uso e RNFs](Especificacao)
-- [Reuniões, presença e atas](Reunioes-e-Atas)
-- [Votações, relatório e manual](Votacoes-Relatorio-e-Manual)
+- [Especificação (Incremento 1): requisitos, casos de uso e RNFs](Especificacao)
+- [Reuniões, presença e atas (Incremento 2)](Reunioes-e-Atas)
+- [Votações, relatório e manual (Incremento 3)](Votacoes-Relatorio-e-Manual)
 - [Matriz dos 49 requisitos](Rastreabilidade)
 - [Diagramas](Diagramas), [classes](Dicionario-de-Classes) e [banco de dados](Dicionario-do-Banco)
 - [Interfaces](Interface-e-UX), [arquitetura](Arquitetura-e-Tecnologias), [padrões de código](Padroes-de-Codigo) e [análise de mercado](Analise-de-Mercado)
