@@ -1,6 +1,6 @@
 # Synple — documentação do projeto
 
-Aplicativo de gestão de organizações, comissões e reuniões, com presença, atas, votações e relatório individual. Versão configurada do mobile: **2.0.0**. Revisão documental: **12/11/2026**.
+Aplicativo de gestão de organizações, comissões e reuniões, com presença, atas, votações e relatório individual. Versão configurada do mobile: **2.0.0**. Revisão documental: **13/11/2026**.
 
 O aplicativo utiliza uma API Node.js e PostgreSQL. Login, consultas e alterações precisam desses serviços em execução. A versão configurada não comprova que o APK instalado seja dessa versão.
 

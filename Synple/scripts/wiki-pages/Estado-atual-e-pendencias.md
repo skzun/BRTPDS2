@@ -1,6 +1,12 @@
 # Estado atual e pendências
 
-Revisão do código `{{REVISION}}`, em 12/11/2026. Esta página prevalece sobre descrições anteriores das áreas alteradas recentemente. As pendências abaixo foram identificadas por leitura do código; não foram corrigidas nesta atualização documental.
+Revisão do código `{{REVISION}}`, em 13/11/2026. Esta página prevalece sobre descrições anteriores das áreas alteradas recentemente. As pendências abaixo foram identificadas por leitura do código; não foram corrigidas nesta atualização documental.
+
+## Conferência de 13/11/2026
+
+Votação e convites de reunião foram reexecutados contra PostgreSQL: 30 de 32 testes das suítes de reuniões e votação passaram; as 2 falhas são de geração de PDF e decorrem de substitutos usados porque `pdfkit`, `nodemailer` e `google-auth-library` não estão no `node_modules` versionado (ver [Testes](Testes)). Regras confirmadas: voto único e alterável enquanto aberta, somente com entrada registrada, sem voto após encerrar; convites somente para integrantes da comissão, resposta só até o término, entrada só durante a reunião.
+
+Visibilidade: o servidor (`scopeSnapshot`) entrega a reunião a convidados, ao coordenador da comissão e ao proprietário. Integrante da comissão que não foi convidado não vê a reunião. Como o agendamento já marca todos os integrantes, isso só afeta quem foi desmarcado ou entrou na comissão depois — e não existe fluxo para convidar após a criação.
 
 ## Reuniões e participantes
 

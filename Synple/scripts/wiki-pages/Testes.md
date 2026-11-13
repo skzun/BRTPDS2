@@ -1,6 +1,22 @@
 # Testes e evidências
 
-Execução em 12/11/2026 no checkout `{{REVISION}}`. Resultados desta revisão:
+## Execução de 13/11/2026
+
+Checkout `{{REVISION}}`, PostgreSQL 16 local, schemas temporários, sem e-mail real.
+
+| Verificação | Resultado |
+| --- | --- |
+| `npm test` em `Synple/mobile` | 28 passaram; zero falhas |
+| `node --test test/voting.test.js test/meetings.test.js` em `Synple/backend` | 30 de 32 passaram. As 2 falhas (PDF da ata e PDF da lista de presença) vêm do substituto de `pdfkit` usado no teste; passaram com a biblioteca real em 11–12/11 |
+| `node Synple/scripts/validate-documentation.cjs` | 42 documentos, 978 referências, 49 RFs, 34 pares fonte/SVG e 131 colunas aprovados |
+
+O `node_modules` versionado no Git está incompleto (faltam `pdfkit`, `nodemailer` e `google-auth-library`). Para rodar tudo, execute `npm ci` em `Synple/backend` e `Synple/mobile` antes dos testes.
+
+Votação conferida: validação de pergunta e 2–8 opções; somente gestor abre/encerra; exige presença; troca de voto sem duplicar; identidade forjada e opção de outra votação recusadas; concorrência entre votos e encerramento; resultado visível ao convidado histórico e oculto a estranhos. Convites conferidos: agendamento deduplica convidados e recusa pessoas fora da comissão; aceitar/recusar; resposta bloqueada após o término; entrada só durante a reunião; edição redefine convites.
+
+## Execução de 12/11/2026
+
+Resultados desta revisão:
 
 | Verificação | Resultado |
 | --- | --- |
