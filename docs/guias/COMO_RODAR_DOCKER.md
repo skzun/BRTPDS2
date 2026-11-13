@@ -14,6 +14,41 @@ No CMD, execute `iniciar_docker.bat` na mesma pasta. Esse arquivo chama o mesmo 
 
 O inicializador prepara banco/API no Docker, instala as dependências do mobile, baixa cloudflared se necessário e abre os dois túneis. Docker Compose 2.24+ é necessário. Configure OAuth e SMTP nos arquivos `.env` para usar Google e e-mails.
 
+## Instalar ou reparar dependências (backend e mobile)
+
+O backend e o mobile têm instalações separadas. Faça estes passos após baixar o projeto ou quando houver dependências ausentes. Pare as execuções antigas com Ctrl+C antes de reinstalar. `npm run backend` apenas inicia a API; não instala pacotes.
+
+Identifique a pasta que contém **backend**, **mobile** e **package.json**. Ela é a pasta interna `Synple`; dependendo do nome escolhido ao clonar, o caminho pode terminar em `BRTPDS2\Synple` ou `Synple\Synple`. Não copie o caminho pessoal de outro computador.
+
+**Terminal 1 — backend local:** nessa pasta interna, com PostgreSQL disponível e `backend/.env` configurado:
+
+```powershell
+npm --prefix backend ci
+npm run backend
+```
+
+Mantenha o terminal aberto. **Terminal 2 — mobile:** abra outro PowerShell na mesma pasta interna e execute:
+
+```powershell
+cd mobile
+npm ci
+npm start
+```
+
+`npm start` usa os túneis da API e do Expo para abrir o Synple instalado (development build), inclusive em outra rede. O túnel requer cloudflared; o inicializador `iniciar.ps1` da raiz prepara esse requisito. Para usar somente a rede local, substitua `npm start` por `npm run start:local`, com celular e computador na mesma rede. Para Google, use o development build com OAuth configurado, não Expo Go.
+
+Se o backend já estiver rodando no Docker, não execute uma segunda API com `npm run backend`. Nesse caso, mantenha banco/API do Docker ativos e execute apenas os passos do mobile; para atualizar dependências da API em Docker, execute `docker compose up -d --build backend` na pasta que contém `docker-compose.yml`.
+
+### Erros de pacotes ausentes
+
+- **`Cannot find module './mergeConfig'` ou arquivo ausente em `@expo/config`:** uma instalação incompleta do mobile pode causar esse erro. Na pasta `mobile`, pare o Expo, execute `npm ci` e depois `npm start`.
+- **`Cannot find module 'nodemailer'`, `pdfkit` ou `google-auth-library`:** na pasta interna que contém `backend`, execute `npm --prefix backend ci` e reinicie a API com `npm run backend`.
+- Reinstalar o mobile não corrige dependências do backend. Se o erro continuar, confira a saída completa da instalação e a pasta em que o comando foi executado.
+
+`npm ci` reinstala `node_modules` usando as versões do `package-lock.json`; não altera os arquivos `.env` nem os dados do banco. Não é necessário executá-lo a cada inicialização. Se reclamar de divergência entre `package.json` e `package-lock.json`, obtenha os dois arquivos da mesma revisão do projeto em vez de apagar o lockfile.
+
+Antes do login, confira `http://127.0.0.1:3001/api/health` no computador. O QR do Expo sozinho não garante que a API e o banco estejam funcionando.
+
 ## Com os serviços já preparados
 
 Na raiz do repositório:
