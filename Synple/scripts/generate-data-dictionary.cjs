@@ -63,7 +63,7 @@ async function main() {
   const indexes = (await pool.query('SELECT tablename AS table_name,indexname AS name,indexdef AS definition FROM pg_indexes WHERE schemaname=$1 ORDER BY tablename,indexname',[schema])).rows;
   const normalize = value => String(value).replaceAll(`"${schema}".`, '').replaceAll(`${schema}.`,'');
   for (const row of [...constraints,...indexes]) row.definition=normalize(row.definition);
-  const schemaSha256=createHash('sha256').update(fs.readFileSync(path.join(root,'Synple/backend/src/db/schema.sql'))).digest('hex');
+  const schemaSha256=createHash('sha256').update(fs.readFileSync(path.join(root,'Synple/backend/src/db/schema.sql'),'utf8').replace(/\r\n/g,'\n')).digest('hex'); // hash independente de CRLF/LF
   const data = {generatedFrom:'Synple/backend/src/db/schema.sql',schemaSha256,columns,constraints,indexes};
   fs.mkdirSync(target,{recursive:true});
   fs.writeFileSync(path.join(target,'modelo-fisico.snapshot.json'), JSON.stringify(data,null,2)+'\n');

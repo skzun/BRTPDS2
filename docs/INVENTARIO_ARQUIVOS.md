@@ -171,9 +171,9 @@ Dependências já versionadas: **6496 arquivos**. Configurações locais version
 | [Synple/dump_banco_synple.sql](../Synple/dump_banco_synple.sql) | 13941 | Versionado |
 | [Synple/iniciar_docker.bat](../Synple/iniciar_docker.bat) | 113 | Versionado |
 | [Synple/mobile/.claude/settings.json](../Synple/mobile/.claude/settings.json) | 76 | Versionado |
-| [Synple/mobile/.env](../Synple/mobile/.env) | 325 | Local/novo |
+| `Synple/mobile/.env` | 325 | Local/novo |
 | [Synple/mobile/.env.example](../Synple/mobile/.env.example) | 242 | Versionado |
-| [Synple/mobile/.env.local](../Synple/mobile/.env.local) | 49 | Local/novo |
+| `Synple/mobile/.env.local` | 49 | Local/novo |
 | [Synple/mobile/.gitignore](../Synple/mobile/.gitignore) | 487 | Versionado |
 | [Synple/mobile/AGENTS.md](../Synple/mobile/AGENTS.md) | 121 | Versionado |
 | [Synple/mobile/App.js](../Synple/mobile/App.js) | 43397 | Versionado |

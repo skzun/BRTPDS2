@@ -49,7 +49,7 @@ if (process.argv.includes('--write')) {
   let md = '# Inventário dos arquivos do projeto\n\nGerado por `node Synple/scripts/inventory-project.cjs --write`. Caminhos relativos à raiz BRTPDS2. Consulte [o mapa](ORGANIZACAO_DO_PROJETO.md) para a finalidade das pastas e [a revisão de limpeza](REVISAO_DE_LIMPEZA.md) antes de remover arquivos.\n\n'+inventory.scope+'\n\n';
   md += `Dependências já versionadas: **${inventory.trackedDependencyFiles} arquivos**. Configurações locais versionadas: ${inventory.trackedEnvironmentFiles.map(x=>'`'+x+'`').join(', ') || 'nenhuma'}.\n\n`;
   md += '## Arquivos próprios\n\n| Caminho | Bytes | Situação no índice Git |\n| --- | ---: | --- |\n';
-  for (const f of files) md += `| [${f.path}](../${f.path}) | ${f.bytes} | ${f.tracked?'Versionado':f.previousTrackedPath?'Movido; origem versionada':'Local/novo'} |\n`;
+  for (const f of files) md += `| ${f.tracked||f.previousTrackedPath?`[${f.path}](../${f.path})`:'`'+f.path+'`'} | ${f.bytes} | ${f.tracked?'Versionado':f.previousTrackedPath?'Movido; origem versionada':'Local/novo'} |\n`;
   md += '\n## Duplicatas exatas por SHA-256\n\n';
   for (const g of inventory.exactDuplicates) md += g.paths.map(x=>'`'+x+'`').join(' = ')+'\n\n';
   md += 'Arquivos com conteúdo diferente não são considerados duplicatas só porque têm o mesmo nome. Não foi executada nenhuma exclusão. O inventário muda após commit ou novas gerações.\n';

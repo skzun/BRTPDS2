@@ -1,6 +1,6 @@
 {
   "generatedFrom": "Synple/backend/src/db/schema.sql",
-  "schemaSha256": "34d0beb4781a1983492cc90032de2807b75357266f5d2b1ce53d10906f4b4953",
+  "schemaSha256": "fcd55da4a3f01273af8506b410d92ea3ac2ea707e624275307c54a21517da477",
   "columns": [
     {
       "table_name": "access_requests",

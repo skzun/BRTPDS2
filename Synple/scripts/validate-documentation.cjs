@@ -56,7 +56,7 @@ for(const name of names) {
  }
 }
 const snapshot=JSON.parse(fs.readFileSync(path.join(root,'docs/modelo-fisico.snapshot.json'),'utf8'));
-const schemaHash=require('crypto').createHash('sha256').update(fs.readFileSync(path.join(root,snapshot.generatedFrom))).digest('hex');
+const schemaHash=require('crypto').createHash('sha256').update(fs.readFileSync(path.join(root,snapshot.generatedFrom),'utf8').replace(/\r\n/g,'\n')).digest('hex'); // ignora CRLF/LF (Windows x Linux/macOS)
 if(snapshot.schemaSha256!==schemaHash)errors.push('DDL foi alterado após gerar o snapshot físico. Regere o dicionário.');
 const dictionary=fs.readFileSync(path.join(root,'docs/dicionario-banco-dados.md'),'utf8');
 for(const c of snapshot.columns)if(!dictionary.includes('`'+c.column_name+'`'))errors.push(`Coluna não documentada: ${c.table_name}.${c.column_name}`);
