@@ -22,7 +22,7 @@ A sugestão atual é próximo minuto do relógio do aparelho, término uma hora 
 
 ## Administração e botões
 
-O estado `organizationStatusPending` existe, mas está passado a OrganizationsScreen, e não a AdminManagementScreen no código revisado. Assim, a tela administrativa recebe o valor padrão e pode não refletir Processando/desabilitado. O ref reduz duplicidades durante a requisição; não cobre integralmente múltiplas confirmações abertas antes do envio. A apresentação final em tela estreita/fonte ampliada ainda requer teste.
+Corrigido em 13/11: `organizationStatusPending` agora é passado à AdminManagementScreen, então Aprovar/Recusar ficam desabilitados com “Aguarde…” até o servidor responder; o ref continua evitando envio duplicado. A tela Sistema também bloqueia Verificar/Consultar durante a consulta. A apresentação final em tela estreita/fonte ampliada ainda requer teste em aparelho.
 
 Aprovadas mostram somente Remover porque Revogar foi retirado a pedido do usuário. A exigência original de revogação não deve ser marcada como integralmente concluída. A API aceita APPROVED, PENDING e REJECTED; remoção definitiva não é revogação de aprovação.
 

@@ -747,7 +747,6 @@ export default function App() {
               organizationSearch={organizationSearch}
               setOrganizationSearch={setOrganizationSearch}
               activeUserId={activeUserId}
-              organizationStatusPending={organizationStatusPending}
               accessRequests={data.accessRequests}
               onRequestAccess={requestAccess}
               onRespondInvitation={respondOrganizationInvitation}
@@ -759,6 +758,7 @@ export default function App() {
               organizations={data.organizations}
               users={data.users}
               activeUserId={activeUserId}
+              organizationStatusPending={organizationStatusPending}
               onChangeOrganizationStatus={changeOrganizationStatus}
               onRemoveOrganization={removeOrganization}
               onRemoveUser={removeUser}

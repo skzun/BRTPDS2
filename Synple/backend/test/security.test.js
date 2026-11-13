@@ -55,6 +55,22 @@ test('identidade do cliente não permite editar outro usuário ou consultar admi
   assert.equal((await request('GET', '/system')).status, 403);
   assert.equal((await request('PUT', `/users/${userId}`, { name: 'Nome atualizado' })).status, 200);
 });
+test('sistema informa processo, host, memória, conexões, uploads e banco somente ao administrador', async () => {
+  await pool.query("UPDATE users SET system_role = 'SYSTEM_ADMIN' WHERE id = $1", [otherId]);
+  const adminLogin = await request('POST', '/auth/login', { email: 'other@example.test', password: 'SenhaReal@123' }, null);
+  assert.equal(adminLogin.status, 200);
+  const info = await request('GET', '/system', undefined, adminLogin.data.token);
+  assert.equal(info.status, 200);
+  assert.equal(info.data.name, 'Synple API');
+  assert.equal(info.data.process.pid, process.pid);
+  assert.ok(info.data.process.runningIn && info.data.host.hostname);
+  assert.ok(info.data.host.totalMemoryBytes > 0 && info.data.memory.rssBytes > 0);
+  assert.ok(info.data.connections.activeSessions >= 1);
+  assert.equal(info.data.uploads.count, 0);
+  assert.equal(typeof info.data.database.name, 'string');
+  assert.ok(info.data.uptime >= 0 && info.data.initializedAt);
+  await pool.query("UPDATE users SET system_role = 'USER' WHERE id = $1", [otherId]);
+});
 test('cadastro exige ativação, código é consumido e senha não vai na resposta', async () => {
   const registration = await request('POST', '/auth/register', { name: 'Nova conta', email: 'new@example.test', password: 'NovaSenha@123' }, null);
   assert.equal(registration.status, 201); assert.equal(registration.data.requiresActivation, true);

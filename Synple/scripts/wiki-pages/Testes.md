@@ -8,6 +8,7 @@ Checkout `{{REVISION}}`, PostgreSQL 16 local, schemas temporários, sem e-mail r
 | --- | --- |
 | `npm test` em `Synple/mobile` | 28 passaram; zero falhas |
 | `node --test test/voting.test.js test/meetings.test.js` em `Synple/backend` | 30 de 32 passaram. As 2 falhas (PDF da ata e PDF da lista de presença) vêm do substituto de `pdfkit` usado no teste; passaram com a biblioteca real em 11–12/11 |
+| `node --test test/*.test.js` em `Synple/backend`, após as correções do sistema | 46 de 52 passaram, incluindo o novo teste de `/api/system`; as 6 falhas são todas de geração de PDF (substituto de `pdfkit`) e já ocorriam antes da mudança |
 | `node Synple/scripts/validate-documentation.cjs` | 42 documentos, 978 referências, 49 RFs, 34 pares fonte/SVG e 131 colunas aprovados |
 
 O `node_modules` versionado no Git está incompleto (faltam `pdfkit`, `nodemailer` e `google-auth-library`). Para rodar tudo, execute `npm ci` em `Synple/backend` e `Synple/mobile` antes dos testes.
