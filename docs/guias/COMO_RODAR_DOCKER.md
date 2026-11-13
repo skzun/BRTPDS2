@@ -88,7 +88,7 @@ docker compose ps
 docker compose logs backend
 ```
 
-O boot aplica migrações e preserva dados. Somente para criar dados fictícios de demonstração numa instalação nova, execute explicitamente `docker compose exec backend npm run init-db`.
+O boot aplica migrações e preserva dados. O inicializador carrega a demonstração em bancos sem usuários, conforme a seção abaixo.
 
 ## Modos opcionais
 
@@ -115,3 +115,24 @@ npx expo start --dev-client --lan
 ```
 
 Para usar outra rede ou 4G, use `npm run dev:tunnel` na raiz. Abra o development build do Synple, não o Expo Go.
+
+
+## Dados de demonstração automáticos
+
+Ao executar `iniciar.ps1` na raiz do repositório, o inicializador prepara banco/API no Docker e carrega a demonstração somente se não houver usuários. Instalações existentes preservam suas contas, senhas e organizações. A carga é transacional: se falhar, não deixa dados parcialmente inseridos e o inicializador interrompe a abertura do mobile.
+
+| Conta | Senha inicial |
+| --- | --- |
+| admin@synple.com | Admin@123 |
+| marina@synple.com | Marina@123 |
+| joao@synple.com | Joao@123 |
+
+Inclui Estúdio Aurora, Coletivo Horizonte, comissão Comunicação coordenada pela Marina e solicitação pendente de acesso do João. São exemplos fictícios para desenvolvimento/aula, não uma cópia dos cadastros reais de outro computador. As senhas são públicas de demonstração.
+
+Para preparar a demonstração manualmente, com o Docker ativo, na raiz:
+
+```powershell
+docker compose exec -T backend node src/db/init-db.js --if-empty
+```
+
+Esse comando também ignora a carga se já houver usuários. Não apague volumes para atualizar o projeto. `docker compose up` sozinho apenas prepara a API e aplica migrações; a carga automática de demonstração é feita pelo `iniciar.ps1`.

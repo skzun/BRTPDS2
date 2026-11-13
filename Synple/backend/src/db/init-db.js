@@ -10,7 +10,7 @@ const DB_USER = process.env.DB_USER || 'postgres';
 const DB_PASSWORD = process.env.DB_PASSWORD || '123';
 const DB_NAME = process.env.DB_NAME || 'Banco_synple';
 
-async function initDatabase() {
+async function initDatabase({ onlyIfEmpty = false } = {}) {
   console.log('====================================================');
   console.log('🔄 INICIANDO CONFIGURAÇÃO DO BANCO DE DADOS SYNPLE');
   console.log('====================================================');
@@ -60,12 +60,24 @@ async function initDatabase() {
 
   try {
     await appClient.connect();
+    await appClient.query('BEGIN');
+    await appClient.query("SELECT pg_advisory_xact_lock(hashtext('synple_schema_migration'))");
     console.log(`✅ Conectado a "${DB_NAME}".`);
 
     // Executa schema.sql
     console.log('📜 Executando script DDL (schema.sql)...');
     const schemaSql = fs.readFileSync(path.join(__dirname, 'schema.sql'), 'utf-8');
     await appClient.query(schemaSql);
+    // Serializa a verificação e o seed, inclusive contra novos cadastros.
+    await appClient.query('LOCK TABLE users IN EXCLUSIVE MODE');
+    if (onlyIfEmpty) {
+      const existing = await appClient.query('SELECT EXISTS (SELECT 1 FROM users) AS populated');
+      if (existing.rows[0].populated) {
+        await appClient.query('COMMIT');
+        console.log('[Banco] Cadastros existentes: demonstração ignorada; dados e senhas preservados.');
+        return;
+      }
+    }
     console.log('✅ Todas as tabelas e índices foram criados com sucesso!');
 
     // Passo 3: Inserir seeds iniciais
@@ -164,6 +176,7 @@ async function initDatabase() {
       `, [sub.id, sub.name, sub.status]);
     }
 
+    await appClient.query('COMMIT');
     console.log('✅ Seeds aplicadas com sucesso!');
     console.log('----------------------------------------------------');
     console.log('👥 USUÁRIOS DE TESTE PRONTOS NO POSTGRESQL:');
@@ -173,6 +186,7 @@ async function initDatabase() {
     console.log('====================================================');
     console.log('🎉 BANCO DE DADOS POSTGRESQL PRONTO PARA USO!');
   } catch (err) {
+    await appClient.query('ROLLBACK').catch(() => {});
     console.error('❌ Erro durante a configuração das tabelas/seeds:', err);
     throw err;
   } finally {
@@ -181,7 +195,7 @@ async function initDatabase() {
 }
 
 if (require.main === module) {
-  initDatabase()
+  initDatabase({ onlyIfEmpty: process.argv.includes('--if-empty') })
     .then(() => process.exit(0))
     .catch((err) => {
       console.error(err);

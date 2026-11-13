@@ -46,6 +46,9 @@ for ($tentativa = 0; $tentativa -lt 60; $tentativa++) {
     Start-Sleep -Seconds 2
 }
 if (-not $apiPronta) { throw 'A API não ficou disponível. Execute docker compose logs backend.' }
+# Carrega somente dados fictícios em uma instalação sem usuários.
+docker compose -f (Join-Path $projeto 'docker-compose.yml') exec -T backend node src/db/init-db.js --if-empty
+if ($LASTEXITCODE -ne 0) { throw 'Falha ao preparar os dados de demonstração. Confira os logs; o aplicativo não será iniciado.' }
 Push-Location -LiteralPath $mobile
 try {
     npm.cmd install
