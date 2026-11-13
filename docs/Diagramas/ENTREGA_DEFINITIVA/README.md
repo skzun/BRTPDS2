@@ -1,6 +1,10 @@
 # Diagramas — Entrega definitiva
 
-Pacote vigente selecionado e organizado em 12/11/2026: **33 diagramas**, com fontes PlantUML editáveis e imagens SVG. Use esta pasta na entrega ao professor.
+Pacote vigente selecionado e organizado em 12/11/2026: **34 diagramas**, com fontes PlantUML editáveis e imagens SVG. Use esta pasta na entrega ao professor.
+
+## Revisão de 13/11/2026
+
+Revisados a partir do código, conforme a avaliação de 29/10 (classes e mensagens de sequência devem ser as reais): `uc-incremento-3` (dividido em requisitos do slide e `uc-incremento-3-ajustes`), `classes-incremento-3` e as sequências `seq-ata`, `seq-pdf`, `seq-votacoes`, `seq-relatorio-participacao`, `seq-manual-consulta`, `seq-cadastro`, `seq-login`, `seq-recuperacao`, `seq-convite-org`, `seq-transferencia`, `seq-sincronizacao` e `seq-comando`. Nesses diagramas os participantes são os arquivos/módulos do código e cada mensagem é uma chamada existente (função, rota HTTP ou consulta SQL). As imagens SVG desses diagramas foram geradas localmente a partir das fontes `.puml` (Graphviz para casos de uso e classes; gerador de sequência do projeto para as sequências), por isso o visual difere levemente dos demais. `Synple/scripts/generate-uml.cjs` não sobrescreve essas fontes.
 
 ## Critério de seleção
 
@@ -8,12 +12,13 @@ Este é o conjunto completo usado pela especificação atual: cobre os 49 requis
 
 As imagens e fontes foram realocadas sem alterar o conteúdo, com conferência SHA-256. “Entrega definitiva” identifica a versão escolhida para entregar; futuras mudanças de requisitos ou código exigem revisão dos diagramas correspondentes.
 
-## Casos de uso (5)
+## Casos de uso (6)
 
 | Diagrama | Visualizar | Editar |
 | --- | --- | --- |
 | uc-autenticacao | [SVG](renderizados/uc-autenticacao.svg) | [PlantUML](fontes/uc-autenticacao.puml) |
 | uc-incremento-3 | [SVG](renderizados/uc-incremento-3.svg) | [PlantUML](fontes/uc-incremento-3.puml) |
+| uc-incremento-3-ajustes | [SVG](renderizados/uc-incremento-3-ajustes.svg) | [PlantUML](fontes/uc-incremento-3-ajustes.puml) |
 | uc-operacao | [SVG](renderizados/uc-operacao.svg) | [PlantUML](fontes/uc-operacao.puml) |
 | uc-organizacoes | [SVG](renderizados/uc-organizacoes.svg) | [PlantUML](fontes/uc-organizacoes.puml) |
 | uc-reunioes | [SVG](renderizados/uc-reunioes.svg) | [PlantUML](fontes/uc-reunioes.puml) |

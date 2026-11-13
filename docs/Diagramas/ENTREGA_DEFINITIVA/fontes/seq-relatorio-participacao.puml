@@ -1,17 +1,34 @@
 @startuml
 !pragma layout smetana
+skinparam backgroundColor white
 skinparam shadowing false
+skinparam defaultFontName SansSerif
 skinparam defaultFontSize 13
-title Relatório da sessão autenticada
+skinparam ArrowColor #334155
+skinparam roundcorner 5
+skinparam dpi 130
+skinparam sequenceMessageAlign left
+hide footbox
 autonumber
+title Consultar relatório individual de participação (RF03.04)
 actor "Usuário autenticado" as U
-participant "App / API cliente" as App
-participant "routes/meetings.js" as API
-database PostgreSQL as DB
-U -> App: fetchMeetingParticipationReportWithApi()
-App -> API: GET /meetings/participation/report
-API -> DB: query("SELECT ... WHERE a.user_id=$1 AND a.entered_at IS NOT NULL", [req.auth.id])
-DB --> API: rows
-API --> App: 200 {meetings: rows}
-App --> U: MeetingParticipationScreen()
+participant "NavigationTabs.js" as Nav
+participant "App.js" as App
+participant "MeetingParticipationScreen.js" as UI
+participant "services/api.js" as Api
+participant "services/security.js" as Sec
+participant "routes/meetings.js" as R
+database "PostgreSQL" as DB
+U -> Nav : onOpenReport()
+Nav -> App : setScreen("meeting-report")
+App -> UI : MeetingParticipationScreen()
+UI -> UI : useEffect(() => refresh())
+UI -> Api : fetchMeetingParticipationReportWithApi()
+Api -> Sec : GET /api/meetings/participation/report
+Sec -> Sec : authenticate(req, res, next)
+Sec -> R : next()
+R -> DB : query("SELECT ... FROM meeting_attendance a JOIN meetings ... WHERE a.user_id = $1 AND a.entered_at IS NOT NULL", [req.auth.id])
+R --> Api : 200 {meetings}
+Api --> UI : {success, meetings}
+UI -> UI : setMeetings(meetings)
 @enduml

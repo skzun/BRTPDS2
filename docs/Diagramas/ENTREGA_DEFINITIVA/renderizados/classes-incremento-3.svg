@@ -1,1 +1,336 @@
-<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" data-diagram-type="CLASS" style="width:758px;height:611px;background:#FFFFFF;" width="758px" height="611px" viewBox="0 0 758 611" zoomAndPan="magnify" preserveAspectRatio="none" contentStyleType="text/css"><?plantuml 1.2026.9?><defs/><g font-family="sans-serif" lengthAdjust="spacing"><g class="title" data-source-line="4"><text x="188.551" y="24.533" fill="#000" font-size="14" textLength="373.898" font-weight="700">Classes de projeto — operações de módulos JavaScript</text></g><!--class ClienteAPI--><g class="entity" data-qualified-name="ClienteAPI" id="ent0001" data-source-line="5"><rect x="294" y="162.609" width="448.433" height="156.813" fill="#F1F1F1" style="stroke:#181818;stroke-width:0.5;" rx="2.5" ry="2.5"/><ellipse cx="483.507" cy="183.961" rx="10" ry="10" fill="#ADD1B2" style="stroke:#181818;stroke-width:1;"/><path d="M484.444,180.602 Q484.569,180.43 484.71,180.352 Q484.85,180.273 485.022,180.273 Q485.303,180.273 485.475,180.477 Q485.663,180.664 485.663,181.133 L485.663,182.242 Q485.663,182.711 485.475,182.914 Q485.303,183.102 485.022,183.102 Q484.757,183.102 484.6,182.961 Q484.444,182.82 484.366,182.414 Q484.319,182.148 484.194,182.008 Q483.928,181.711 483.46,181.539 Q482.991,181.367 482.522,181.367 Q481.944,181.367 481.444,181.633 Q480.96,181.883 480.585,182.461 Q480.21,183.023 480.21,183.805 L480.21,184.648 Q480.21,185.586 480.897,186.227 Q481.585,186.852 482.788,186.852 Q483.522,186.852 484.022,186.648 Q484.303,186.539 484.632,186.195 Q484.835,185.992 484.944,185.945 Q485.069,185.883 485.21,185.883 Q485.475,185.883 485.663,186.086 Q485.866,186.273 485.866,186.539 Q485.866,186.805 485.6,187.117 Q485.21,187.555 484.6,187.805 Q483.788,188.148 482.803,188.148 Q481.647,188.148 480.71,187.68 Q479.96,187.289 479.428,186.477 Q478.913,185.648 478.913,184.68 L478.913,183.789 Q478.913,182.773 479.382,181.898 Q479.866,181.023 480.694,180.555 Q481.538,180.07 482.475,180.07 Q483.038,180.07 483.522,180.211 Q484.022,180.336 484.444,180.602 Z " fill="#000"/><text x="504.668" y="181.104" fill="#000" font-size="13" textLength="57.097" font-style="italic">«module»</text><text x="502.507" y="197.456" fill="#000" font-size="13" textLength="61.42">ClienteAPI</text><line x1="295" y1="205.313" x2="741.433" y2="205.313" style="stroke:#181818;stroke-width:0.5;"/><line x1="295" y1="213.313" x2="741.433" y2="213.313" style="stroke:#181818;stroke-width:0.5;"/><g data-visibility-modifier="PUBLIC_METHOD"><ellipse cx="305" cy="226.988" rx="3" ry="3" fill="#84BE84" style="stroke:#038048;stroke-width:1;"/></g><text x="313" y="230.808" fill="#000" font-size="13" textLength="286.876">meetingRequest(path, method, payload): Promise</text><g data-visibility-modifier="PUBLIC_METHOD"><ellipse cx="305" cy="243.34" rx="3" ry="3" fill="#84BE84" style="stroke:#038048;stroke-width:1;"/></g><text x="313" y="247.159" fill="#000" font-size="13" textLength="423.433">createMeetingVoteWithApi(meetingId, userId, question, options): Promise</text><g data-visibility-modifier="PUBLIC_METHOD"><ellipse cx="305" cy="259.691" rx="3" ry="3" fill="#84BE84" style="stroke:#038048;stroke-width:1;"/></g><text x="313" y="263.511" fill="#000" font-size="13" textLength="401.75">castMeetingVoteWithApi(meetingId, voteId, userId, optionId): Promise</text><g data-visibility-modifier="PUBLIC_METHOD"><ellipse cx="305" cy="276.043" rx="3" ry="3" fill="#84BE84" style="stroke:#038048;stroke-width:1;"/></g><text x="313" y="279.862" fill="#000" font-size="13" textLength="354.771">closeMeetingVoteWithApi(meetingId, voteId, userId): Promise</text><g data-visibility-modifier="PUBLIC_METHOD"><ellipse cx="305" cy="292.395" rx="3" ry="3" fill="#84BE84" style="stroke:#038048;stroke-width:1;"/></g><text x="313" y="296.214" fill="#000" font-size="13" textLength="293.338">fetchMeetingParticipationReportWithApi(): Promise</text><g data-visibility-modifier="PUBLIC_METHOD"><ellipse cx="305" cy="308.746" rx="3" ry="3" fill="#84BE84" style="stroke:#038048;stroke-width:1;"/></g><text x="313" y="312.565" fill="#000" font-size="13" textLength="208.813">authorizePdfDownload(url): Promise</text></g><!--class RotasReuniao--><g class="entity" data-qualified-name="RotasReuniao" id="ent0002" data-source-line="13"><rect x="149" y="392.109" width="310.435" height="75.055" fill="#F1F1F1" style="stroke:#181818;stroke-width:0.5;" rx="2.5" ry="2.5"/><ellipse cx="259.024" cy="413.461" rx="10" ry="10" fill="#ADD1B2" style="stroke:#181818;stroke-width:1;"/><path d="M259.962,410.102 Q260.087,409.93 260.228,409.852 Q260.368,409.773 260.54,409.773 Q260.821,409.773 260.993,409.977 Q261.181,410.164 261.181,410.633 L261.181,411.742 Q261.181,412.211 260.993,412.414 Q260.821,412.602 260.54,412.602 Q260.274,412.602 260.118,412.461 Q259.962,412.32 259.884,411.914 Q259.837,411.648 259.712,411.508 Q259.446,411.211 258.978,411.039 Q258.509,410.867 258.04,410.867 Q257.462,410.867 256.962,411.133 Q256.478,411.383 256.103,411.961 Q255.728,412.523 255.728,413.305 L255.728,414.148 Q255.728,415.086 256.415,415.727 Q257.103,416.352 258.306,416.352 Q259.04,416.352 259.54,416.148 Q259.821,416.039 260.149,415.695 Q260.353,415.492 260.462,415.445 Q260.587,415.383 260.728,415.383 Q260.993,415.383 261.181,415.586 Q261.384,415.773 261.384,416.039 Q261.384,416.305 261.118,416.617 Q260.728,417.055 260.118,417.305 Q259.306,417.648 258.321,417.648 Q257.165,417.648 256.228,417.18 Q255.478,416.789 254.946,415.977 Q254.431,415.148 254.431,414.18 L254.431,413.289 Q254.431,412.273 254.899,411.398 Q255.384,410.523 256.212,410.055 Q257.056,409.57 257.993,409.57 Q258.556,409.57 259.04,409.711 Q259.54,409.836 259.962,410.102 Z " fill="#000"/><text x="290.669" y="410.604" fill="#000" font-size="13" textLength="57.097" font-style="italic">«module»</text><text x="278.024" y="426.956" fill="#000" font-size="13" textLength="82.386">RotasReuniao</text><line x1="150" y1="434.813" x2="458.435" y2="434.813" style="stroke:#181818;stroke-width:0.5;"/><line x1="150" y1="442.813" x2="458.435" y2="442.813" style="stroke:#181818;stroke-width:0.5;"/><g data-visibility-modifier="PUBLIC_METHOD"><ellipse cx="160" cy="456.488" rx="3" ry="3" fill="#84BE84" style="stroke:#038048;stroke-width:1;"/></g><text x="168" y="460.308" fill="#000" font-size="13" textLength="285.435">createMeetingsRouter(database, options): Router</text></g><!--class PresencaPDF--><g class="entity" data-qualified-name="PresencaPDF" id="ent0003" data-source-line="16"><rect x="6" y="520.609" width="277.929" height="75.055" fill="#F1F1F1" style="stroke:#181818;stroke-width:0.5;" rx="2.5" ry="2.5"/><ellipse cx="100.504" cy="541.961" rx="10" ry="10" fill="#ADD1B2" style="stroke:#181818;stroke-width:1;"/><path d="M101.442,538.602 Q101.567,538.43 101.708,538.352 Q101.848,538.273 102.02,538.273 Q102.301,538.273 102.473,538.477 Q102.661,538.664 102.661,539.133 L102.661,540.242 Q102.661,540.711 102.473,540.914 Q102.301,541.102 102.02,541.102 Q101.754,541.102 101.598,540.961 Q101.442,540.82 101.364,540.414 Q101.317,540.148 101.192,540.008 Q100.926,539.711 100.458,539.539 Q99.989,539.367 99.52,539.367 Q98.942,539.367 98.442,539.633 Q97.958,539.883 97.583,540.461 Q97.208,541.023 97.208,541.805 L97.208,542.648 Q97.208,543.586 97.895,544.227 Q98.583,544.852 99.786,544.852 Q100.52,544.852 101.02,544.648 Q101.301,544.539 101.629,544.195 Q101.833,543.992 101.942,543.945 Q102.067,543.883 102.208,543.883 Q102.473,543.883 102.661,544.086 Q102.864,544.273 102.864,544.539 Q102.864,544.805 102.598,545.117 Q102.208,545.555 101.598,545.805 Q100.786,546.148 99.801,546.148 Q98.645,546.148 97.708,545.68 Q96.958,545.289 96.426,544.477 Q95.911,543.648 95.911,542.68 L95.911,541.789 Q95.911,540.773 96.379,539.898 Q96.864,539.023 97.692,538.555 Q98.536,538.07 99.473,538.07 Q100.036,538.07 100.52,538.211 Q101.02,538.336 101.442,538.602 Z " fill="#000"/><text x="131.416" y="539.104" fill="#000" font-size="13" textLength="57.097" font-style="italic">«module»</text><text x="119.504" y="555.456" fill="#000" font-size="13" textLength="80.92">PresencaPDF</text><line x1="7" y1="563.313" x2="282.929" y2="563.313" style="stroke:#181818;stroke-width:0.5;"/><line x1="7" y1="571.313" x2="282.929" y2="571.313" style="stroke:#181818;stroke-width:0.5;"/><g data-visibility-modifier="PUBLIC_METHOD"><ellipse cx="17" cy="584.988" rx="3" ry="3" fill="#84BE84" style="stroke:#038048;stroke-width:1;"/></g><text x="25" y="588.808" fill="#000" font-size="13" textLength="252.929">generateAttendancePdf(snapshot): Promise</text></g><!--class SessaoDispositivo--><g class="entity" data-qualified-name="SessaoDispositivo" id="ent0004" data-source-line="19"><rect x="477.5" y="375.609" width="225.123" height="107.758" fill="#F1F1F1" style="stroke:#181818;stroke-width:0.5;" rx="2.5" ry="2.5"/><ellipse cx="532.954" cy="396.961" rx="10" ry="10" fill="#ADD1B2" style="stroke:#181818;stroke-width:1;"/><path d="M533.891,393.602 Q534.016,393.43 534.157,393.352 Q534.297,393.273 534.469,393.273 Q534.75,393.273 534.922,393.477 Q535.11,393.664 535.11,394.133 L535.11,395.242 Q535.11,395.711 534.922,395.914 Q534.75,396.102 534.469,396.102 Q534.204,396.102 534.047,395.961 Q533.891,395.82 533.813,395.414 Q533.766,395.148 533.641,395.008 Q533.375,394.711 532.907,394.539 Q532.438,394.367 531.969,394.367 Q531.391,394.367 530.891,394.633 Q530.407,394.883 530.032,395.461 Q529.657,396.023 529.657,396.805 L529.657,397.648 Q529.657,398.586 530.344,399.227 Q531.032,399.852 532.235,399.852 Q532.969,399.852 533.469,399.648 Q533.75,399.539 534.079,399.195 Q534.282,398.992 534.391,398.945 Q534.516,398.883 534.657,398.883 Q534.922,398.883 535.11,399.086 Q535.313,399.273 535.313,399.539 Q535.313,399.805 535.047,400.117 Q534.657,400.555 534.047,400.805 Q533.235,401.148 532.25,401.148 Q531.094,401.148 530.157,400.68 Q529.407,400.289 528.875,399.477 Q528.36,398.648 528.36,397.68 L528.36,396.789 Q528.36,395.773 528.829,394.898 Q529.313,394.023 530.141,393.555 Q530.985,393.07 531.922,393.07 Q532.485,393.07 532.969,393.211 Q533.469,393.336 533.891,393.602 Z " fill="#000"/><text x="576.513" y="394.104" fill="#000" font-size="13" textLength="57.097" font-style="italic">«module»</text><text x="551.954" y="410.456" fill="#000" font-size="13" textLength="106.215">SessaoDispositivo</text><line x1="478.5" y1="418.313" x2="701.623" y2="418.313" style="stroke:#181818;stroke-width:0.5;"/><line x1="478.5" y1="426.313" x2="701.623" y2="426.313" style="stroke:#181818;stroke-width:0.5;"/><g data-visibility-modifier="PUBLIC_METHOD"><ellipse cx="488.5" cy="439.988" rx="3" ry="3" fill="#84BE84" style="stroke:#038048;stroke-width:1;"/></g><text x="496.5" y="443.808" fill="#000" font-size="13" textLength="200.123">rememberSession(value): Promise</text><g data-visibility-modifier="PUBLIC_METHOD"><ellipse cx="488.5" cy="456.34" rx="3" ry="3" fill="#84BE84" style="stroke:#038048;stroke-width:1;"/></g><text x="496.5" y="460.159" fill="#000" font-size="13" textLength="150.268">restoreSession(): Promise</text><g data-visibility-modifier="PUBLIC_METHOD"><ellipse cx="488.5" cy="472.691" rx="3" ry="3" fill="#84BE84" style="stroke:#038048;stroke-width:1;"/></g><text x="496.5" y="476.511" fill="#000" font-size="13" textLength="160.354">confirmBiometric(): Promise</text></g><!--class EditorReuniao--><g class="entity" data-qualified-name="EditorReuniao" id="ent0005" data-source-line="24"><rect x="324.5" y="50.609" width="177.452" height="75.055" fill="#F1F1F1" style="stroke:#181818;stroke-width:0.5;" rx="2.5" ry="2.5"/><ellipse cx="354.62" cy="71.961" rx="10" ry="10" fill="#ADD1B2" style="stroke:#181818;stroke-width:1;"/><path d="M355.558,68.602 Q355.683,68.43 355.823,68.352 Q355.964,68.273 356.136,68.273 Q356.417,68.273 356.589,68.477 Q356.776,68.664 356.776,69.133 L356.776,70.242 Q356.776,70.711 356.589,70.914 Q356.417,71.102 356.136,71.102 Q355.87,71.102 355.714,70.961 Q355.558,70.82 355.48,70.414 Q355.433,70.148 355.308,70.008 Q355.042,69.711 354.573,69.539 Q354.105,69.367 353.636,69.367 Q353.058,69.367 352.558,69.633 Q352.073,69.883 351.698,70.461 Q351.323,71.023 351.323,71.805 L351.323,72.648 Q351.323,73.586 352.011,74.227 Q352.698,74.852 353.901,74.852 Q354.636,74.852 355.136,74.648 Q355.417,74.539 355.745,74.195 Q355.948,73.992 356.058,73.945 Q356.183,73.883 356.323,73.883 Q356.589,73.883 356.776,74.086 Q356.98,74.273 356.98,74.539 Q356.98,74.805 356.714,75.117 Q356.323,75.555 355.714,75.805 Q354.901,76.148 353.917,76.148 Q352.761,76.148 351.823,75.68 Q351.073,75.289 350.542,74.477 Q350.026,73.648 350.026,72.68 L350.026,71.789 Q350.026,70.773 350.495,69.898 Q350.98,69.023 351.808,68.555 Q352.651,68.07 353.589,68.07 Q354.151,68.07 354.636,68.211 Q355.136,68.336 355.558,68.602 Z " fill="#000"/><text x="369.203" y="69.104" fill="#000" font-size="13" textLength="115.629" font-style="italic">«ReactComponent»</text><text x="385.824" y="85.456" fill="#000" font-size="13" textLength="82.386">EditorReuniao</text><line x1="325.5" y1="93.313" x2="500.952" y2="93.313" style="stroke:#181818;stroke-width:0.5;"/><line x1="325.5" y1="101.313" x2="500.952" y2="101.313" style="stroke:#181818;stroke-width:0.5;"/><g data-visibility-modifier="PUBLIC_METHOD"><ellipse cx="335.5" cy="114.988" rx="3" ry="3" fill="#84BE84" style="stroke:#038048;stroke-width:1;"/></g><text x="343.5" y="118.808" fill="#000" font-size="13" textLength="152.452">MeetingEditor(props): JSX</text></g><!--class RecursosReuniao--><g class="entity" data-qualified-name="RecursosReuniao" id="ent0006" data-source-line="27"><rect x="520" y="50.609" width="205.629" height="75.055" fill="#F1F1F1" style="stroke:#181818;stroke-width:0.5;" rx="2.5" ry="2.5"/><ellipse cx="563" cy="71.961" rx="10" ry="10" fill="#ADD1B2" style="stroke:#181818;stroke-width:1;"/><path d="M563.938,68.602 Q564.063,68.43 564.203,68.352 Q564.344,68.273 564.516,68.273 Q564.797,68.273 564.969,68.477 Q565.156,68.664 565.156,69.133 L565.156,70.242 Q565.156,70.711 564.969,70.914 Q564.797,71.102 564.516,71.102 Q564.25,71.102 564.094,70.961 Q563.938,70.82 563.859,70.414 Q563.813,70.148 563.688,70.008 Q563.422,69.711 562.953,69.539 Q562.484,69.367 562.016,69.367 Q561.438,69.367 560.938,69.633 Q560.453,69.883 560.078,70.461 Q559.703,71.023 559.703,71.805 L559.703,72.648 Q559.703,73.586 560.391,74.227 Q561.078,74.852 562.281,74.852 Q563.016,74.852 563.516,74.648 Q563.797,74.539 564.125,74.195 Q564.328,73.992 564.438,73.945 Q564.563,73.883 564.703,73.883 Q564.969,73.883 565.156,74.086 Q565.359,74.273 565.359,74.539 Q565.359,74.805 565.094,75.117 Q564.703,75.555 564.094,75.805 Q563.281,76.148 562.297,76.148 Q561.141,76.148 560.203,75.68 Q559.453,75.289 558.922,74.477 Q558.406,73.648 558.406,72.68 L558.406,71.789 Q558.406,70.773 558.875,69.898 Q559.359,69.023 560.188,68.555 Q561.031,68.07 561.969,68.07 Q562.531,68.07 563.016,68.211 Q563.516,68.336 563.938,68.602 Z " fill="#000"/><text x="580" y="69.104" fill="#000" font-size="13" textLength="115.629" font-style="italic">«ReactComponent»</text><text x="586.148" y="85.456" fill="#000" font-size="13" textLength="103.333">RecursosReuniao</text><line x1="521" y1="93.313" x2="724.629" y2="93.313" style="stroke:#181818;stroke-width:0.5;"/><line x1="521" y1="101.313" x2="724.629" y2="101.313" style="stroke:#181818;stroke-width:0.5;"/><g data-visibility-modifier="PUBLIC_METHOD"><ellipse cx="531" cy="114.988" rx="3" ry="3" fill="#84BE84" style="stroke:#038048;stroke-width:1;"/></g><text x="539" y="118.808" fill="#000" font-size="13" textLength="180.629">MeetingResources(props): JSX</text></g><g class="entity" data-qualified-name="GMN12" id="ent0013" data-source-line="36"><path d="M302.5,536.609 L302.5,579.313 A0,0 0 0 0 302.5,579.313 L625.528,579.313 A0,0 0 0 0 625.528,579.313 L625.528,546.609 L615.528,536.609 L441.764,536.609 L350.279,467.198 L433.764,536.609 L302.5,536.609 A0,0 0 0 0 302.5,536.609" style="stroke:#181818;stroke-width:0.5;" fill="#FEFFDD"/><path d="M615.528,536.609 L615.528,546.609 L625.528,546.609 L615.528,536.609" style="stroke:#181818;stroke-width:0.5;" fill="#FEFFDD"/><text x="308.5" y="555.104" fill="#000" font-size="13" textLength="302.028">Classificadores representam módulos funcionais JS.</text><text x="308.5" y="571.456" fill="#000" font-size="13" textLength="258.686">Dados e restrições estão no dicionário físico.</text></g><g class="link" data-entity-1="ent0005" data-entity-2="ent0001" id="lnk7" data-link-type="dependency"><polygon points="463.962,162.398,462.108,152.725,461.108,158.293,455.54,157.292,463.962,162.398" fill="#181818" style="stroke:#181818;stroke-width:1;stroke-linejoin:miter;stroke-miterlimit:10;"/><path d="M438.418,125.662 C446.186,136.834 452.19,145.468 461.108,158.293" style="stroke:#181818;stroke-width:1;stroke-dasharray:7,7;" fill="none"/></g><g class="link" data-entity-1="ent0006" data-entity-2="ent0001" id="lnk8" data-link-type="dependency"><polygon points="572.038,162.398,580.46,157.292,574.892,158.293,573.892,152.725,572.038,162.398" fill="#181818" style="stroke:#181818;stroke-width:1;stroke-linejoin:miter;stroke-miterlimit:10;"/><path d="M597.582,125.662 C589.814,136.834 583.81,145.468 574.892,158.293" style="stroke:#181818;stroke-width:1;stroke-dasharray:7,7;" fill="none"/></g><g class="link" data-entity-1="ent0001" data-entity-2="ent0002" id="lnk9" data-link-type="dependency"><polygon points="346.067,391.948,355.48,389.051,349.836,388.663,350.224,383.02,346.067,391.948" fill="#181818" style="stroke:#181818;stroke-width:1;stroke-linejoin:miter;stroke-miterlimit:10;"/><path d="M428.794,319.852 C400.123,344.839 373.467,368.069 349.836,388.663" style="stroke:#181818;stroke-width:1;stroke-dasharray:7,7;" fill="none"/><text x="407" y="353.104" fill="#000" font-size="13" textLength="104.774">HTTP autenticado</text></g><g class="link" data-entity-1="ent0002" data-entity-2="ent0003" id="lnk10" data-link-type="dependency"><polygon points="190.886,520.603,200.419,518.129,194.799,517.49,195.439,511.869,190.886,520.603" fill="#181818" style="stroke:#181818;stroke-width:1;stroke-linejoin:miter;stroke-miterlimit:10;"/><path d="M258.011,467.198 C236.916,483.981 215.881,500.717 194.799,517.49" style="stroke:#181818;stroke-width:1;stroke-dasharray:7,7;" fill="none"/></g><g class="link" data-entity-1="ent0001" data-entity-2="ent0004" id="lnk11" data-link-type="dependency"><polygon points="569.447,375.37,569.937,365.534,567.646,370.706,562.474,368.415,569.447,375.37" fill="#181818" style="stroke:#181818;stroke-width:1;stroke-linejoin:miter;stroke-miterlimit:10;"/><path d="M548.013,319.852 C555.229,338.542 560.974,353.423 567.646,370.706" style="stroke:#181818;stroke-width:1;stroke-dasharray:7,7;" fill="none"/></g><?plantuml-src bLH1RjH04Bpx5StDAD5AY5iKHGfP8X89oTgDW6llk9qTiAU7wVP60I7n23w0E73YX7Z1_eINqDxT9BOJ8JZPSbVLbAjx-b5CUDaWr7ZDhO8qf1WmatS-H4pOW2onv2iVBg72MgXNAQd2jjPJ3Zht7mYUFCtKQqrmKgC8YG4W9dvBol3xynVWI0dNtzU_jgLc_RDiQnOunnNENV9HCzSnZUyfA1qNPt1usB2XwEW8FcQmrn2fMPdH-vP4yuYwt0UplEHo7o9UrupbumCe4ZVUlCAUIuHABxUqLwpqskloEFfyftHcl5OeTS-DfkUmRqwxfmoLKFJlEYlxtDVRgfoD3DaVq__e3DWLgLlks0KczSvR1dRAZ28dlH4RSB2rU98rg2YhAL-5BgEyJNKFz6aN_8mLPKPjyCZZw0T9oio6XL9Uek82XVgHRKktcaKYeU2mc9wE9Iyfs4HOerKfb1XSPp6NW56Mh0_ucvC8yjHBPF7gL_TC9cgeML3gW6OdNs7TqY0DSwESw0Omx0s7ogVccMSRgUHT_e25vwKt_br6CqAd9zn43ZQpEnkxbBROtEv0x88vdx-vIvfScuJbtuHc9DmcHpBI6fgPJ8vwLoSR7p4gzovPLncq_W1UN5mKO9DZ4Ezi0MI3UaVezNMiTQzDMR2HXWMhSWDS3GxBDjl2LvjZJ1CInOsqsegvtH5L6vpr2xsjY_aacnfMWA3hPlAxdMBlwsyCWQ7q7NZzDNc6Qlr3lED9PYC6dOy_?></g></svg>
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 1.1//EN"
+ "http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd">
+<!-- Generated by graphviz version 2.43.0 (0)
+ -->
+<!-- Title: C Pages: 1 -->
+<svg width="2038pt" height="1397pt"
+ viewBox="0.00 0.00 2038.00 1397.00" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" xmlns:c2pa="http://c2pa.org/manifest">
+<g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 1393)">
+<title>C</title>
+<polygon fill="white" stroke="transparent" points="-4,4 -4,-1393 2034,-1393 2034,4 -4,4"/>
+<text text-anchor="middle" x="1015" y="-1373" font-family="DejaVu Sans" font-size="15.00">Classes de projeto — Incremento 3 (código do app e da API)</text>
+<g id="clust1" class="cluster">
+<title>cluster_0</title>
+<path fill="none" stroke="#64748b" stroke-dasharray="5,2" d="M20,-532C20,-532 1401,-532 1401,-532 1407,-532 1413,-538 1413,-544 1413,-544 1413,-1344 1413,-1344 1413,-1350 1407,-1356 1401,-1356 1401,-1356 20,-1356 20,-1356 14,-1356 8,-1350 8,-1344 8,-1344 8,-544 8,-544 8,-538 14,-532 20,-532"/>
+<text text-anchor="middle" x="710.5" y="-1342.4" font-family="DejaVu Sans" font-size="12.00">mobile (React Native)</text>
+</g>
+<g id="clust2" class="cluster">
+<title>cluster_1</title>
+<path fill="none" stroke="#64748b" stroke-dasharray="5,2" d="M1433,-112C1433,-112 2010,-112 2010,-112 2016,-112 2022,-118 2022,-124 2022,-124 2022,-683.5 2022,-683.5 2022,-689.5 2016,-695.5 2010,-695.5 2010,-695.5 1433,-695.5 1433,-695.5 1427,-695.5 1421,-689.5 1421,-683.5 1421,-683.5 1421,-124 1421,-124 1421,-118 1427,-112 1433,-112"/>
+<text text-anchor="middle" x="1721.5" y="-681.9" font-family="DejaVu Sans" font-size="12.00">backend (Node.js / Express)</text>
+</g>
+<!-- MeetingCard -->
+<g id="node1" class="node">
+<title>MeetingCard</title>
+<polygon fill="#f8fafc" stroke="transparent" points="695,-1118 695,-1327 1021,-1327 1021,-1118 695,-1118"/>
+<polygon fill="#e2e8f0" stroke="transparent" points="695,-1295.5 695,-1326.5 1021,-1326.5 1021,-1295.5 695,-1295.5"/>
+<polygon fill="none" stroke="#334155" points="695,-1295.5 695,-1326.5 1021,-1326.5 1021,-1295.5 695,-1295.5"/>
+<text text-anchor="start" x="826.5" y="-1314.3" font-family="DejaVu Sans" font-size="9.00">«component»</text>
+<text text-anchor="start" x="821.5" y="-1304.5" font-family="DejaVu Sans" font-weight="bold" font-size="10.00">MeetingCard</text>
+<polygon fill="none" stroke="#334155" points="695,-1195.5 695,-1295.5 1021,-1295.5 1021,-1195.5 695,-1195.5"/>
+<text text-anchor="start" x="701" y="-1281.5" font-family="DejaVu Sans" font-size="10.00">&#45; content: String</text>
+<text text-anchor="start" x="701" y="-1270.5" font-family="DejaVu Sans" font-size="10.00">&#45; dirty: Boolean</text>
+<text text-anchor="start" x="701" y="-1259.5" font-family="DejaVu Sans" font-size="10.00">&#45; comment: String</text>
+<text text-anchor="start" x="701" y="-1248.5" font-family="DejaVu Sans" font-size="10.00">&#45; pending: String</text>
+<text text-anchor="start" x="701" y="-1237.5" font-family="DejaVu Sans" font-size="10.00">&#45; voteQuestion: String</text>
+<text text-anchor="start" x="701" y="-1226.5" font-family="DejaVu Sans" font-size="10.00">&#45; voteOptionsText: String</text>
+<text text-anchor="start" x="701" y="-1215.5" font-family="DejaVu Sans" font-size="10.00">&#45; section: String</text>
+<text text-anchor="start" x="701" y="-1204.5" font-family="DejaVu Sans" font-size="10.00">&#45; inFlight: Ref&lt;Boolean&gt;</text>
+<polygon fill="none" stroke="#334155" points="695,-1117.5 695,-1195.5 1021,-1195.5 1021,-1117.5 695,-1117.5"/>
+<text text-anchor="start" x="701" y="-1181.5" font-family="DejaVu Sans" font-size="10.00">+ saveMinutes(): Promise&lt;void&gt;</text>
+<text text-anchor="start" x="701" y="-1170.5" font-family="DejaVu Sans" font-size="10.00">+ confirmSubmission(): void</text>
+<text text-anchor="start" x="701" y="-1159.5" font-family="DejaVu Sans" font-size="10.00">+ confirmDecision(decision: String): void</text>
+<text text-anchor="start" x="701" y="-1148.5" font-family="DejaVu Sans" font-size="10.00">+ openVote(): Promise&lt;void&gt;</text>
+<text text-anchor="start" x="701" y="-1137.5" font-family="DejaVu Sans" font-size="10.00">+ exportMinutesPdf(): Promise&lt;void&gt;</text>
+<text text-anchor="start" x="701" y="-1126.5" font-family="DejaVu Sans" font-size="10.00">&#45; perform(action: String, callback: Function): Promise&lt;Boolean&gt;</text>
+</g>
+<!-- App -->
+<g id="node5" class="node">
+<title>App</title>
+<polygon fill="#f8fafc" stroke="transparent" points="16.5,-904 16.5,-1058 599.5,-1058 599.5,-904 16.5,-904"/>
+<polygon fill="#e2e8f0" stroke="transparent" points="17,-1027 17,-1058 600,-1058 600,-1027 17,-1027"/>
+<polygon fill="none" stroke="#334155" points="17,-1027 17,-1058 600,-1058 600,-1027 17,-1027"/>
+<text text-anchor="start" x="277" y="-1045.8" font-family="DejaVu Sans" font-size="9.00">«component»</text>
+<text text-anchor="start" x="297" y="-1036" font-family="DejaVu Sans" font-weight="bold" font-size="10.00">App</text>
+<polygon fill="none" stroke="#334155" points="17,-993 17,-1027 600,-1027 600,-993 17,-993"/>
+<text text-anchor="start" x="23" y="-1013" font-family="DejaVu Sans" font-size="10.00">&#45; data: Snapshot</text>
+<text text-anchor="start" x="23" y="-1002" font-family="DejaVu Sans" font-size="10.00">&#45; activeUserId: UUID</text>
+<polygon fill="none" stroke="#334155" points="17,-904 17,-993 600,-993 600,-904 17,-904"/>
+<text text-anchor="start" x="23" y="-979" font-family="DejaVu Sans" font-size="10.00">+ saveMeetingMinutes(meetingId: UUID, content: String): Promise&lt;Boolean&gt;</text>
+<text text-anchor="start" x="23" y="-968" font-family="DejaVu Sans" font-size="10.00">+ submitMeetingMinutes(meetingId: UUID): Promise&lt;Boolean&gt;</text>
+<text text-anchor="start" x="23" y="-957" font-family="DejaVu Sans" font-size="10.00">+ approveMeetingMinutes(meetingId: UUID, decision: String, comment: String, version: Integer): Promise&lt;Boolean&gt;</text>
+<text text-anchor="start" x="23" y="-946" font-family="DejaVu Sans" font-size="10.00">+ createMeetingVote(meetingId: UUID, question: String, options: String[]): Promise&lt;Boolean&gt;</text>
+<text text-anchor="start" x="23" y="-935" font-family="DejaVu Sans" font-size="10.00">+ castMeetingVote(meetingId: UUID, voteId: UUID, optionId: UUID): Promise&lt;Boolean&gt;</text>
+<text text-anchor="start" x="23" y="-924" font-family="DejaVu Sans" font-size="10.00">+ closeMeetingVote(meetingId: UUID, voteId: UUID): Promise&lt;Boolean&gt;</text>
+<text text-anchor="start" x="23" y="-913" font-family="DejaVu Sans" font-size="10.00">&#45; storeMeetingMinutes(minutes: Minutes): void</text>
+</g>
+<!-- MeetingCard&#45;&gt;App -->
+<g id="edge2" class="edge">
+<title>MeetingCard&#45;&gt;App</title>
+<path fill="none" stroke="#334155" stroke-dasharray="5,2" d="M694.84,-1150.45C631.02,-1122.66 557.51,-1090.65 491.82,-1062.05"/>
+<polygon fill="#334155" stroke="#334155" points="482.61,-1058.03 493.57,-1057.9 487.19,-1060.03 491.78,-1062.03 491.78,-1062.03 491.78,-1062.03 487.19,-1060.03 489.98,-1066.15 482.61,-1058.03 482.61,-1058.03"/>
+<text text-anchor="middle" x="573.5" y="-1085.8" font-family="DejaVu Sans" font-size="9.00">props on*</text>
+</g>
+<!-- ApiClient -->
+<g id="node6" class="node">
+<title>ApiClient</title>
+<polygon fill="#f8fafc" stroke="transparent" points="533,-540 533,-694 1041,-694 1041,-540 533,-540"/>
+<polygon fill="#e2e8f0" stroke="transparent" points="533,-663 533,-694 1041,-694 1041,-663 533,-663"/>
+<polygon fill="none" stroke="#334155" points="533,-663 533,-694 1041,-694 1041,-663 533,-663"/>
+<text text-anchor="start" x="764.5" y="-681.8" font-family="DejaVu Sans" font-size="9.00">«module»</text>
+<text text-anchor="start" x="761" y="-672" font-family="DejaVu Sans" font-weight="bold" font-size="10.00">ApiClient</text>
+<polygon fill="none" stroke="#334155" points="533,-640 533,-663 1041,-663 1041,-640 533,-640"/>
+<text text-anchor="start" x="539" y="-649" font-family="DejaVu Sans" font-size="10.00"> </text>
+<polygon fill="none" stroke="#334155" points="533,-540 533,-640 1041,-640 1041,-540 533,-540"/>
+<text text-anchor="start" x="539" y="-626" font-family="DejaVu Sans" font-size="10.00">+ saveMeetingMinutesWithApi(meetingId, userId, content): Promise&lt;Result&gt;</text>
+<text text-anchor="start" x="539" y="-615" font-family="DejaVu Sans" font-size="10.00">+ submitMeetingMinutesWithApi(meetingId, userId): Promise&lt;Result&gt;</text>
+<text text-anchor="start" x="539" y="-604" font-family="DejaVu Sans" font-size="10.00">+ approveMeetingMinutesWithApi(meetingId, userId, decision, comment, version): Promise&lt;Result&gt;</text>
+<text text-anchor="start" x="539" y="-593" font-family="DejaVu Sans" font-size="10.00">+ createMeetingVoteWithApi(meetingId, userId, question, options): Promise&lt;Result&gt;</text>
+<text text-anchor="start" x="539" y="-582" font-family="DejaVu Sans" font-size="10.00">+ castMeetingVoteWithApi(meetingId, voteId, userId, optionId): Promise&lt;Result&gt;</text>
+<text text-anchor="start" x="539" y="-571" font-family="DejaVu Sans" font-size="10.00">+ closeMeetingVoteWithApi(meetingId, voteId, userId): Promise&lt;Result&gt;</text>
+<text text-anchor="start" x="539" y="-560" font-family="DejaVu Sans" font-size="10.00">+ fetchMeetingParticipationReportWithApi(): Promise&lt;Result&gt;</text>
+<text text-anchor="start" x="539" y="-549" font-family="DejaVu Sans" font-size="10.00">+ authorizePdfDownload(url: String): Promise&lt;String&gt;</text>
+</g>
+<!-- MeetingCard&#45;&gt;ApiClient -->
+<g id="edge5" class="edge">
+<title>MeetingCard&#45;&gt;ApiClient</title>
+<path fill="none" stroke="#334155" stroke-dasharray="5,2" d="M1021.02,-1193.11C1160.2,-1165.16 1344.7,-1117.99 1389,-1058 1429.66,-1002.94 1425.57,-961.86 1389,-904 1314.37,-785.91 1176.24,-715.6 1051.1,-674.26"/>
+<polygon fill="#334155" stroke="#334155" points="1041.35,-671.09 1052.25,-669.9 1046.1,-672.63 1050.86,-674.18 1050.86,-674.18 1050.86,-674.18 1046.1,-672.63 1049.47,-678.46 1041.35,-671.09 1041.35,-671.09"/>
+<text text-anchor="middle" x="1420.5" y="-871.8" font-family="DejaVu Sans" font-size="9.00">authorizePdfDownload</text>
+</g>
+<!-- MeetingRules -->
+<g id="node7" class="node">
+<title>MeetingRules</title>
+<polygon fill="#f8fafc" stroke="transparent" points="659.5,-931.5 659.5,-1030.5 1056.5,-1030.5 1056.5,-931.5 659.5,-931.5"/>
+<polygon fill="#e2e8f0" stroke="transparent" points="660,-999 660,-1030 1057,-1030 1057,-999 660,-999"/>
+<polygon fill="none" stroke="#334155" points="660,-999 660,-1030 1057,-1030 1057,-999 660,-999"/>
+<text text-anchor="start" x="836" y="-1017.8" font-family="DejaVu Sans" font-size="9.00">«module»</text>
+<text text-anchor="start" x="820" y="-1008" font-family="DejaVu Sans" font-weight="bold" font-size="10.00">MeetingRules</text>
+<polygon fill="none" stroke="#334155" points="660,-976 660,-999 1057,-999 1057,-976 660,-976"/>
+<text text-anchor="start" x="666" y="-985" font-family="DejaVu Sans" font-size="10.00"> </text>
+<polygon fill="none" stroke="#334155" points="660,-931 660,-976 1057,-976 1057,-931 660,-931"/>
+<text text-anchor="start" x="666" y="-962" font-family="DejaVu Sans" font-size="10.00">+ getMinutesVotingSummary(minutes, attendees, approvals): VotingSummary</text>
+<text text-anchor="start" x="666" y="-951" font-family="DejaVu Sans" font-size="10.00">+ canManageMeetingCommission(data, commissionId, userId): Boolean</text>
+<text text-anchor="start" x="666" y="-940" font-family="DejaVu Sans" font-size="10.00">+ getMeetingAttendanceRows(data, meetingId): Row[]</text>
+</g>
+<!-- MeetingCard&#45;&gt;MeetingRules -->
+<g id="edge3" class="edge">
+<title>MeetingCard&#45;&gt;MeetingRules</title>
+<path fill="none" stroke="#334155" stroke-dasharray="5,2" d="M858,-1117.84C858,-1091.41 858,-1063.92 858,-1040.64"/>
+<polygon fill="#334155" stroke="#334155" points="858,-1030.59 862.5,-1040.59 858,-1035.59 858,-1040.59 858,-1040.59 858,-1040.59 858,-1035.59 853.5,-1040.59 858,-1030.59 858,-1030.59"/>
+</g>
+<!-- MinutesPdfClient -->
+<g id="node8" class="node">
+<title>MinutesPdfClient</title>
+<polygon fill="#f8fafc" stroke="transparent" points="1085.5,-931.5 1085.5,-1030.5 1374.5,-1030.5 1374.5,-931.5 1085.5,-931.5"/>
+<polygon fill="#e2e8f0" stroke="transparent" points="1086,-999 1086,-1030 1375,-1030 1375,-999 1086,-999"/>
+<polygon fill="none" stroke="#334155" points="1086,-999 1086,-1030 1375,-1030 1375,-999 1086,-999"/>
+<text text-anchor="start" x="1208" y="-1017.8" font-family="DejaVu Sans" font-size="9.00">«module»</text>
+<text text-anchor="start" x="1182" y="-1008" font-family="DejaVu Sans" font-weight="bold" font-size="10.00">MinutesPdfClient</text>
+<polygon fill="none" stroke="#334155" points="1086,-976 1086,-999 1375,-999 1375,-976 1086,-976"/>
+<text text-anchor="start" x="1092" y="-985" font-family="DejaVu Sans" font-size="10.00"> </text>
+<polygon fill="none" stroke="#334155" points="1086,-931 1086,-976 1375,-976 1375,-931 1086,-931"/>
+<text text-anchor="start" x="1092" y="-962" font-family="DejaVu Sans" font-size="10.00">+ buildMinutesPdfUrl(apiBaseUrl: String, params): String</text>
+<text text-anchor="start" x="1092" y="-951" font-family="DejaVu Sans" font-size="10.00">+ prepareMinutesPdf(options): Promise&lt;String&gt;</text>
+<text text-anchor="start" x="1092" y="-940" font-family="DejaVu Sans" font-size="10.00">+ minutesPdfError(status: Integer, code: String): String</text>
+</g>
+<!-- MeetingCard&#45;&gt;MinutesPdfClient -->
+<g id="edge4" class="edge">
+<title>MeetingCard&#45;&gt;MinutesPdfClient</title>
+<path fill="none" stroke="#334155" stroke-dasharray="5,2" d="M1019,-1117.84C1062.63,-1089.76 1108.13,-1060.46 1145.66,-1036.3"/>
+<polygon fill="#334155" stroke="#334155" points="1154.52,-1030.59 1148.55,-1039.79 1150.32,-1033.3 1146.12,-1036.01 1146.12,-1036.01 1146.12,-1036.01 1150.32,-1033.3 1143.68,-1032.22 1154.52,-1030.59 1154.52,-1030.59"/>
+</g>
+<!-- MeetingsScreen -->
+<g id="node2" class="node">
+<title>MeetingsScreen</title>
+<polygon fill="#f8fafc" stroke="transparent" points="537,-750.5 537,-838.5 739,-838.5 739,-750.5 537,-750.5"/>
+<polygon fill="#e2e8f0" stroke="transparent" points="537,-807.5 537,-838.5 739,-838.5 739,-807.5 537,-807.5"/>
+<polygon fill="none" stroke="#334155" points="537,-807.5 537,-838.5 739,-838.5 739,-807.5 537,-807.5"/>
+<text text-anchor="start" x="606.5" y="-826.3" font-family="DejaVu Sans" font-size="9.00">«component»</text>
+<text text-anchor="start" x="592.5" y="-816.5" font-family="DejaVu Sans" font-weight="bold" font-size="10.00">MeetingsScreen</text>
+<polygon fill="none" stroke="#334155" points="537,-773.5 537,-807.5 739,-807.5 739,-773.5 537,-773.5"/>
+<text text-anchor="start" x="543" y="-793.5" font-family="DejaVu Sans" font-size="10.00">&#45; selectedCommissionId: UUID</text>
+<text text-anchor="start" x="543" y="-782.5" font-family="DejaVu Sans" font-size="10.00">&#45; creating: Boolean</text>
+<polygon fill="none" stroke="#334155" points="537,-750.5 537,-773.5 739,-773.5 739,-750.5 537,-750.5"/>
+<text text-anchor="start" x="543" y="-759.5" font-family="DejaVu Sans" font-size="10.00">+ MeetingsScreen(props): JSX.Element</text>
+</g>
+<!-- MeetingsScreen&#45;&gt;MeetingCard -->
+<g id="edge8" class="edge">
+<title>MeetingsScreen&#45;&gt;MeetingCard</title>
+<path fill="none" stroke="#334155" d="M626.3,-850.75C617.45,-906.32 611.8,-992.86 645,-1058 657.28,-1082.09 674.93,-1103.66 694.88,-1122.61"/>
+<polygon fill="#334155" stroke="#334155" points="626.34,-850.53 623.4,-843.95 628.35,-838.7 631.29,-845.29 626.34,-850.53"/>
+<text text-anchor="middle" x="686.38" y="-1125.41" font-family="DejaVu Sans" font-size="9.00">0..*</text>
+</g>
+<!-- MeetingParticipationScreen -->
+<g id="node3" class="node">
+<title>MeetingParticipationScreen</title>
+<polygon fill="#f8fafc" stroke="transparent" points="338,-745 338,-844 508,-844 508,-745 338,-745"/>
+<polygon fill="#e2e8f0" stroke="transparent" points="338,-812.5 338,-843.5 508,-843.5 508,-812.5 338,-812.5"/>
+<polygon fill="none" stroke="#334155" points="338,-812.5 338,-843.5 508,-843.5 508,-812.5 338,-812.5"/>
+<text text-anchor="start" x="391.5" y="-831.3" font-family="DejaVu Sans" font-size="9.00">«component»</text>
+<text text-anchor="start" x="344" y="-821.5" font-family="DejaVu Sans" font-weight="bold" font-size="10.00">MeetingParticipationScreen</text>
+<polygon fill="none" stroke="#334155" points="338,-767.5 338,-812.5 508,-812.5 508,-767.5 338,-767.5"/>
+<text text-anchor="start" x="344" y="-798.5" font-family="DejaVu Sans" font-size="10.00">&#45; meetings: ParticipationRow[]</text>
+<text text-anchor="start" x="344" y="-787.5" font-family="DejaVu Sans" font-size="10.00">&#45; loading: Boolean</text>
+<text text-anchor="start" x="344" y="-776.5" font-family="DejaVu Sans" font-size="10.00">&#45; error: String</text>
+<polygon fill="none" stroke="#334155" points="338,-744.5 338,-767.5 508,-767.5 508,-744.5 338,-744.5"/>
+<text text-anchor="start" x="344" y="-753.5" font-family="DejaVu Sans" font-size="10.00">+ refresh(): Promise&lt;void&gt;</text>
+</g>
+<!-- MeetingParticipationScreen&#45;&gt;ApiClient -->
+<g id="edge6" class="edge">
+<title>MeetingParticipationScreen&#45;&gt;ApiClient</title>
+<path fill="none" stroke="#334155" stroke-dasharray="5,2" d="M508.03,-751.78C512.76,-749.49 517.44,-747.21 522,-745 553.26,-729.85 586.65,-713.77 618.81,-698.34"/>
+<polygon fill="#334155" stroke="#334155" points="627.84,-694 620.78,-702.38 623.34,-696.16 618.83,-698.33 618.83,-698.33 618.83,-698.33 623.34,-696.16 616.88,-694.27 627.84,-694 627.84,-694"/>
+</g>
+<!-- ManualScreen -->
+<g id="node4" class="node">
+<title>ManualScreen</title>
+<polygon fill="#f8fafc" stroke="transparent" points="112,-756 112,-833 278,-833 278,-756 112,-756"/>
+<polygon fill="#e2e8f0" stroke="transparent" points="112,-801.5 112,-832.5 278,-832.5 278,-801.5 112,-801.5"/>
+<polygon fill="none" stroke="#334155" points="112,-801.5 112,-832.5 278,-832.5 278,-801.5 112,-801.5"/>
+<text text-anchor="start" x="163.5" y="-820.3" font-family="DejaVu Sans" font-size="9.00">«component»</text>
+<text text-anchor="start" x="155" y="-810.5" font-family="DejaVu Sans" font-weight="bold" font-size="10.00">ManualScreen</text>
+<polygon fill="none" stroke="#334155" points="112,-778.5 112,-801.5 278,-801.5 278,-778.5 112,-778.5"/>
+<text text-anchor="start" x="118" y="-787.5" font-family="DejaVu Sans" font-size="10.00">&#45; TOPICS: String[][]</text>
+<polygon fill="none" stroke="#334155" points="112,-755.5 112,-778.5 278,-778.5 278,-755.5 112,-755.5"/>
+<text text-anchor="start" x="118" y="-764.5" font-family="DejaVu Sans" font-size="10.00">+ ManualScreen(): JSX.Element</text>
+</g>
+<!-- App&#45;&gt;MeetingsScreen -->
+<g id="edge7" class="edge">
+<title>App&#45;&gt;MeetingsScreen</title>
+<path fill="none" stroke="#334155" d="M454.9,-897.87C491.4,-877.46 529.1,-856.38 560.73,-838.7"/>
+<polygon fill="#334155" stroke="#334155" points="454.6,-898.04 451.32,-904.45 444.13,-903.89 447.41,-897.47 454.6,-898.04"/>
+</g>
+<!-- App&#45;&gt;MeetingParticipationScreen -->
+<g id="edge9" class="edge">
+<title>App&#45;&gt;MeetingParticipationScreen</title>
+<path fill="none" stroke="#334155" d="M361.96,-893.43C372.49,-876.54 383.18,-859.39 392.6,-844.27"/>
+<polygon fill="#334155" stroke="#334155" points="361.79,-893.71 362.01,-900.92 355.44,-903.89 355.22,-896.68 361.79,-893.71"/>
+</g>
+<!-- App&#45;&gt;ManualScreen -->
+<g id="edge10" class="edge">
+<title>App&#45;&gt;ManualScreen</title>
+<path fill="none" stroke="#334155" d="M255.03,-893.52C242.02,-872.28 228.76,-850.63 218.03,-833.1"/>
+<polygon fill="#334155" stroke="#334155" points="255.12,-893.66 261.66,-896.69 261.39,-903.89 254.84,-900.86 255.12,-893.66"/>
+</g>
+<!-- App&#45;&gt;ApiClient -->
+<g id="edge11" class="edge">
+<title>App&#45;&gt;ApiClient</title>
+<path fill="none" stroke="#334155" stroke-dasharray="5,2" d="M303.6,-903.83C301.83,-844.6 303.73,-768.65 323,-745 350.78,-710.91 434.21,-683.38 522.81,-662.77"/>
+<polygon fill="#334155" stroke="#334155" points="532.8,-660.49 524.05,-667.11 527.92,-661.6 523.05,-662.72 523.05,-662.72 523.05,-662.72 527.92,-661.6 522.04,-658.33 532.8,-660.49 532.8,-660.49"/>
+</g>
+<!-- MeetingsRouter -->
+<g id="node9" class="node">
+<title>MeetingsRouter</title>
+<polygon fill="#f8fafc" stroke="transparent" points="1429.5,-271 1429.5,-480 1694.5,-480 1694.5,-271 1429.5,-271"/>
+<polygon fill="#e2e8f0" stroke="transparent" points="1430,-448.5 1430,-479.5 1695,-479.5 1695,-448.5 1430,-448.5"/>
+<polygon fill="none" stroke="#334155" points="1430,-448.5 1430,-479.5 1695,-479.5 1695,-448.5 1430,-448.5"/>
+<text text-anchor="start" x="1540" y="-467.3" font-family="DejaVu Sans" font-size="9.00">«module»</text>
+<text text-anchor="start" x="1517.5" y="-457.5" font-family="DejaVu Sans" font-weight="bold" font-size="10.00">MeetingsRouter</text>
+<polygon fill="none" stroke="#334155" points="1430,-425.5 1430,-448.5 1695,-448.5 1695,-425.5 1430,-425.5"/>
+<text text-anchor="start" x="1436" y="-434.5" font-family="DejaVu Sans" font-size="10.00"> </text>
+<polygon fill="none" stroke="#334155" points="1430,-270.5 1430,-425.5 1695,-425.5 1695,-270.5 1430,-270.5"/>
+<text text-anchor="start" x="1436" y="-411.5" font-family="DejaVu Sans" font-size="10.00">+ createMeetingsRouter(database, options): Router</text>
+<text text-anchor="start" x="1436" y="-400.5" font-family="DejaVu Sans" font-size="10.00">&#45; getMeeting(client, meetingId, userId): Meeting</text>
+<text text-anchor="start" x="1436" y="-389.5" font-family="DejaVu Sans" font-size="10.00">&#45; requireManager(meeting): void</text>
+<text text-anchor="start" x="1436" y="-378.5" font-family="DejaVu Sans" font-size="10.00">&#45; resolveUserId(client, identifier): UUID</text>
+<text text-anchor="start" x="1436" y="-367.5" font-family="DejaVu Sans" font-size="10.00">&#45; transaction(handler, fallback): Middleware</text>
+<text text-anchor="start" x="1436" y="-356.5" font-family="DejaVu Sans" font-size="10.00">+ POST /:meetingId/minutes</text>
+<text text-anchor="start" x="1436" y="-345.5" font-family="DejaVu Sans" font-size="10.00">+ POST /:meetingId/minutes/submit</text>
+<text text-anchor="start" x="1436" y="-334.5" font-family="DejaVu Sans" font-size="10.00">+ PATCH /:meetingId/minutes/approval</text>
+<text text-anchor="start" x="1436" y="-323.5" font-family="DejaVu Sans" font-size="10.00">+ GET|HEAD /:meetingId/minutes/pdf</text>
+<text text-anchor="start" x="1436" y="-312.5" font-family="DejaVu Sans" font-size="10.00">+ POST /:meetingId/votes</text>
+<text text-anchor="start" x="1436" y="-301.5" font-family="DejaVu Sans" font-size="10.00">+ POST /:meetingId/votes/:voteId/ballot</text>
+<text text-anchor="start" x="1436" y="-290.5" font-family="DejaVu Sans" font-size="10.00">+ PATCH /:meetingId/votes/:voteId/close</text>
+<text text-anchor="start" x="1436" y="-279.5" font-family="DejaVu Sans" font-size="10.00">+ GET /participation/report</text>
+</g>
+<!-- ApiClient&#45;&gt;MeetingsRouter -->
+<g id="edge12" class="edge">
+<title>ApiClient&#45;&gt;MeetingsRouter</title>
+<path fill="none" stroke="#334155" stroke-dasharray="5,2" d="M1033.01,-539.97C1160.49,-500.58 1311.64,-453.87 1419.67,-420.49"/>
+<polygon fill="#334155" stroke="#334155" points="1429.33,-417.5 1421.1,-424.75 1424.55,-418.98 1419.77,-420.45 1419.77,-420.45 1419.77,-420.45 1424.55,-418.98 1418.44,-416.15 1429.33,-417.5 1429.33,-417.5"/>
+<text text-anchor="middle" x="1173" y="-507.8" font-family="DejaVu Sans" font-size="9.00">HTTP /api/meetings</text>
+</g>
+<!-- RequestError -->
+<g id="node10" class="node">
+<title>RequestError</title>
+<polygon fill="#f8fafc" stroke="transparent" points="1429,-120 1429,-211 1679,-211 1679,-120 1429,-120"/>
+<polygon fill="#e2e8f0" stroke="transparent" points="1429,-187.5 1429,-210.5 1679,-210.5 1679,-187.5 1429,-187.5"/>
+<polygon fill="none" stroke="#334155" points="1429,-187.5 1429,-210.5 1679,-210.5 1679,-187.5 1429,-187.5"/>
+<text text-anchor="start" x="1516" y="-197.5" font-family="DejaVu Sans" font-weight="bold" font-size="10.00">RequestError</text>
+<polygon fill="none" stroke="#334155" points="1429,-142.5 1429,-187.5 1679,-187.5 1679,-142.5 1429,-142.5"/>
+<text text-anchor="start" x="1435" y="-173.5" font-family="DejaVu Sans" font-size="10.00">+ status: Integer</text>
+<text text-anchor="start" x="1435" y="-162.5" font-family="DejaVu Sans" font-size="10.00">+ message: String</text>
+<text text-anchor="start" x="1435" y="-151.5" font-family="DejaVu Sans" font-size="10.00">+ fields: Object</text>
+<polygon fill="none" stroke="#334155" points="1429,-119.5 1429,-142.5 1679,-142.5 1679,-119.5 1429,-119.5"/>
+<text text-anchor="start" x="1435" y="-128.5" font-family="DejaVu Sans" font-size="10.00">+ RequestError(status: Integer, message: String)</text>
+</g>
+<!-- MeetingsRouter&#45;&gt;RequestError -->
+<g id="edge14" class="edge">
+<title>MeetingsRouter&#45;&gt;RequestError</title>
+<path fill="none" stroke="#334155" stroke-dasharray="5,2" d="M1558.01,-270.8C1557.35,-253.69 1556.69,-236.56 1556.11,-221.28"/>
+<polygon fill="#334155" stroke="#334155" points="1555.71,-211.02 1560.59,-220.84 1555.9,-216.01 1556.1,-221.01 1556.1,-221.01 1556.1,-221.01 1555.9,-216.01 1551.6,-221.18 1555.71,-211.02 1555.71,-211.02"/>
+<text text-anchor="middle" x="1587.5" y="-238.8" font-family="DejaVu Sans" font-size="9.00">&lt;&lt;throws&gt;&gt;</text>
+</g>
+<!-- MinutesPdfGenerator -->
+<g id="node12" class="node">
+<title>MinutesPdfGenerator</title>
+<polygon fill="#f8fafc" stroke="transparent" points="1708.5,-127 1708.5,-204 2013.5,-204 2013.5,-127 1708.5,-127"/>
+<polygon fill="#e2e8f0" stroke="transparent" points="1709,-172.5 1709,-203.5 2014,-203.5 2014,-172.5 1709,-172.5"/>
+<polygon fill="none" stroke="#334155" points="1709,-172.5 1709,-203.5 2014,-203.5 2014,-172.5 1709,-172.5"/>
+<text text-anchor="start" x="1839" y="-191.3" font-family="DejaVu Sans" font-size="9.00">«module»</text>
+<text text-anchor="start" x="1801" y="-181.5" font-family="DejaVu Sans" font-weight="bold" font-size="10.00">MinutesPdfGenerator</text>
+<polygon fill="none" stroke="#334155" points="1709,-149.5 1709,-172.5 2014,-172.5 2014,-149.5 1709,-149.5"/>
+<text text-anchor="start" x="1715" y="-158.5" font-family="DejaVu Sans" font-size="10.00"> </text>
+<polygon fill="none" stroke="#334155" points="1709,-126.5 1709,-149.5 2014,-149.5 2014,-126.5 1709,-126.5"/>
+<text text-anchor="start" x="1715" y="-135.5" font-family="DejaVu Sans" font-size="10.00">+ generateMeetingMinutesPdf(snapshot): Promise&lt;Buffer&gt;</text>
+</g>
+<!-- MeetingsRouter&#45;&gt;MinutesPdfGenerator -->
+<g id="edge15" class="edge">
+<title>MeetingsRouter&#45;&gt;MinutesPdfGenerator</title>
+<path fill="none" stroke="#334155" stroke-dasharray="5,2" d="M1694.89,-282.06C1730.96,-256.97 1768.33,-230.97 1798.47,-210"/>
+<polygon fill="#334155" stroke="#334155" points="1806.78,-204.22 1801.14,-213.63 1802.67,-207.08 1798.57,-209.93 1798.57,-209.93 1798.57,-209.93 1802.67,-207.08 1796,-206.24 1806.78,-204.22 1806.78,-204.22"/>
+</g>
+<!-- Error -->
+<g id="node13" class="node">
+<title>Error</title>
+<polygon fill="#f8fafc" stroke="transparent" points="1533,0 1533,-69 1575,-69 1575,0 1533,0"/>
+<polygon fill="#e2e8f0" stroke="transparent" points="1533,-45.5 1533,-68.5 1575,-68.5 1575,-45.5 1533,-45.5"/>
+<polygon fill="none" stroke="#334155" points="1533,-45.5 1533,-68.5 1575,-68.5 1575,-45.5 1533,-45.5"/>
+<text text-anchor="start" x="1539" y="-55.5" font-family="DejaVu Sans" font-weight="bold" font-size="10.00">Error</text>
+<polygon fill="none" stroke="#334155" points="1533,-22.5 1533,-45.5 1575,-45.5 1575,-22.5 1533,-22.5"/>
+<text text-anchor="start" x="1539" y="-31.5" font-family="DejaVu Sans" font-size="10.00"> </text>
+<polygon fill="none" stroke="#334155" points="1533,0.5 1533,-22.5 1575,-22.5 1575,0.5 1533,0.5"/>
+<text text-anchor="start" x="1539" y="-8.5" font-family="DejaVu Sans" font-size="10.00"> </text>
+</g>
+<!-- RequestError&#45;&gt;Error -->
+<g id="edge1" class="edge">
+<title>RequestError&#45;&gt;Error</title>
+<path fill="none" stroke="#334155" d="M1554,-119.74C1554,-107.69 1554,-94.62 1554,-82.45"/>
+<polygon fill="none" stroke="#334155" points="1558.55,-82.19 1554,-69.19 1549.45,-82.19 1558.55,-82.19"/>
+</g>
+<!-- Security -->
+<g id="node11" class="node">
+<title>Security</title>
+<polygon fill="#f8fafc" stroke="transparent" points="1441.5,-567.5 1441.5,-666.5 1682.5,-666.5 1682.5,-567.5 1441.5,-567.5"/>
+<polygon fill="#e2e8f0" stroke="transparent" points="1442,-635 1442,-666 1683,-666 1683,-635 1442,-635"/>
+<polygon fill="none" stroke="#334155" points="1442,-635 1442,-666 1683,-666 1683,-635 1442,-635"/>
+<text text-anchor="start" x="1540" y="-653.8" font-family="DejaVu Sans" font-size="9.00">«module»</text>
+<text text-anchor="start" x="1538.5" y="-644" font-family="DejaVu Sans" font-weight="bold" font-size="10.00">Security</text>
+<polygon fill="none" stroke="#334155" points="1442,-612 1442,-635 1683,-635 1683,-612 1442,-612"/>
+<text text-anchor="start" x="1448" y="-621" font-family="DejaVu Sans" font-size="10.00"> </text>
+<polygon fill="none" stroke="#334155" points="1442,-567 1442,-612 1683,-612 1683,-567 1442,-567"/>
+<text text-anchor="start" x="1448" y="-598" font-family="DejaVu Sans" font-size="10.00">+ authenticate(req, res, next): Promise&lt;void&gt;</text>
+<text text-anchor="start" x="1448" y="-587" font-family="DejaVu Sans" font-size="10.00">+ bindActor(req, res, next): void</text>
+<text text-anchor="start" x="1448" y="-576" font-family="DejaVu Sans" font-size="10.00">+ scopeSnapshot(data, actor): Snapshot</text>
+</g>
+<!-- Security&#45;&gt;MeetingsRouter -->
+<g id="edge13" class="edge">
+<title>Security&#45;&gt;MeetingsRouter</title>
+<path fill="none" stroke="#334155" stroke-dasharray="5,2" d="M1562,-567.24C1562,-544.93 1562,-517.47 1562,-490.4"/>
+<polygon fill="#334155" stroke="#334155" points="1562,-480.06 1566.5,-490.06 1562,-485.06 1562,-490.06 1562,-490.06 1562,-490.06 1562,-485.06 1557.5,-490.06 1562,-480.06 1562,-480.06"/>
+<text text-anchor="middle" x="1588.5" y="-507.8" font-family="DejaVu Sans" font-size="9.00">middleware</text>
+</g>
+</g>
+<metadata><c2pa:manifest>AAAWgmp1bWIAAAAeanVtZGMycGEAEQAQgAAAqgA4m3EDYzJwYQAAABZcanVtYgAAAEdqdW1kYzJtYQARABCAAACqADibcQN1cm46YzJwYTo3Y2MxZDVhZC1mMjc1LTQxYzktYTMyNC02N2ZhYTg5YzUxOTkAAAADl2p1bWIAAAApanVtZGMyYXMAEQAQgAAAqgA4m3EDYzJwYS5hc3NlcnRpb25zAAAAALxqdW1iAAAARGp1bWRjYm9yABEAEIAAAKoAOJtxE2MycGEuaW5ncmVkaWVudC52MwAAAAAYYzJzaBhouLi/tfaQymfWJPCbPucAAABwY2JvcqNpZGM6Zm9ybWF0bWltYWdlL3N2Zyt4bWxqaW5zdGFuY2VJRHgseG1wOmlpZDpmMTljMzgyOC1hZWE3LTQ5YjctYTQyYy0yZmM3ODA1MzMxNjhscmVsYXRpb25zaGlwaHBhcmVudE9mAAAB4mp1bWIAAABBanVtZGNib3IAEQAQgAAAqgA4m3ETYzJwYS5hY3Rpb25zLnYyAAAAABhjMnNoz3CxkHtX1TRDYr2qN4vddwAAAZljYm9yomdhY3Rpb25zgqJmYWN0aW9ua2MycGEub3BlbmVkanBhcmFtZXRlcnOha2luZ3JlZGllbnRzgaJjdXJseC1zZWxmI2p1bWJmPWMycGEuYXNzZXJ0aW9ucy9jMnBhLmluZ3JlZGllbnQudjNkaGFzaFgghZTz4Xqwglmc0lSjs4fqV03hMfolYhnX6wKurMwZUIakZmFjdGlvbngdY29tLmFudGhyb3BpYy5jbGF1ZGUucHJvdmlkZWRqcGFyYW1ldGVyc6F4H2NvbS5hbnRocm9waWMub3JpZ2luLWNvbmZpZGVuY2VndW5rbm93bmtkZXNjcmlwdGlvbnhmQ2xhdWRlIHByb3ZpZGVkIHRoaXMgZmlsZSBhdCB0aGUgcmVxdWVzdCBvZiBhIHVzZXIgYW5kIG1heSBoYXZlIGNyZWF0ZWQgb3IgbW9kaWZpZWQgdGhlIGZpbGUgY29udGVudHMubXNvZnR3YXJlQWdlbnShZG5hbWVmQ2xhdWRlcmFsbEFjdGlvbnNJbmNsdWRlZPUAAADIanVtYgAAAEBqdW1kY2JvcgARABCAAACqADibcRNjMnBhLmhhc2guZGF0YQAAAAAYYzJzaLU0xuAAjlDsUHDUxzRFYl0AAACAY2JvcqVjYWxnZnNoYTI1NmNwYWRMAAAAAAAAAAAAAAAAZGhhc2hYIJ/I1oshuZ4D5ODmy/LqbPa/5pxn5cvQNI0PIJDc8liCZG5hbWVuanVtYmYgbWFuaWZlc3RqZXhjbHVzaW9uc4GiZXN0YXJ0GXVzZmxlbmd0aBkeBAAAAj5qdW1iAAAAJ2p1bWRjMmNsABEAEIAAAKoAOJtxA2MycGEuY2xhaW0udjIAAAACD2Nib3KlY2FsZ2ZzaGEyNTZpc2lnbmF0dXJleE1zZWxmI2p1bWJmPS9jMnBhL3VybjpjMnBhOjdjYzFkNWFkLWYyNzUtNDFjOS1hMzI0LTY3ZmFhODljNTE5OS9jMnBhLnNpZ25hdHVyZWppbnN0YW5jZUlEeCx4bXA6aWlkOmQ1NmUwYzg5LTk1OWEtNGRkMi1iZjhlLTFkNTBkNjZmMDlhMXJjcmVhdGVkX2Fzc2VydGlvbnODomN1cmx4LXNlbGYjanVtYmY9YzJwYS5hc3NlcnRpb25zL2MycGEuaW5ncmVkaWVudC52M2RoYXNoWCCFlPPherCCWZzSVKOzh+pXTeEx+iViGdfrAq6szBlQhqJjdXJseCpzZWxmI2p1bWJmPWMycGEuYXNzZXJ0aW9ucy9jMnBhLmFjdGlvbnMudjJkaGFzaFggJH1S5W05xicwrm+3XyxXB1UkRyP6Vm7H9N26cvwZZc+iY3VybHgpc2VsZiNqdW1iZj1jMnBhLmFzc2VydGlvbnMvYzJwYS5oYXNoLmRhdGFkaGFzaFggNzhIYGVTBDnwN4cSIMIkvfyEsv0v5deWg1ez+1wec8x0Y2xhaW1fZ2VuZXJhdG9yX2luZm+jZG5hbWVvQW50aHJvcGljIEZpbGVzZ3ZlcnNpb25lMS4wLjBrc3BlY1ZlcnNpb25lMi40LjAAABA4anVtYgAAAChqdW1kYzJjcwARABCAAACqADibcQNjMnBhLnNpZ25hdHVyZQAAABAIY2JvctKEWQISogEmGCFZAgowggIGMIIBjaADAgECAhRA5aAK7sI50L64g/oGQgU9Z1UTADAKBggqhkjOPQQDAzBJMRcwFQYDVQQKEw5BbnRocm9waWMsIFBCQzEuMCwGA1UEAxMlQW50aHJvcGljIENvbnRlbnQgQ3JlZGVudGlhbHMgUm9vdCBDQTAeFw0yNjA4MDcxODQzNTZaFw0yODA4MDYxOTQzNTZaMEQxFzAVBgNVBAoTDkFudGhyb3BpYywgUEJDMSkwJwYDVQQDEyBBbnRocm9waWMgQ2xhdWRlIENvbnRlbnQgU2lnbmluZzBZMBMGByqGSM49AgEGCCqGSM49AwEHA0IABJh6CmvLUBgFFNU0vUKlOVtE6djd17L5SuwX0LemFisBM3dkd/3cyjxFA3Qo5S46fX0/ihY0VZ7mfb9KF703t5OjWDBWMA4GA1UdDwEB/wQEAwIHgDAVBgNVHSUEDjAMBgorBgEEAYPoXgIBMAwGA1UdEwEB/wQCMAAwHwYDVR0jBBgwFoAUzlHiBIFOZFsj+OPEz5o+nMHXXMIwCgYIKoZIzj0EAwMDZwAwZAIwMXMdFJ4BetLLVY7ORuE9noqbbAZOZn/aArXyTwFAZfKrPzxF2vPoJNf1+UCdg1XGAjBwX1zd9WGqYkqmL5SFqw1QySjr1zJfpJM9+1rdDwSPLMOPOjKuiXjoU/pUUeG9RwmhY3BhZFkNngAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAPZYQMhkjPXYDc+0C0FuBUQdbQjdxCOLCcUKaos7vxNc5wo793Q2HRze6fub3Zyw+GXGalgBm7qwtJRkhrIOQNlwsIQ=</c2pa:manifest></metadata></svg>

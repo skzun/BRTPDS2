@@ -5,24 +5,38 @@ skinparam shadowing false
 skinparam defaultFontName SansSerif
 skinparam defaultFontSize 13
 skinparam ArrowColor #334155
-skinparam packageStyle rectangle
-skinparam classAttributeIconSize 0
 skinparam roundcorner 5
 skinparam dpi 130
-title SQ07 — transferência da organização
+skinparam sequenceMessageAlign left
+hide footbox
 autonumber
-actor Pessoa
-participant "App Synple" as App
-participant "API Express" as API
-database PostgreSQL as DB
-Pessoa -> App : Seleciona novo proprietário e confirma
-App -> API : PATCH /organizations/:id/owner
-API -> DB : Verifica sessão e dono atual
-API -> DB : BEGIN; lock da organização
-API -> DB : Confere novo proprietário com vínculo APPROVED
-API -> DB : Mantém antigo proprietário como membro
-API -> DB : Atualiza owner_id; COMMIT
-API --> App : Organização atualizada
-App -> API : GET /sync
-API --> App : Permissões e vínculos atuais
+title SQ07 — transferir propriedade da organização (RF22)
+actor "Proprietário atual" as O
+participant "MyOrganizationScreen.js" as UI
+participant "App.js" as App
+participant "services/api.js" as Api
+participant "routes/organizations.js" as R
+database "PostgreSQL" as DB
+O -> UI : onPress("Transferir cargo de dono")
+UI -> App : transferOrganizationOwnership(userId)
+App -> App : confirmAction(title, message, action)
+App -> Api : transferOrganizationOwnershipWithApi(organizationId, currentOwnerId, newOwnerId)
+Api -> R : PATCH /api/organizations/:id/owner
+R -> DB : query("BEGIN")
+R -> DB : query("SELECT id FROM organizations WHERE id=$1 AND owner_id=$2 FOR UPDATE")
+alt não é o proprietário
+ R -> DB : query("ROLLBACK")
+ R --> Api : 403 {error}
+else novo dono sem vínculo APPROVED
+ R -> DB : query("ROLLBACK")
+ R --> Api : 400 {error}
+else válido
+ R -> DB : query("INSERT INTO access_requests ... (antigo dono como MEMBER) ON CONFLICT DO UPDATE")
+ R -> DB : query("UPDATE organizations SET owner_id = $1 WHERE id = $2")
+ R -> DB : query("COMMIT")
+ R --> Api : 200 organização
+end
+Api --> App : {success}
+App -> App : setData(organizations, accessRequests)
+App -> App : syncWithRemote()
 @enduml

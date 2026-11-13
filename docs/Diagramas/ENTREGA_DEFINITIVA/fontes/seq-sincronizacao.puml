@@ -5,25 +5,38 @@ skinparam shadowing false
 skinparam defaultFontName SansSerif
 skinparam defaultFontSize 13
 skinparam ArrowColor #334155
-skinparam packageStyle rectangle
-skinparam classAttributeIconSize 0
 skinparam roundcorner 5
 skinparam dpi 130
-title SQ05 — sincronização e cache
+skinparam sequenceMessageAlign left
+hide footbox
 autonumber
-actor Pessoa
-participant "App Synple" as App
-participant "API Express" as API
-database PostgreSQL as DB
-participant AsyncStorage
-Pessoa -> App : Atualizar
-App -> API : GET /sync com Bearer
-API -> DB : Consulta coleções e system_metadata
-API -> API : Filtra por papel, vínculo e histórico
-API --> App : Snapshot autorizado
-App -> App : Substitui snapshot e remove credenciais
-App -> AsyncStorage : setItem(@synple:incremento-1, JSON)
-alt indisponibilidade da API
- App --> Pessoa : Estado offline; não confirma novas escritas
+title SQ05 — sincronizar dados e manter cache sem credenciais (RF25)
+actor "Usuário autenticado" as U
+participant "App.js" as App
+participant "hooks/useSynpleData.js" as Hook
+participant "services/api.js" as Api
+participant "services/security.js" as Sec
+participant "routes/sync.js" as R
+database "PostgreSQL" as DB
+participant "services/storage.js" as St
+U -> App : refreshData()
+App -> Hook : syncWithRemote()
+Hook -> Hook : getSessionToken()
+Hook -> Api : fetchRemoteData()
+Api -> Sec : GET /api/sync (Authorization: Bearer)
+Sec -> DB : query("SELECT ... FROM auth_sessions JOIN users ... expires_at > NOW()")
+Sec -> R : authenticate() → next()
+R -> DB : query("SELECT ... FROM users | organizations | ... | meeting_votes")
+R -> Sec : scopeSnapshot(snapshot, req.auth)
+Sec --> R : snapshot filtrado
+R --> Api : 200 snapshot
+alt API indisponível
+ Api --> Hook : null
+ Hook -> Hook : setDbStatus("OFFLINE")
+else sucesso
+ Api --> Hook : remote
+ Hook -> Hook : setData(removeCredentials({...EMPTY_DATA, ...remote}))
+ Hook -> St : saveData(data)
+ St -> St : AsyncStorage.setItem("@synple:incremento-1", JSON.stringify(removeCredentials(data)))
 end
 @enduml

@@ -243,7 +243,8 @@ Fontes editáveis e todas as imagens: [catálogo dos diagramas](Diagramas/Diagra
 `;
 for(const r of R) md+=`| [${r[0]}](#${r[0].toLowerCase().replaceAll('.','')}) | ${r[1]} | ${r[2]} |\n`;
 md+='\n## Requisitos funcionais declarativos\n\n| ID | Requisito |\n| --- | --- |\n';
-for (const [id,name,actor] of R) md+=`| ${id} | O sistema deve oferecer a função ${name.toLowerCase()} ao ator ${actor.toLowerCase()}, respeitando as condições e resultados da ficha correspondente. |\n`;
+const DECLARATIVOS = require('./requisitos-declarativos.json');
+for (const [id,name,actor] of R) md+=`| ${id} | ${DECLARATIVOS[id] || `O sistema deve oferecer a função ${name.toLowerCase()} ao ator ${actor.toLowerCase()}, respeitando as condições e resultados da ficha correspondente.`} |\n`;
 for(const [id,name,actor,trigger,pre,steps,exceptions,data,api,seq] of R) {
  md+=`\n<a id="${id.toLowerCase().replaceAll('.','')}"></a>\n\n### ${id} — ${name}\n\n`;
  md+=`| Campo | Especificação |\n| --- | --- |\n| Ator | ${e(actor)} |\n| Tela e gatilho | ${e(trigger)} |\n| Pré-condições | ${e(pre)} |\n| Entradas e contrato | ${e(api)}; prefixo /api em todas as rotas |\n| Dados/pós-condição de sucesso | ${e(data)} |\n| Sequência UML | [${seq}](Diagramas/renderizados/${seq}.svg) |\n\n**Fluxo principal**\n\n`;

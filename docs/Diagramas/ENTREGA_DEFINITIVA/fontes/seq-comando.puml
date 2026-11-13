@@ -5,32 +5,40 @@ skinparam shadowing false
 skinparam defaultFontName SansSerif
 skinparam defaultFontSize 13
 skinparam ArrowColor #334155
-skinparam packageStyle rectangle
-skinparam classAttributeIconSize 0
 skinparam roundcorner 5
 skinparam dpi 130
-title SQ03 — comando privado confirmado pelo servidor
+skinparam sequenceMessageAlign left
+hide footbox
 autonumber
-actor Pessoa
-participant "App Synple" as App
-participant "API Express" as API
-database PostgreSQL as DB
-Pessoa -> App : Aciona comando no formulário
-App -> App : Valida campos e solicita confirmação quando prevista
-App -> API : Requisição com Bearer token
-API -> DB : Verifica sessão e prazo
-API -> API : Vincula ator e verifica permissão
-alt permitido e dados válidos
- API -> DB : Escrita parametrizada
- note right of DB
- Transação/lock somente nos fluxos
- que efetivamente os implementam.
- end note
- API --> App : Confirmação ou dados alterados
- App -> API : GET /sync
- API --> App : Snapshot autorizado
-else sessão / permissão / dados inválidos
- API --> App : 401 / 403 / 400 / 409
- App --> Pessoa : Exibe erro sem confirmar sucesso
+title SQ03 — pipeline de requisição protegida (RF01–RF06, RF08–RF10, RF12–RF18, RF27, RF28)
+actor "Usuário autenticado" as U
+participant "Tela (screens/*.js)" as UI
+participant "App.js" as App
+participant "services/api.js" as Api
+participant "services/security.js" as Sec
+participant "services/authorization.js" as Az
+participant "routes/*.js" as R
+database "PostgreSQL" as DB
+U -> UI : onPress(ação)
+UI -> App : handler(dados)  ex.: updateProfile()
+App -> App : validateUser(form) | confirmBiometric()
+App -> Api : updateUserWithApi(userId, payload)
+Api -> Api : fetchWithTimeout(url, {headers: Authorization: Bearer token})
+Api -> Sec : PUT /api/users/:id
+Sec -> DB : query("SELECT u.id, u.system_role FROM auth_sessions s JOIN users u ... WHERE s.token_hash = $1")
+alt sessão inválida ou expirada
+ Sec --> Api : 401 {error}
+else sessão válida
+ Sec -> Sec : bindActor(req, res, next)
+ Sec -> Az : authorize(req, res, next)
+ alt sem permissão
+  Az --> Api : 403 {error}
+ else permitido
+  Az -> R : next()
+  R -> DB : query("UPDATE users SET name = COALESCE($1, name), ... WHERE id = $5")
+  R --> Api : 200 dados atualizados | 400 | 409
+ end
 end
+Api --> App : {success | error}
+App -> App : syncWithRemote()
 @enduml

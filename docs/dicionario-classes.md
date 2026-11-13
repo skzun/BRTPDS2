@@ -1,6 +1,6 @@
 # Dicionário de classes, atributos e operações — Synple
 
-Revisão: 06/11/2026. O código usa objetos JSON, funções, hooks e módulos Express, não classes JavaScript de entidade/ORM. O modelo UML de análise representa os conceitos; o modelo de projeto usa o estereótipo local «módulo JS/CommonJS» para expor operações existentes. Não implica construtores ou métodos de instância inexistentes.
+Revisão: 13/11/2026. O código usa objetos JSON, funções, hooks e módulos Express, não classes JavaScript de entidade/ORM. O modelo UML de análise representa os conceitos; o modelo de projeto usa o estereótipo local «módulo JS/CommonJS» para expor operações existentes. Não implica construtores ou métodos de instância inexistentes.
 
 ## Tipos de contrato
 
@@ -306,6 +306,113 @@ Semântica, nulabilidade, default, domínio e restrições detalhados na tabela 
 | expiresAt | `expires_at` | timestamp with time zone / 1 |
 
 Semântica, nulabilidade, default, domínio e restrições detalhados na tabela física correspondente. Os aliases JSON reais não são derivados automaticamente desse camelCase: o backend usa, por exemplo, systemRole; campos sensíveis não são enviados ao mobile.
+
+## Classes de projeto do Incremento 3
+
+Correspondem ao [diagrama de classes do Incremento 3](Diagramas/ENTREGA_DEFINITIVA/renderizados/classes-incremento-3.svg), feito a partir do código (revisão de 13/11/2026). Componentes React são funções com estado (`useState`/`useRef`): os atributos abaixo são esse estado; os métodos são as funções internas chamadas pela interface. Módulos são arquivos que exportam funções. `RequestError` é a única classe JavaScript declarada com `class`.
+
+### MeetingCard «component»
+
+Fonte: [MeetingsScreen.js](../Synple/mobile/src/screens/MeetingsScreen.js), função `MeetingCard`.
+
+| Atributo | Tipo | Descrição |
+| --- | --- | --- |
+| `content` | String | Texto da ata em edição no formulário. |
+| `dirty` | Boolean | Indica texto alterado e ainda não salvo; bloqueia envio, decisão e PDF. |
+| `comment` | String | Comentário opcional da decisão sobre a ata. |
+| `pending` | String | Nome da operação em andamento (`save`, `submit`, `vote`, `openVote`, `pdf`…); desabilita botões. |
+| `voteQuestion` | String | Pergunta da votação a abrir (até 500 caracteres). |
+| `voteOptionsText` | String | Opções da votação, uma por linha. |
+| `section` | String | Aba aberta no cartão: `presence`, `resources`, `votes` ou `minutes`. |
+| `inFlight` | Ref<Boolean> | Impede duas operações simultâneas no mesmo cartão. |
+
+| Método | Retorno | Responsabilidade |
+| --- | --- | --- |
+| `saveMinutes()` | `Promise<void>` | Valida texto não vazio e chama `onSaveMinutes` (App.saveMeetingMinutes). |
+| `confirmSubmission()` | `void` | Pede confirmação e chama `onSubmitMinutes` (App.submitMeetingMinutes). |
+| `confirmDecision(decision)` | `void` | Pede confirmação e chama `onApproveMinutes` com decisão, comentário e versão lida. |
+| `openVote()` | `Promise<void>` | Separa as opções por linha, exige pergunta e 2+ opções e chama `onCreateVote`. |
+| `exportMinutesPdf()` | `Promise<void>` | Usa `prepareMinutesPdf` e `authorizePdfDownload` e abre o PDF. |
+| `perform(action, callback)` | `Promise<Boolean>` | Executa a operação marcando `pending`/`inFlight` e trata falha de conexão. |
+
+### MeetingsScreen «component»
+
+Fonte: [MeetingsScreen.js](../Synple/mobile/src/screens/MeetingsScreen.js). Atributos: `selectedCommissionId: UUID` (comissão do agendamento) e `creating: Boolean` (formulário aberto). Método: `MeetingsScreen(props): JSX.Element`, que lista um `MeetingCard` por reunião (composição 1 para 0..*).
+
+### MeetingParticipationScreen «component»
+
+Fonte: [MeetingParticipationScreen.js](../Synple/mobile/src/screens/MeetingParticipationScreen.js). Atributos: `meetings: ParticipationRow[]` (linhas do relatório), `loading: Boolean`, `error: String`. Método: `refresh(): Promise<void>`, que chama `fetchMeetingParticipationReportWithApi()` e atualiza a lista.
+
+### ManualScreen «component»
+
+Fonte: [ManualScreen.js](../Synple/mobile/src/screens/ManualScreen.js). Atributo: `TOPICS: String[][]` (pares título/conteúdo do manual). Método: `ManualScreen(): JSX.Element`, que desenha um cartão por tópico sem acessar a API.
+
+### App «component»
+
+Fonte: [App.js](../Synple/mobile/App.js). Atributos usados no incremento: `data: Snapshot` e `activeUserId: UUID`.
+
+| Método | Retorno | Responsabilidade |
+| --- | --- | --- |
+| `saveMeetingMinutes(meetingId, content)` | `Promise<Boolean>` | Chama `saveMeetingMinutesWithApi` e guarda a ata devolvida. |
+| `submitMeetingMinutes(meetingId)` | `Promise<Boolean>` | Chama `submitMeetingMinutesWithApi` e guarda a ata Em aprovação. |
+| `approveMeetingMinutes(meetingId, decision, comment, version)` | `Promise<Boolean>` | Chama `approveMeetingMinutesWithApi` e atualiza ata e decisões. |
+| `createMeetingVote(meetingId, question, options)` | `Promise<Boolean>` | Chama `createMeetingVoteWithApi` e sincroniza. |
+| `castMeetingVote(meetingId, voteId, optionId)` | `Promise<Boolean>` | Chama `castMeetingVoteWithApi` e sincroniza. |
+| `closeMeetingVote(meetingId, voteId)` | `Promise<Boolean>` | Chama `closeMeetingVoteWithApi` e sincroniza. |
+| `storeMeetingMinutes(minutes)` | `void` | Substitui a ata da reunião no estado local. |
+
+### ApiClient «module»
+
+Fonte: [api.js](../Synple/mobile/src/services/api.js). Funções do incremento: `saveMeetingMinutesWithApi`, `submitMeetingMinutesWithApi`, `approveMeetingMinutesWithApi`, `createMeetingVoteWithApi`, `castMeetingVoteWithApi`, `closeMeetingVoteWithApi`, `fetchMeetingParticipationReportWithApi` e `authorizePdfDownload`. Todas enviam o token Bearer da sessão e devolvem `Result` (`{success:true,...}` ou `{success:false,error}`); `authorizePdfDownload` devolve a URL com o ticket. Detalhes de cada assinatura em [ClienteAPI](#clienteapi).
+
+### MeetingRules «module»
+
+Fonte: [meetings.js](../Synple/mobile/src/services/meetings.js).
+
+| Operação | Retorno | Responsabilidade |
+| --- | --- | --- |
+| `getMinutesVotingSummary(minutes, attendees, approvals)` | `VotingSummary` | Conta aprovadores exigidos, aprovações e reprovações da versão atual da ata. |
+| `canManageMeetingCommission(data, commissionId, userId)` | `Boolean` | Indica se o usuário é coordenador da comissão ou proprietário da organização. |
+| `getMeetingAttendanceRows(data, meetingId)` | `Row[]` | Monta as linhas de convidados e presença da reunião. |
+
+### MinutesPdfClient «module»
+
+Fonte: [meetingMinutesPdf.js](../Synple/mobile/src/services/meetingMinutesPdf.js).
+
+| Operação | Retorno | Responsabilidade |
+| --- | --- | --- |
+| `buildMinutesPdfUrl(apiBaseUrl, {meetingId, userId, version, timeZone})` | `String` | Monta a URL do PDF; recusa base inválida ou versão menor que 1. |
+| `prepareMinutesPdf(options)` | `Promise<String>` | Faz HEAD na rota do PDF para conferir acesso e versão antes de abrir. |
+| `minutesPdfError(status, code)` | `String` | Traduz 403/404/409 em mensagem para o usuário. |
+
+### MeetingsRouter «module»
+
+Fonte: [meetings.js](../Synple/backend/src/routes/meetings.js). Além de `createMeetingsRouter` (ver [RotasReuniao](#rotasreuniao)):
+
+| Operação | Retorno | Responsabilidade |
+| --- | --- | --- |
+| `getMeeting(client, meetingId, userId)` | `Promise<Meeting>` | Lê a reunião com `FOR UPDATE` e calcula `canManage`; 404 se não existir. |
+| `requireManager(meeting)` | `void` | Lança `RequestError(403)` se o usuário não for presidente nem proprietário. |
+| `resolveUserId(client, identifier)` | `Promise<UUID\|null>` | Converte o identificador recebido no UUID da conta. |
+| `transaction(handler, fallback)` | `Middleware` | Executa o handler entre BEGIN/COMMIT, com ROLLBACK e resposta de erro. |
+| `POST /:meetingId/minutes`, `POST /:meetingId/minutes/submit`, `PATCH /:meetingId/minutes/approval`, `GET\|HEAD /:meetingId/minutes/pdf` | HTTP | Ata: salvar, enviar, decidir e gerar PDF (RF02.07–RF02.10). |
+| `POST /:meetingId/votes`, `POST /:meetingId/votes/:voteId/ballot`, `PATCH /:meetingId/votes/:voteId/close` | HTTP | Votação: abrir, votar e encerrar (RF03.01–RF03.03). |
+| `GET /participation/report` | HTTP | Relatório individual pela sessão (RF03.04). |
+
+### RequestError
+
+Fonte: [meetings.js](../Synple/backend/src/routes/meetings.js). Classe que estende `Error`.
+
+| Membro | Tipo | Descrição |
+| --- | --- | --- |
+| `status` | Integer | Código HTTP devolvido (400, 403, 404, 409). |
+| `message` | String | Mensagem em português enviada ao app. |
+| `fields` | Object | Opcional: erros por campo do formulário de reunião. |
+| `RequestError(status, message)` | construtor | Cria o erro com código e mensagem. |
+
+### Security «module» e MinutesPdfGenerator «module»
+
+[security.js](../Synple/backend/src/services/security.js): `authenticate(req, res, next)` valida o Bearer ou o ticket de download; `bindActor(req, res, next)` força `userId` igual à sessão; `scopeSnapshot(data, actor)` filtra a sincronização. Detalhes em [Seguranca](#seguranca). [meetingMinutesPdf.js](../Synple/backend/src/services/meetingMinutesPdf.js): `generateMeetingMinutesPdf(snapshot): Promise<Buffer>` gera o PDF da ata em memória.
 
 ## Operações de projeto com implementação correspondente
 

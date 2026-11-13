@@ -5,34 +5,56 @@ skinparam shadowing false
 skinparam defaultFontName SansSerif
 skinparam defaultFontSize 13
 skinparam ArrowColor #334155
-skinparam packageStyle rectangle
-skinparam classAttributeIconSize 0
 skinparam roundcorner 5
 skinparam dpi 130
-title SQ10 — ata, versão e unanimidade
+skinparam sequenceMessageAlign left
+hide footbox
 autonumber
-actor Pessoa
-participant "App Synple" as App
-participant "API Express" as API
-database PostgreSQL as DB
-Pessoa -> App : Gestor salva texto da ata
-App -> API : POST /meetings/:id/minutes
-API -> DB : Valida gestor; salva rascunho / nova versão
-Pessoa -> App : Gestor submete ata
-App -> API : POST /meetings/:id/minutes/submit
-API -> DB : BEGIN; lock da reunião/ata e presentes
-API -> DB : Fixa required_approver_ids; IN_REVIEW; COMMIT
-Pessoa -> App : Aprovador decide sobre versão lida
-App -> API : PATCH /meetings/:id/minutes/approval
-API -> DB : BEGIN; lock; confere ator, versão e conjunto
-API -> DB : Salva decisão atual
-alt rejeição
- API -> DB : Situação REJECTED
-else unanimidade
- API -> DB : Situação APPROVED e approved_at
-else decisões pendentes
- API -> DB : Mantém IN_REVIEW
+title SQ10 — criar, submeter e aprovar/reprovar ata (RF02.07–RF02.09)
+actor "Presidente" as G
+actor "Participante" as P
+participant "MeetingCard\n(MeetingsScreen.js)" as UI
+participant "App.js" as App
+participant "services/api.js" as Api
+participant "routes/meetings.js" as R
+database "PostgreSQL" as DB
+G -> UI : saveMinutes()
+UI -> App : saveMeetingMinutes(meetingId, content)
+App -> Api : saveMeetingMinutesWithApi(meetingId, userId, content)
+Api -> R : POST /api/meetings/:meetingId/minutes
+R -> R : getMeeting(client, meetingId, userId)
+R -> R : requireManager(meeting)
+R -> DB : query("INSERT INTO meeting_minutes ... ON CONFLICT (meeting_id) DO UPDATE ...")
+R -> DB : query("DELETE FROM meeting_minutes_approvals WHERE minutes_id = $1")
+R --> Api : 201/200 minutes {status: DRAFT, version}
+Api --> App : {success, minutes}
+App -> App : storeMeetingMinutes(minutes)
+G -> UI : confirmSubmission()
+UI -> App : submitMeetingMinutes(meetingId)
+App -> Api : submitMeetingMinutesWithApi(meetingId, userId)
+Api -> R : POST /api/meetings/:meetingId/minutes/submit
+R -> R : requireManager(getMeeting(client, meetingId, userId))
+R -> DB : query("SELECT user_id FROM meeting_attendance WHERE entered_at IS NOT NULL")
+R -> DB : query("SELECT id FROM users WHERE id = ANY($1) FOR KEY SHARE")
+R -> DB : query("UPDATE meeting_minutes SET status = IN_REVIEW, required_approver_ids = $2")
+R --> Api : 200 minutes {status: IN_REVIEW}
+Api --> App : {success, minutes}
+P -> UI : confirmDecision(decision)
+UI -> App : approveMeetingMinutes(meetingId, decision, comment, version)
+App -> Api : approveMeetingMinutesWithApi(meetingId, userId, decision, comment, version)
+Api -> R : PATCH /api/meetings/:meetingId/minutes/approval
+R -> R : getMeeting(client, meetingId, userId)
+R -> DB : query("SELECT ... FROM meeting_minutes WHERE meeting_id = $1")
+alt versão diferente ou status != IN_REVIEW
+ R --> Api : 409 RequestError
+else usuário fora de requiredApproverIds
+ R --> Api : 403 RequestError
+else decisão válida
+ R -> DB : query("INSERT INTO meeting_minutes_approvals ... ON CONFLICT DO UPDATE")
+ R -> DB : query("SELECT COUNT(*) ... decision = APPROVED")
+ R -> DB : query("UPDATE meeting_minutes SET status = $2 (APPROVED | REJECTED | IN_REVIEW)")
+ R --> Api : 200 {minutes, approval}
 end
-API -> DB : COMMIT
-API --> App : Ata e decisões atuais
+Api --> App : {success, minutes, approval}
+App -> App : setData(meetingMinutes, meetingMinutesApprovals)
 @enduml

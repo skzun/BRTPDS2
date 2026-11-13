@@ -1,31 +1,62 @@
 @startuml
 !pragma layout smetana
+skinparam backgroundColor white
 skinparam shadowing false
+skinparam defaultFontName SansSerif
 skinparam defaultFontSize 13
-title Abrir, votar e encerrar votação
+skinparam ArrowColor #334155
+skinparam roundcorner 5
+skinparam dpi 130
+skinparam sequenceMessageAlign left
+hide footbox
 autonumber
-actor "Usuário autenticado" as U
-participant "App / API cliente" as App
-participant "routes/meetings.js" as API
-database PostgreSQL as DB
-U -> App: createMeetingVoteWithApi(meetingId, userId, question, options)
-App -> API: POST /meetings/:meetingId/votes
-API -> DB: query("BEGIN")
-API -> API: getMeeting(client, meetingId, userId)
-API -> API: requireManager(meeting)
-API -> DB: query("INSERT INTO meeting_votes ...", params)
-API -> DB: query("INSERT INTO meeting_vote_options ...", params)
-API -> DB: query("COMMIT")
-API --> App: 201 votação e opções
-U -> App: castMeetingVoteWithApi(meetingId, voteId, userId, optionId)
-App -> API: POST /meetings/:meetingId/votes/:voteId/ballot
-API -> DB: query("SELECT id,status FROM meeting_votes ... FOR UPDATE", params)
-API -> DB: query("SELECT 1 FROM meeting_attendance ...", params)
-API -> DB: query("INSERT INTO meeting_vote_ballots ... ON CONFLICT ...", params)
-API --> App: 200 voto
-U -> App: closeMeetingVoteWithApi(meetingId, voteId, userId)
-App -> API: PATCH /meetings/:meetingId/votes/:voteId/close
-API -> API: requireManager(meeting)
-API -> DB: query("UPDATE meeting_votes SET status=CLOSED ...", params)
-API --> App: 200 votação encerrada
+title Abrir votação, votar e encerrar (RF03.01–RF03.03)
+actor "Presidente" as G
+actor "Participante" as P
+participant "MeetingCard\n(MeetingsScreen.js)" as UI
+participant "App.js" as App
+participant "services/api.js" as Api
+participant "routes/meetings.js" as R
+database "PostgreSQL" as DB
+G -> UI : openVote()
+UI -> UI : voteOptionsText.split(EOL).map(trim).filter(Boolean)
+UI -> App : createMeetingVote(meetingId, question, options)
+App -> Api : createMeetingVoteWithApi(meetingId, userId, question, options)
+Api -> R : POST /api/meetings/:meetingId/votes
+R -> DB : query("BEGIN")
+R -> R : getMeeting(client, meetingId, userId)
+R -> R : requireManager(meeting)
+R -> DB : query("SELECT 1 FROM meeting_attendance WHERE entered_at IS NOT NULL LIMIT 1")
+R -> DB : query("INSERT INTO meeting_votes (meeting_id, question, created_by)")
+loop para cada opção (2 a 8)
+ R -> DB : query("INSERT INTO meeting_vote_options (vote_id, label, position)")
+end
+R -> DB : query("COMMIT")
+R --> Api : 201 {vote, options}
+Api --> App : {success}
+App -> App : syncWithRemote()
+P -> UI : onPress(opção)
+UI -> App : castMeetingVote(meetingId, voteId, optionId)
+App -> Api : castMeetingVoteWithApi(meetingId, voteId, userId, optionId)
+Api -> R : POST /api/meetings/:meetingId/votes/:voteId/ballot
+R -> DB : query("SELECT id, status FROM meeting_votes ... FOR UPDATE")
+alt status != OPEN
+ R --> Api : 409 RequestError
+else sem entrada registrada
+ R --> Api : 403 RequestError
+else válido
+ R -> DB : query("INSERT INTO meeting_vote_ballots ... ON CONFLICT (vote_id, user_id) DO UPDATE")
+ R --> Api : 200 ballot
+end
+Api --> App : {success}
+App -> App : syncWithRemote()
+G -> UI : onPress("Encerrar votação")
+UI -> App : closeMeetingVote(meetingId, voteId)
+App -> Api : closeMeetingVoteWithApi(meetingId, voteId, userId)
+Api -> R : PATCH /api/meetings/:meetingId/votes/:voteId/close
+R -> R : requireManager(getMeeting(client, meetingId, userId))
+R -> DB : query("UPDATE meeting_votes SET status = CLOSED, closed_at = NOW() WHERE status = OPEN")
+R --> Api : 200 vote | 409
+Api --> App : {success}
+App -> App : syncWithRemote()
 @enduml

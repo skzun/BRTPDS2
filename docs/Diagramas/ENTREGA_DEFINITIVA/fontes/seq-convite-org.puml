@@ -5,23 +5,38 @@ skinparam shadowing false
 skinparam defaultFontName SansSerif
 skinparam defaultFontSize 13
 skinparam ArrowColor #334155
-skinparam packageStyle rectangle
-skinparam classAttributeIconSize 0
 skinparam roundcorner 5
 skinparam dpi 130
-title SQ06 — convite para organização
+skinparam sequenceMessageAlign left
+hide footbox
 autonumber
-actor Pessoa
-participant "App Synple" as App
-participant "API Express" as API
-database PostgreSQL as DB
-Pessoa -> App : Proprietário informa e-mail e envia convite
-App -> API : POST /organizations/:id/invitations
-API -> DB : Confere proprietário e conta verificada
-API -> DB : INSERT vínculo PENDING, invited_by, accepted=false
-API --> App : 201 ou conflito
-Pessoa -> App : Destinatário atualiza e aceita/recusa
-App -> API : PATCH /organizations/:id/invitations/:requestId
-API -> DB : UPDATE somente vínculo do usuário da sessão
-API --> App : APPROVED/aceito ou REJECTED/recusado
+title SQ06 — convidar conta existente e responder convite (RF23, RF24)
+actor "Proprietário" as O
+actor "Convidado" as C
+participant "MyOrganizationScreen.js" as UI
+participant "OrganizationsScreen.js" as UI2
+participant "App.js" as App
+participant "services/api.js" as Api
+participant "services/authorization.js" as Az
+participant "routes/organizations.js" as R
+database "PostgreSQL" as DB
+O -> UI : onPress("Enviar convite")
+UI -> App : inviteOrganizationMember(email)
+App -> Api : organizationInvitation(organizationId, {email})
+Api -> Az : POST /api/organizations/:id/invitations
+Az -> DB : query("SELECT owner_id FROM organizations WHERE id::text = $1")
+Az -> R : authorize() → next()
+R -> DB : query("SELECT id FROM users WHERE LOWER(email)=LOWER($1) AND email_verified=TRUE")
+R -> DB : query("INSERT INTO access_requests (..., status=PENDING, invited_by, invitation_accepted=FALSE) ON CONFLICT DO NOTHING")
+R --> Api : 201 convite | 404 | 409
+Api --> App : {success}
+App -> App : syncWithRemote()
+C -> UI2 : onRespondInvitation(request, "ACCEPTED" | "DECLINED")
+UI2 -> App : respondOrganizationInvitation(request, decision)
+App -> Api : organizationInvitation(organizationId, {decision}, requestId)
+Api -> R : PATCH /api/organizations/:id/invitations/:requestId
+R -> DB : query("UPDATE access_requests SET status=$1, invitation_accepted=$2 WHERE id=$3 AND user_id=$5 AND status=PENDING")
+R --> Api : 200 {success} | 404
+Api --> App : {success}
+App -> App : syncWithRemote()
 @enduml

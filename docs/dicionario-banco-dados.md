@@ -1,10 +1,75 @@
 # Dicionário físico do PostgreSQL — Synple
 
-Revisão: 30/10/2026. Extraído de um schema temporário criado pelo DDL atual, incluindo ALTER TABLE e índices. Não consulta dados pessoais. Reproduzir: `node Synple/scripts/generate-data-dictionary.cjs`. Requer PostgreSQL configurado e permissão de criar/remover schema temporário.
+Revisão: 13/11/2026 (seções de chaves e relacionamentos derivadas do snapshot de 30/10/2026). Extraído de um schema temporário criado pelo DDL atual, incluindo ALTER TABLE e índices. Não consulta dados pessoais. Reproduzir: `node Synple/scripts/generate-data-dictionary.cjs`. Requer PostgreSQL configurado e permissão de criar/remover schema temporário.
 
 ## Convenções
 
 Cada tabela tem finalidade, todas as colunas, nulabilidade, defaults, restrições e índices reais. “Sem CHECK” significa que o domínio citado é convenção/validação da aplicação, não garantia SQL. `timestamp with time zone` corresponde a TIMESTAMPTZ e `character varying(n)` a VARCHAR(n). FKs sem ON DELETE explícito usam NO ACTION. As restrições de regra entre várias linhas são descritas separadamente na especificação.
+
+## Chaves primárias: seed e incremento
+
+Nenhuma tabela usa chave auto incrementável (`SERIAL`, `IDENTITY` ou sequência). Por isso **não há seed nem incremento a definir**. As chaves são UUID gerados pelo PostgreSQL com `gen_random_uuid()` (aleatórios, não sequenciais), hashes, chaves compostas ou valores fixos, conforme a tabela abaixo (extraída do [snapshot do DDL](modelo-fisico.snapshot.json)).
+
+| Tabela | Chave primária | Tipo | Geração do valor |
+| --- | --- | --- | --- |
+| [`access_requests`](#tabela-access_requests) | `id` | `id uuid` | `gen_random_uuid()` — UUID v4 aleatório |
+| [`auth_rate_limits`](#tabela-auth_rate_limits) | `key` | `key text` | informado pela aplicação: chave textual calculada (SHA-256 de rota + IP/e-mail) |
+| [`auth_sessions`](#tabela-auth_sessions) | `token_hash` | `token_hash text` | informado pela aplicação: SHA-256 do token de sessão |
+| [`commission_members`](#tabela-commission_members) | `commission_id, user_id` | `commission_id uuid, user_id uuid` | informado pela aplicação: chave composta (comissão, pessoa) |
+| [`commissions`](#tabela-commissions) | `id` | `id uuid` | `gen_random_uuid()` — UUID v4 aleatório |
+| [`download_tickets`](#tabela-download_tickets) | `token_hash` | `token_hash text` | informado pela aplicação: SHA-256 do ticket |
+| [`meeting_attachments`](#tabela-meeting_attachments) | `id` | `id uuid` | `gen_random_uuid()` — UUID v4 aleatório |
+| [`meeting_attendance`](#tabela-meeting_attendance) | `id` | `id uuid` | `gen_random_uuid()` — UUID v4 aleatório |
+| [`meeting_attendance_codes`](#tabela-meeting_attendance_codes) | `meeting_id` | `meeting_id uuid` | informado pela aplicação: um código por reunião (chave = FK da reunião) |
+| [`meeting_invitations`](#tabela-meeting_invitations) | `id` | `id uuid` | `gen_random_uuid()` — UUID v4 aleatório |
+| [`meeting_minutes`](#tabela-meeting_minutes) | `id` | `id uuid` | `gen_random_uuid()` — UUID v4 aleatório |
+| [`meeting_minutes_approvals`](#tabela-meeting_minutes_approvals) | `id` | `id uuid` | `gen_random_uuid()` — UUID v4 aleatório |
+| [`meeting_vote_ballots`](#tabela-meeting_vote_ballots) | `id` | `id uuid` | `gen_random_uuid()` — UUID v4 aleatório |
+| [`meeting_vote_options`](#tabela-meeting_vote_options) | `id` | `id uuid` | `gen_random_uuid()` — UUID v4 aleatório |
+| [`meeting_votes`](#tabela-meeting_votes) | `id` | `id uuid` | `gen_random_uuid()` — UUID v4 aleatório |
+| [`meetings`](#tabela-meetings) | `id` | `id uuid` | `gen_random_uuid()` — UUID v4 aleatório |
+| [`organizations`](#tabela-organizations) | `id` | `id uuid` | `gen_random_uuid()` — UUID v4 aleatório |
+| [`system_metadata`](#tabela-system_metadata) | `id` | `id boolean` | valor fixo `TRUE` |
+| [`system_subsystems`](#tabela-system_subsystems) | `id` | `id character varying(50)` | informado pela aplicação: identificador textual fixo |
+| [`users`](#tabela-users) | `id` | `id uuid` | `gen_random_uuid()` — UUID v4 aleatório |
+
+## Relacionamentos
+
+Cada linha é uma chave estrangeira do DDL. Cardinalidade lida como “um registro da tabela referenciada para N registros da tabela que referencia”. O lado referenciado é `0..1` quando a coluna FK aceita NULL. O lado que referencia é `0..1` quando a FK também é chave primária ou única (no máximo um registro por referência).
+
+| Tabela (FK) | Coluna(s) | Referencia | Cardinalidade | Ao excluir o referenciado |
+| --- | --- | --- | --- | --- |
+| [`access_requests`](#tabela-access_requests) | `invited_by` | `users(id)` | 0..1 : 0..* | SET NULL (mantém o registro sem vínculo) |
+| [`access_requests`](#tabela-access_requests) | `organization_id` | `organizations(id)` | 1 : 0..* | CASCADE (exclui junto) |
+| [`access_requests`](#tabela-access_requests) | `user_id` | `users(id)` | 1 : 0..* | CASCADE (exclui junto) |
+| [`auth_sessions`](#tabela-auth_sessions) | `user_id` | `users(id)` | 1 : 0..* | CASCADE (exclui junto) |
+| [`commission_members`](#tabela-commission_members) | `commission_id` | `commissions(id)` | 1 : 0..* | CASCADE (exclui junto) |
+| [`commission_members`](#tabela-commission_members) | `user_id` | `users(id)` | 1 : 0..* | CASCADE (exclui junto) |
+| [`commissions`](#tabela-commissions) | `organization_id` | `organizations(id)` | 1 : 0..* | CASCADE (exclui junto) |
+| [`download_tickets`](#tabela-download_tickets) | `session_hash` | `auth_sessions(token_hash)` | 1 : 0..* | CASCADE (exclui junto) |
+| [`meeting_attachments`](#tabela-meeting_attachments) | `created_by` | `users(id)` | 1 : 0..* | NO ACTION (impede a exclusão) |
+| [`meeting_attachments`](#tabela-meeting_attachments) | `meeting_id` | `meetings(id)` | 1 : 0..* | CASCADE (exclui junto) |
+| [`meeting_attendance`](#tabela-meeting_attendance) | `meeting_id` | `meetings(id)` | 1 : 0..* | CASCADE (exclui junto) |
+| [`meeting_attendance`](#tabela-meeting_attendance) | `recorded_by` | `users(id)` | 0..1 : 0..* | NO ACTION (impede a exclusão) |
+| [`meeting_attendance`](#tabela-meeting_attendance) | `user_id` | `users(id)` | 1 : 0..* | CASCADE (exclui junto) |
+| [`meeting_attendance_codes`](#tabela-meeting_attendance_codes) | `created_by` | `users(id)` | 1 : 0..* | NO ACTION (impede a exclusão) |
+| [`meeting_attendance_codes`](#tabela-meeting_attendance_codes) | `meeting_id` | `meetings(id)` | 1 : 0..1 | CASCADE (exclui junto) |
+| [`meeting_invitations`](#tabela-meeting_invitations) | `meeting_id` | `meetings(id)` | 1 : 0..* | CASCADE (exclui junto) |
+| [`meeting_invitations`](#tabela-meeting_invitations) | `user_id` | `users(id)` | 1 : 0..* | CASCADE (exclui junto) |
+| [`meeting_minutes`](#tabela-meeting_minutes) | `created_by` | `users(id)` | 1 : 0..* | NO ACTION (impede a exclusão) |
+| [`meeting_minutes`](#tabela-meeting_minutes) | `meeting_id` | `meetings(id)` | 1 : 0..1 | CASCADE (exclui junto) |
+| [`meeting_minutes`](#tabela-meeting_minutes) | `updated_by` | `users(id)` | 1 : 0..* | NO ACTION (impede a exclusão) |
+| [`meeting_minutes_approvals`](#tabela-meeting_minutes_approvals) | `minutes_id, meeting_id` | `meeting_minutes(id, meeting_id)` | 1 : 0..* | CASCADE (exclui junto) |
+| [`meeting_minutes_approvals`](#tabela-meeting_minutes_approvals) | `user_id` | `users(id)` | 1 : 0..* | CASCADE (exclui junto) |
+| [`meeting_vote_ballots`](#tabela-meeting_vote_ballots) | `option_id, vote_id` | `meeting_vote_options(id, vote_id)` | 1 : 0..* | CASCADE (exclui junto) |
+| [`meeting_vote_ballots`](#tabela-meeting_vote_ballots) | `user_id` | `users(id)` | 1 : 0..* | CASCADE (exclui junto) |
+| [`meeting_vote_ballots`](#tabela-meeting_vote_ballots) | `vote_id` | `meeting_votes(id)` | 1 : 0..* | CASCADE (exclui junto) |
+| [`meeting_vote_options`](#tabela-meeting_vote_options) | `vote_id` | `meeting_votes(id)` | 1 : 0..* | CASCADE (exclui junto) |
+| [`meeting_votes`](#tabela-meeting_votes) | `created_by` | `users(id)` | 1 : 0..* | NO ACTION (impede a exclusão) |
+| [`meeting_votes`](#tabela-meeting_votes) | `meeting_id` | `meetings(id)` | 1 : 0..* | CASCADE (exclui junto) |
+| [`meetings`](#tabela-meetings) | `commission_id` | `commissions(id)` | 1 : 0..* | CASCADE (exclui junto) |
+| [`meetings`](#tabela-meetings) | `created_by` | `users(id)` | 1 : 0..* | NO ACTION (impede a exclusão) |
+| [`organizations`](#tabela-organizations) | `owner_id` | `users(id)` | 1 : 0..* | CASCADE (exclui junto) |
 
 ## Tabela `meeting_votes`
 

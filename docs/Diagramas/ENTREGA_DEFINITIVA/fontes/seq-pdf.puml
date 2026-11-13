@@ -5,27 +5,40 @@ skinparam shadowing false
 skinparam defaultFontName SansSerif
 skinparam defaultFontSize 13
 skinparam ArrowColor #334155
-skinparam packageStyle rectangle
-skinparam classAttributeIconSize 0
 skinparam roundcorner 5
 skinparam dpi 130
-title SQ11 — exportação autenticada
+skinparam sequenceMessageAlign left
+hide footbox
 autonumber
-actor Pessoa
-participant "App Synple" as App
-participant "API Express" as API
-database PostgreSQL as DB
-participant Navegador
-Pessoa -> App : Gerar ata em PDF
-App -> API : HEAD /meetings/:id/minutes/pdf com Bearer
-API -> DB : Verifica acesso, versão e ata salva
-API --> App : application/pdf ou erro
-App -> API : POST /auth/download-ticket com caminho
-API -> DB : INSERT ticket ligado à sessão por 60 segundos
-API --> App : Ticket
-App -> Navegador : Abre URL com ticket, versão e fuso
-Navegador -> API : GET PDF
-API -> DB : Verifica ticket, sessão, acesso e versão
-API -> API : Gera PDF em memória
-API --> Navegador : PDF ou erro; não modifica ata
+title SQ11 — gerar PDF da ata com ticket de download (RF02.10)
+actor "Convidado ou presidente" as U
+participant "MeetingCard\n(MeetingsScreen.js)" as UI
+participant "services/meetingMinutesPdf.js" as Pdf
+participant "services/api.js" as Api
+participant "services/security.js" as Sec
+participant "routes/auth.js" as Auth
+participant "routes/meetings.js" as R
+participant "services/meetingMinutesPdf.js\n(backend)" as Gen
+database "PostgreSQL" as DB
+participant "Linking / navegador" as Nav
+U -> UI : exportMinutesPdf()
+UI -> Pdf : prepareMinutesPdf({apiBaseUrl, meetingId, userId, version})
+Pdf -> Pdf : buildMinutesPdfUrl(apiBaseUrl, params)
+Pdf -> R : HEAD /api/meetings/:meetingId/minutes/pdf?version&timeZone
+R -> DB : query("SELECT ... FROM meeting_minutes WHERE meeting_id = $1")
+R --> Pdf : 200 X-Minutes-Version | 403/404/409 X-Pdf-Error
+Pdf --> UI : pdfUrl
+UI -> Api : authorizePdfDownload(pdfUrl)
+Api -> Auth : POST /api/auth/download-ticket {path}
+Auth -> DB : query("INSERT INTO download_tickets ... NOW() + 60 seconds")
+Auth --> Api : {ticket}
+Api --> UI : url?download=ticket
+UI -> Nav : Linking.openURL(url)
+Nav -> Sec : GET /api/meetings/:meetingId/minutes/pdf?download=ticket
+Sec -> DB : query("SELECT ... FROM download_tickets JOIN auth_sessions ...")
+Sec -> R : authenticate() → next()
+R -> DB : query("SELECT ... attendance, approvals ...")
+R -> Gen : renderMinutesPdf(snapshot)
+Gen --> R : Buffer
+R --> Nav : 200 application/pdf
 @enduml

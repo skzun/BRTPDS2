@@ -1,10 +1,10 @@
 # Synple — Incremento 3
 
-Revisão: 06/11/2026. Este documento registra os requisitos implementados a partir dos slides 5–12 do material do Incremento 3. Os requisitos descrevem o comportamento; as fichas de caso de uso abaixo registram a interação com o sistema.
+Revisão: 13/11/2026. Este documento registra os requisitos implementados a partir dos slides 5–12 do material do Incremento 3. Os requisitos descrevem o comportamento; as fichas de caso de uso abaixo registram a interação com o sistema.
 
 ## Escopo e decisões de produto
 
-O incremento adiciona votações independentes da aprovação de ata, relatório individual das reuniões frequentadas, manual digital dentro do aplicativo e migração do mobile para Expo SDK 58.
+O incremento adiciona a ata de reunião com aprovação ou reprovação pelos participantes, votações independentes da aprovação de ata, relatório individual das reuniões frequentadas, manual digital dentro do aplicativo e migração do mobile para Expo SDK 58.
 
 Regras adotadas para a primeira versão da votação: cada votação é uma pergunta de escolha única com 2 a 8 opções; somente coordenador da comissão ou proprietário da organização pode abrir/encerrar; somente pessoa com entrada registrada pode votar; enquanto aberta, a pessoa pode trocar seu voto; encerrada, nenhum voto pode ser alterado. Resultados e contagem de votos são visíveis aos convidados históricos da reunião. A votação não substitui aprovação ou rejeição da ata.
 
@@ -14,16 +14,66 @@ O relatório individual é derivado exclusivamente de entradas registradas no se
 
 | ID | Requisito declarativo |
 | --- | --- |
-| RF03.01 | O sistema deve permitir que o coordenador da comissão ou proprietário da organização abra uma votação em uma reunião, informando pergunta e opções distintas. |
-| RF03.02 | O sistema deve permitir que participantes com entrada registrada selecionem uma opção e alterem seu voto enquanto a votação estiver aberta. |
-| RF03.03 | O sistema deve permitir que o coordenador da comissão ou proprietário da organização encerre uma votação aberta e preserve sua apuração. |
-| RF03.04 | O sistema deve apresentar ao usuário autenticado o relatório de reuniões em que sua entrada foi registrada, com organização, comissão, horários de reunião e presença e situação da ata. |
-| RF03.05 | O sistema deve oferecer no aplicativo um manual digital de consulta às funções de acesso, organizações, comissões, reuniões, votações, atas e relatórios. |
+| RF02.07 | O sistema deve permitir que o presidente da comissão (coordenador ou proprietário) escreva e salve o texto da ata da reunião, com 1 a 50.000 caracteres, na situação Rascunho. Ao salvar uma correção de ata em aprovação ou reprovada, o sistema deve criar uma nova versão, descartar as decisões da versão anterior e voltar a situação para Rascunho. Uma ata aprovada não pode ser alterada. |
+| RF02.08 | O sistema deve permitir que o presidente envie o rascunho da ata para aprovação somente quando houver pelo menos um participante com entrada registrada. No envio, o sistema deve fixar como aprovadores todas as pessoas com entrada registrada naquele instante, mudar a situação para Em aprovação e bloquear novas entradas na reunião enquanto a ata estiver em aprovação ou aprovada. |
+| RF02.09 | O sistema deve permitir que cada aprovador fixado no envio aprove ou reprove a versão atual da ata, com comentário opcional de até 2.000 caracteres. Uma reprovação deve mudar a situação para Reprovada; a aprovação de todos os aprovadores deve mudar a situação para Aprovada e registrar a data. Decisões sobre uma versão desatualizada ou de quem não é aprovador devem ser recusadas. |
+| RF02.10 | O sistema deve gerar o PDF da versão salva da ata, com reunião, comissão, organização, versão, situação, presentes e decisões no fuso horário do aparelho, para convidados e gestores da reunião, por meio de link de download vinculado à sessão e válido por 60 segundos. |
+| RF03.01 | O sistema deve permitir que o presidente da comissão abra uma votação na reunião, informando uma pergunta de até 500 caracteres e de 2 a 8 opções diferentes de até 160 caracteres cada, somente depois que houver pelo menos uma entrada registrada. A votação deve ser independente da aprovação da ata. |
+| RF03.02 | O sistema deve permitir que o participante com entrada registrada escolha uma única opção em uma votação aberta e altere sua escolha enquanto a votação estiver aberta, mantendo um voto por pessoa. O participante deve ver a contagem de cada opção e somente o próprio voto. |
+| RF03.03 | O sistema deve permitir que o presidente da comissão encerre uma votação aberta, após confirmação, registrando a data de encerramento. Depois de encerrada, nenhum voto pode ser registrado ou alterado e o resultado permanece disponível para consulta. |
+| RF03.04 | O sistema deve exibir ao usuário autenticado a lista das reuniões em que ele teve entrada registrada, com título, organização, comissão, início e término previstos, horário de entrada, horário de saída e situação da ata, da mais recente para a mais antiga, usando somente a identidade da sessão. |
+| RF03.05 | O sistema deve disponibilizar, na aba Manual do aplicativo, um manual de utilização com instruções sobre acesso e perfil, organizações, comissões, reuniões e presença, arquivos, votações, atas, relatório de participação e ajuda, consultável sem conexão com a API. |
+| RF03.06 | O sistema deve permitir que o presidente da comissão edite título, pauta, horários, opção de dia todo, local e detalhes de uma reunião que ainda não começou e não tem presença registrada, solicitando nova confirmação aos convidados. |
+| RF03.07 | O sistema deve permitir agendar reunião de dia todo, abrangendo pelo menos um dia de calendário, e informar local (até 300 caracteres) e detalhes (até 4.000 caracteres) opcionais, recusando início no passado e término anterior ao início, com a mensagem de erro exibida junto ao campo. |
+| RF03.08 | O sistema deve permitir que o presidente da comissão anexe à reunião até 10 arquivos PDF, PNG, JPEG ou TXT de até 5 MB cada, conferindo o tipo pelo conteúdo do arquivo, e que convidados e gestores da reunião baixem esses arquivos. |
+| RF03.09 | O sistema deve permitir que o presidente da comissão gere, durante a reunião, um código de presença de 6 dígitos válido por até 10 minutos ou até o término da reunião, e que o convidado com convite aceito registre sua entrada informando esse código. |
+| RF03.10 | O sistema deve permitir que o presidente da comissão registre a entrada e a saída de convidados que aceitaram o convite, somente durante o horário da reunião, gravando quem fez o registro e o método utilizado. |
+| RF03.11 | O sistema deve gerar a lista de presença da reunião em PDF, com cada convidado, a situação do convite e os horários de entrada e saída, para convidados e gestores da reunião. |
 | RNF03.01 | As operações privadas devem derivar a identidade do usuário da sessão validada; IDs enviados pelo cliente não definem o autor do voto ou do relatório. |
 | RNF03.02 | Votações, opções e votos devem persistir no PostgreSQL e respeitar chaves estrangeiras e unicidade de voto por participante. |
+| RNF03.04 | Aprovação da ata e votos devem ser processados em transação com bloqueio da reunião; decisão sobre versão antiga da ata, voto após encerramento e encerramento duplicado devem ser recusados (HTTP 409) sem alterar dados, conforme `meetings.test.js` e `voting.test.js`. |
+| RNF03.05 | O PDF da ata deve ser gerado em memória no servidor, em português legível, identificando versão, situação e fuso horário, e só pode ser baixado com sessão válida ou ticket de 60 segundos vinculado à sessão e ao caminho. |
 | RNF03.03 | O aplicativo deve manter compatibilidade de dependências com Expo SDK 58 e React Native 0.88. |
 
 ## Casos de uso
+
+Fichas no formulário usado pela equipe (ator, gatilho, pré-condições, entradas, fluxo principal, exceções e pós-condição). A especificação principal tem as fichas completas de RF02.07–RF02.10 e RF03.06–RF03.11.
+
+### UC02.07 — Criar ou corrigir ata
+
+| Campo | Descrição |
+| --- | --- |
+| Ator | Presidente da comissão (coordenador ou proprietário) |
+| Gatilho / tela | Reuniões → cartão da reunião → aba Ata → Salvar rascunho da ata ou Salvar correção da ata |
+| Pré-condições | Sessão autenticada; gestão da reunião; ata não aprovada |
+| Entradas | Texto da ata com 1 a 50.000 caracteres |
+| Fluxo principal | `saveMeetingMinutesWithApi` envia POST `/api/meetings/:meetingId/minutes`; o servidor confere `requireManager`, grava `meeting_minutes` como DRAFT (nova versão se já estava em aprovação ou reprovada) e apaga as decisões da versão anterior |
+| Exceções | Texto vazio ou longo demais: 400; não gestor: 403; ata aprovada: 409 |
+| Pós-condição | Ata em Rascunho com versão atual; nova aprovação exigida |
+
+### UC02.08 — Submeter ata para aprovação
+
+| Campo | Descrição |
+| --- | --- |
+| Ator | Presidente da comissão |
+| Gatilho / tela | Aba Ata → Enviar ata para aprovação → confirmação |
+| Pré-condições | Ata em Rascunho; pelo menos uma entrada registrada |
+| Entradas | Identificador da reunião |
+| Fluxo principal | POST `/api/meetings/:meetingId/minutes/submit`; o servidor lê as entradas registradas, fixa `required_approver_ids` e muda a situação para IN_REVIEW |
+| Exceções | Sem rascunho: 404/409; sem presentes: 409; não gestor: 403 |
+| Pós-condição | Ata Em aprovação; novas entradas bloqueadas |
+
+### UC02.09 — Aprovar ou reprovar ata
+
+| Campo | Descrição |
+| --- | --- |
+| Ator | Participante com entrada registrada no envio da ata |
+| Gatilho / tela | Aba Ata → Aprovar ata ou Rejeitar ata → confirmação |
+| Pré-condições | Ata Em aprovação; usuário entre os aprovadores fixados |
+| Entradas | Decisão APPROVED ou REJECTED; comentário opcional até 2.000 caracteres; versão lida |
+| Fluxo principal | PATCH `/api/meetings/:meetingId/minutes/approval`; o servidor confere versão e aprovador, grava a decisão e recalcula a situação: REJECTED se alguém reprovar, APPROVED quando todos aprovarem |
+| Exceções | Versão desatualizada ou ata fora de aprovação: 409; usuário fora da lista: 403 |
+| Pós-condição | Decisão registrada; ata Reprovada, Aprovada ou ainda Em aprovação |
 
 ### UC03.01 — Abrir votação
 
@@ -97,18 +147,28 @@ API privada com prefixo `/api` e Bearer de sessão. Rotas: POST `/meetings/:meet
 
 ## Diagramas e dicionários
 
-- Casos de uso: [fonte UML](Diagramas/ENTREGA_DEFINITIVA/fontes/uc-incremento-3.puml).
-- Modelo de classes: [fonte UML](Diagramas/ENTREGA_DEFINITIVA/fontes/classes-incremento-3.puml).
-- Modelo relacional: [fonte PlantUML](Diagramas/ENTREGA_DEFINITIVA/fontes/relacional-incremento-3.puml).
-- Sequência de votação: [fonte UML](Diagramas/ENTREGA_DEFINITIVA/fontes/seq-votacoes.puml).
-- Sequência do relatório: [fonte UML](Diagramas/ENTREGA_DEFINITIVA/fontes/seq-relatorio-participacao.puml).
-- Sequência do manual: [fonte UML](Diagramas/ENTREGA_DEFINITIVA/fontes/seq-manual-consulta.puml).
-- [Dicionário físico](dicionario-banco-dados.md#tabela-meeting_votes) e [dicionário de classes](dicionario-classes.md#votacao).
+- Casos de uso — ata, votação, relatório e manual: [imagem](Diagramas/ENTREGA_DEFINITIVA/renderizados/uc-incremento-3.svg) · [fonte](Diagramas/ENTREGA_DEFINITIVA/fontes/uc-incremento-3.puml)
+- Casos de uso — ajustes pedidos nas avaliações: [imagem](Diagramas/ENTREGA_DEFINITIVA/renderizados/uc-incremento-3-ajustes.svg) · [fonte](Diagramas/ENTREGA_DEFINITIVA/fontes/uc-incremento-3-ajustes.puml)
+- Classes de projeto (código): [imagem](Diagramas/ENTREGA_DEFINITIVA/renderizados/classes-incremento-3.svg) · [fonte](Diagramas/ENTREGA_DEFINITIVA/fontes/classes-incremento-3.puml)
+- Modelo relacional: [imagem](Diagramas/ENTREGA_DEFINITIVA/renderizados/relacional-incremento-3.svg) · [fonte](Diagramas/ENTREGA_DEFINITIVA/fontes/relacional-incremento-3.puml)
+- Sequência — ata: [imagem](Diagramas/ENTREGA_DEFINITIVA/renderizados/seq-ata.svg) · [fonte](Diagramas/ENTREGA_DEFINITIVA/fontes/seq-ata.puml)
+- Sequência — PDF da ata: [imagem](Diagramas/ENTREGA_DEFINITIVA/renderizados/seq-pdf.svg) · [fonte](Diagramas/ENTREGA_DEFINITIVA/fontes/seq-pdf.puml)
+- Sequência — votação: [imagem](Diagramas/ENTREGA_DEFINITIVA/renderizados/seq-votacoes.svg) · [fonte](Diagramas/ENTREGA_DEFINITIVA/fontes/seq-votacoes.puml)
+- Sequência — relatório individual: [imagem](Diagramas/ENTREGA_DEFINITIVA/renderizados/seq-relatorio-participacao.svg) · [fonte](Diagramas/ENTREGA_DEFINITIVA/fontes/seq-relatorio-participacao.puml)
+- Sequência — manual: [imagem](Diagramas/ENTREGA_DEFINITIVA/renderizados/seq-manual-consulta.svg) · [fonte](Diagramas/ENTREGA_DEFINITIVA/fontes/seq-manual-consulta.puml)
+- Sequência — editar reunião: [imagem](Diagramas/ENTREGA_DEFINITIVA/renderizados/seq-editar-reuniao.svg) · [fonte](Diagramas/ENTREGA_DEFINITIVA/fontes/seq-editar-reuniao.puml)
+- Sequência — anexos: [imagem](Diagramas/ENTREGA_DEFINITIVA/renderizados/seq-anexos.svg) · [fonte](Diagramas/ENTREGA_DEFINITIVA/fontes/seq-anexos.puml)
+- Sequência — presença (código e presidente): [imagem](Diagramas/ENTREGA_DEFINITIVA/renderizados/seq-presenca.svg) · [fonte](Diagramas/ENTREGA_DEFINITIVA/fontes/seq-presenca.puml)
+- Sequência — PDF da lista de presença: [imagem](Diagramas/ENTREGA_DEFINITIVA/renderizados/seq-presenca-pdf.svg) · [fonte](Diagramas/ENTREGA_DEFINITIVA/fontes/seq-presenca-pdf.puml)
+- [Dicionário de classes](dicionario-classes.md#classes-de-projeto-do-incremento-3) e [dicionário físico](dicionario-banco-dados.md#tabela-meeting_minutes).
 
 ## Rastreabilidade e aceite
 
 | Requisito | Interface | Operação/persistência | Critério de aceite |
 | --- | --- | --- | --- |
+| RF02.07 | Reuniões → Ata | POST minutes; `meeting_minutes` | Presidente salva rascunho; correção gera nova versão; ata aprovada não muda. |
+| RF02.08 | Reuniões → Ata | POST minutes/submit; `required_approver_ids` | Envio fixa os presentes; sem presentes é recusado. |
+| RF02.09 | Reuniões → Ata | PATCH minutes/approval; `meeting_minutes_approvals` | Uma reprovação reprova; aprovação de todos aprova; versão antiga é recusada. |
 | RF03.01 | Reuniões → Votações | POST votes; `meeting_votes`, `meeting_vote_options` | Gestor abre pergunta válida com 2–8 opções; pessoa não gestora não abre. |
 | RF03.02 | Reuniões → Votações | POST ballot; `meeting_vote_ballots` | Presente vota e pode alterar antes do encerramento; ausente ou votação fechada não altera dados. |
 | RF03.03 | Reuniões → Votações | PATCH close; atualização de `meeting_votes` | Gestor encerra; não gestor é negado; nova tentativa não muda apuração. |

@@ -1,40 +1,124 @@
 @startuml
 !pragma layout smetana
+skinparam backgroundColor white
 skinparam shadowing false
+skinparam defaultFontName SansSerif
 skinparam defaultFontSize 13
-title Classes de projeto — operações de módulos JavaScript
-class ClienteAPI <<module>> {
- +meetingRequest(path, method, payload): Promise
- +createMeetingVoteWithApi(meetingId, userId, question, options): Promise
- +castMeetingVoteWithApi(meetingId, voteId, userId, optionId): Promise
- +closeMeetingVoteWithApi(meetingId, voteId, userId): Promise
- +fetchMeetingParticipationReportWithApi(): Promise
- +authorizePdfDownload(url): Promise
+skinparam ArrowColor #334155
+skinparam roundcorner 5
+skinparam dpi 130
+skinparam classAttributeIconSize 0
+skinparam packageStyle rectangle
+title Classes de projeto — Incremento 3 (código do app e da API)
+package "mobile (React Native)" {
+  class MeetingCard <<component>> {
+    - content: String
+    - dirty: Boolean
+    - comment: String
+    - pending: String
+    - voteQuestion: String
+    - voteOptionsText: String
+    - section: String
+    - inFlight: Ref<Boolean>
+    + saveMinutes(): Promise<void>
+    + confirmSubmission(): void
+    + confirmDecision(decision: String): void
+    + openVote(): Promise<void>
+    + exportMinutesPdf(): Promise<void>
+    - perform(action: String, callback: Function): Promise<Boolean>
+  }
+  class MeetingsScreen <<component>> {
+    - selectedCommissionId: UUID
+    - creating: Boolean
+    + MeetingsScreen(props): JSX.Element
+  }
+  class MeetingParticipationScreen <<component>> {
+    - meetings: ParticipationRow[]
+    - loading: Boolean
+    - error: String
+    + refresh(): Promise<void>
+  }
+  class ManualScreen <<component>> {
+    - TOPICS: String[][]
+    + ManualScreen(): JSX.Element
+  }
+  class App <<component>> {
+    - data: Snapshot
+    - activeUserId: UUID
+    + saveMeetingMinutes(meetingId: UUID, content: String): Promise<Boolean>
+    + submitMeetingMinutes(meetingId: UUID): Promise<Boolean>
+    + approveMeetingMinutes(meetingId: UUID, decision: String, comment: String, version: Integer): Promise<Boolean>
+    + createMeetingVote(meetingId: UUID, question: String, options: String[]): Promise<Boolean>
+    + castMeetingVote(meetingId: UUID, voteId: UUID, optionId: UUID): Promise<Boolean>
+    + closeMeetingVote(meetingId: UUID, voteId: UUID): Promise<Boolean>
+    - storeMeetingMinutes(minutes: Minutes): void
+  }
+  class ApiClient <<module>> {
+    + saveMeetingMinutesWithApi(meetingId, userId, content): Promise<Result>
+    + submitMeetingMinutesWithApi(meetingId, userId): Promise<Result>
+    + approveMeetingMinutesWithApi(meetingId, userId, decision, comment, version): Promise<Result>
+    + createMeetingVoteWithApi(meetingId, userId, question, options): Promise<Result>
+    + castMeetingVoteWithApi(meetingId, voteId, userId, optionId): Promise<Result>
+    + closeMeetingVoteWithApi(meetingId, voteId, userId): Promise<Result>
+    + fetchMeetingParticipationReportWithApi(): Promise<Result>
+    + authorizePdfDownload(url: String): Promise<String>
+  }
+  class MeetingRules <<module>> {
+    + getMinutesVotingSummary(minutes, attendees, approvals): VotingSummary
+    + canManageMeetingCommission(data, commissionId, userId): Boolean
+    + getMeetingAttendanceRows(data, meetingId): Row[]
+  }
+  class MinutesPdfClient <<module>> {
+    + buildMinutesPdfUrl(apiBaseUrl: String, params): String
+    + prepareMinutesPdf(options): Promise<String>
+    + minutesPdfError(status: Integer, code: String): String
+  }
 }
-class RotasReuniao <<module>> {
- +createMeetingsRouter(database, options): Router
+package "backend (Node.js / Express)" {
+  class MeetingsRouter <<module>> {
+    + createMeetingsRouter(database, options): Router
+    - getMeeting(client, meetingId, userId): Meeting
+    - requireManager(meeting): void
+    - resolveUserId(client, identifier): UUID
+    - transaction(handler, fallback): Middleware
+    + POST /:meetingId/minutes
+    + POST /:meetingId/minutes/submit
+    + PATCH /:meetingId/minutes/approval
+    + GET|HEAD /:meetingId/minutes/pdf
+    + POST /:meetingId/votes
+    + POST /:meetingId/votes/:voteId/ballot
+    + PATCH /:meetingId/votes/:voteId/close
+    + GET /participation/report
+  }
+  class RequestError {
+    + status: Integer
+    + message: String
+    + fields: Object
+    + RequestError(status: Integer, message: String)
+  }
+  class Security <<module>> {
+    + authenticate(req, res, next): Promise<void>
+    + bindActor(req, res, next): void
+    + scopeSnapshot(data, actor): Snapshot
+  }
+  class MinutesPdfGenerator <<module>> {
+    + generateMeetingMinutesPdf(snapshot): Promise<Buffer>
+  }
 }
-class PresencaPDF <<module>> {
- +generateAttendancePdf(snapshot): Promise
-}
-class SessaoDispositivo <<module>> {
- +rememberSession(value): Promise
- +restoreSession(): Promise
- +confirmBiometric(): Promise
-}
-class EditorReuniao <<ReactComponent>> {
- +MeetingEditor(props): JSX
-}
-class RecursosReuniao <<ReactComponent>> {
- +MeetingResources(props): JSX
-}
-EditorReuniao ..> ClienteAPI
-RecursosReuniao ..> ClienteAPI
-ClienteAPI ..> RotasReuniao : HTTP autenticado
-RotasReuniao ..> PresencaPDF
-ClienteAPI ..> SessaoDispositivo
-note bottom of RotasReuniao
-Classificadores representam módulos funcionais JS.
-Dados e restrições estão no dicionário físico.
-end note
+class Error
+Error <|-- RequestError
+MeetingCard ..> App : props on*
+MeetingCard ..> MeetingRules
+MeetingCard ..> MinutesPdfClient
+MeetingCard ..> ApiClient : authorizePdfDownload
+MeetingParticipationScreen ..> ApiClient
+App *-- MeetingsScreen
+MeetingsScreen *-- "0..*" MeetingCard
+App *-- MeetingParticipationScreen
+App *-- ManualScreen
+App ..> ApiClient
+ApiClient ..> MeetingsRouter : HTTP /api/meetings
+Security ..> MeetingsRouter : middleware
+MeetingsRouter ..> RequestError : <<throws>>
+MeetingsRouter ..> MinutesPdfGenerator
 @enduml

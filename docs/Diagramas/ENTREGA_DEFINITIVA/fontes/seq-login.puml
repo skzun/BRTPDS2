@@ -5,35 +5,47 @@ skinparam shadowing false
 skinparam defaultFontName SansSerif
 skinparam defaultFontSize 13
 skinparam ArrowColor #334155
-skinparam packageStyle rectangle
-skinparam classAttributeIconSize 0
 skinparam roundcorner 5
 skinparam dpi 130
-title SQ02 — senha ou Google e sessão
+skinparam sequenceMessageAlign left
+hide footbox
 autonumber
-actor Pessoa
-participant "App Synple" as App
-participant "API Express" as API
-database PostgreSQL as DB
-participant Google
-participant SecureStore
-Pessoa -> App : Escolhe forma de entrada
+title SQ02 — entrar com senha ou Google e abrir sessão (RF19, RF20)
+actor Visitante as V
+participant "LoginScreen.js" as UI
+participant "App.js" as App
+participant "services/api.js" as Api
+participant "services/session.js" as Ses
+participant "routes/auth.js" as Auth
+participant "services/security.js" as Sec
+participant "GoogleSignin" as G
+database "PostgreSQL" as DB
 alt e-mail e senha
- App -> API : POST /auth/login
- API -> DB : Consulta conta
- API -> API : bcrypt.compare e email_verified
+ V -> UI : onPress("Entrar")
+ UI -> App : login({email, password})
+ App -> App : validateLogin({email, password})
+ App -> Api : loginWithApi(email, password)
+ Api -> Auth : POST /api/auth/login
+ Auth -> DB : query("SELECT * FROM users WHERE LOWER(email) = $1")
+ Auth -> Auth : bcrypt.compare(password, password_hash)
+ Auth -> Auth : user.email_verified ? continua : 403
 else Google
- App -> Google : Solicita login no SDK nativo
- Google --> App : ID token
- App -> API : POST /auth/google com ID token
- API -> Google : Verifica assinatura / audience do token
- API -> DB : Vincula ou cria conta verificada
+ V -> UI : onPress("Entrar com Google")
+ UI -> G : GoogleSignin.signIn()
+ G --> UI : idToken
+ UI -> App : loginWithGoogle(idToken)
+ App -> Api : loginWithGoogleApi(idToken)
+ Api -> Auth : POST /api/auth/google
+ Auth -> Auth : googleOAuthClient.verifyIdToken({idToken, audience})
+ Auth -> DB : query("UPDATE users SET google_id ... | INSERT INTO users ...")
 end
-API -> API : Gera token aleatório
-API -> DB : INSERT auth_sessions(hash, user_id, prazo)
-API --> App : Perfil e token bruto
-App -> SecureStore : Guarda token protegido, se biometria disponível
-App -> API : GET /sync com Bearer token
-API --> App : Dados autorizados
-App --> Pessoa : Área autenticada
+Auth -> Sec : issueSession(userId)
+Sec -> DB : query("INSERT INTO auth_sessions (token_hash, user_id, expires_at)")
+Sec --> Auth : token
+Auth --> Api : 200 {token, perfil}
+Api -> Ses : rememberSession(token)
+Ses -> Ses : SecureStore.setItemAsync(KEY, token, {requireAuthentication})
+Api --> App : {success, user}
+App -> App : finishLogin(user)
+App -> App : syncWithRemote()
 @enduml

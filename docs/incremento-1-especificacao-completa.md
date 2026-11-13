@@ -50,6 +50,8 @@ Exemplo fictício de preferência em snapshot/cache: { "users": [{ "id": "uuid-d
 | Administrador do sistema | system_role=SYSTEM_ADMIN, para gestão sistêmica e dados operacionais |
 | Proprietário da organização | organizations.owner_id; papel contextual, transferível, não equivale a SYSTEM_ADMIN |
 | Coordenador de comissão | commission_members.role=COORDINATOR; gestor contextual da reunião junto ao proprietário |
+| Presidente da comissão | Nome usado nos slides do Incremento 3 para quem gerencia a reunião: o coordenador da comissão ou o proprietário da organização. Cria, corrige e envia a ata; abre e encerra votações; edita reunião futura; anexa arquivos; gera código de presença e registra entrada/saída de participantes |
+| Participante da reunião | Convidado com entrada registrada (`meeting_attendance.entered_at`). Vota nas votações abertas e, se estava presente no envio da ata, aprova ou reprova a versão |
 | Convidado de reunião | Pessoa em meeting_invitations; acesso histórico pode permanecer após remoção da comissão |
 | Aprovador da ata | Pessoa com entrada até submissão, fixada em required_approver_ids; cargo não substitui presença/decisão |
 | Google, SMTP e serviço biométrico do SO | Sistemas externos que apoiam autenticação/envio/confirmação local |
@@ -67,6 +69,10 @@ Os atores ficam fora da fronteira Synple. Linhas representam associações; tri�
 ![Reuniões e atas](Diagramas/ENTREGA_DEFINITIVA/renderizados/uc-reunioes.svg)
 
 ![Consulta e operação](Diagramas/ENTREGA_DEFINITIVA/renderizados/uc-operacao.svg)
+
+![Incremento 3 — ata, votação, relatório e manual](Diagramas/ENTREGA_DEFINITIVA/renderizados/uc-incremento-3.svg)
+
+![Incremento 3 — ajustes pedidos nas avaliações](Diagramas/ENTREGA_DEFINITIVA/renderizados/uc-incremento-3-ajustes.svg)
 
 Fontes editáveis e todas as imagens: [catálogo dos diagramas](Diagramas/Diagramas_Casos_de_Uso.md). Referência normativa: [UML 2.5.1 — OMG](https://www.omg.org/spec/UML/2.5.1/About-UML).
 
@@ -162,21 +168,21 @@ Fontes editáveis e todas as imagens: [catálogo dos diagramas](Diagramas/Diagra
 | RF02.04 | O sistema deve oferecer a função registrar entrada ao ator convidado com convite aceito, respeitando as condições e resultados da ficha correspondente. |
 | RF02.05 | O sistema deve oferecer a função registrar saída ao ator participante com entrada registrada, respeitando as condições e resultados da ficha correspondente. |
 | RF02.06 | O sistema deve oferecer a função consultar e compartilhar lista de presença ao ator gestor atual ou convidado histórico, respeitando as condições e resultados da ficha correspondente. |
-| RF02.07 | O sistema deve oferecer a função criar ou corrigir ata ao ator gestor atual, respeitando as condições e resultados da ficha correspondente. |
-| RF02.08 | O sistema deve oferecer a função submeter ata para aprovação ao ator gestor atual, respeitando as condições e resultados da ficha correspondente. |
-| RF02.09 | O sistema deve oferecer a função aprovar ou solicitar correção da versão da ata ao ator aprovador fixado na submissão, respeitando as condições e resultados da ficha correspondente. |
-| RF02.10 | O sistema deve oferecer a função gerar pdf da ata salva ao ator gestor atual ou convidado histórico, respeitando as condições e resultados da ficha correspondente. |
-| RF03.01 | O sistema deve oferecer a função abrir votação independente da ata ao ator coordenador ou proprietário, respeitando as condições e resultados da ficha correspondente. |
-| RF03.02 | O sistema deve oferecer a função votar ou alterar a opção ao ator participante com entrada registrada, respeitando as condições e resultados da ficha correspondente. |
-| RF03.03 | O sistema deve oferecer a função encerrar votação ao ator coordenador ou proprietário, respeitando as condições e resultados da ficha correspondente. |
-| RF03.04 | O sistema deve oferecer a função consultar relatório individual ao ator usuário autenticado, respeitando as condições e resultados da ficha correspondente. |
-| RF03.05 | O sistema deve oferecer a função consultar manual digital ao ator usuário autenticado, respeitando as condições e resultados da ficha correspondente. |
-| RF03.06 | O sistema deve oferecer a função editar reunião futura ao ator coordenador ou proprietário, respeitando as condições e resultados da ficha correspondente. |
-| RF03.07 | O sistema deve oferecer a função agendar por dias de calendário e informar local/detalhes ao ator coordenador ou proprietário, respeitando as condições e resultados da ficha correspondente. |
-| RF03.08 | O sistema deve oferecer a função compartilhar anexos com convidados ao ator gestor envia; convidados e gestor consultam, respeitando as condições e resultados da ficha correspondente. |
-| RF03.09 | O sistema deve oferecer a função registrar presença por código temporário ao ator gestor emite; convidado aceito utiliza, respeitando as condições e resultados da ficha correspondente. |
-| RF03.10 | O sistema deve oferecer a função registrar entrada/saída de convidado pelo presidente ao ator coordenador ou proprietário, respeitando as condições e resultados da ficha correspondente. |
-| RF03.11 | O sistema deve oferecer a função exportar lista de presença em pdf ao ator convidado histórico ou gestor, respeitando as condições e resultados da ficha correspondente. |
+| RF02.07 | O sistema deve permitir que o presidente da comissão (coordenador ou proprietário) escreva e salve o texto da ata da reunião, com 1 a 50.000 caracteres, na situação Rascunho. Ao salvar uma correção de ata em aprovação ou reprovada, o sistema deve criar uma nova versão, descartar as decisões da versão anterior e voltar a situação para Rascunho. Uma ata aprovada não pode ser alterada. |
+| RF02.08 | O sistema deve permitir que o presidente envie o rascunho da ata para aprovação somente quando houver pelo menos um participante com entrada registrada. No envio, o sistema deve fixar como aprovadores todas as pessoas com entrada registrada naquele instante, mudar a situação para Em aprovação e bloquear novas entradas na reunião enquanto a ata estiver em aprovação ou aprovada. |
+| RF02.09 | O sistema deve permitir que cada aprovador fixado no envio aprove ou reprove a versão atual da ata, com comentário opcional de até 2.000 caracteres. Uma reprovação deve mudar a situação para Reprovada; a aprovação de todos os aprovadores deve mudar a situação para Aprovada e registrar a data. Decisões sobre uma versão desatualizada ou de quem não é aprovador devem ser recusadas. |
+| RF02.10 | O sistema deve gerar o PDF da versão salva da ata, com reunião, comissão, organização, versão, situação, presentes e decisões no fuso horário do aparelho, para convidados e gestores da reunião, por meio de link de download vinculado à sessão e válido por 60 segundos. |
+| RF03.01 | O sistema deve permitir que o presidente da comissão abra uma votação na reunião, informando uma pergunta de até 500 caracteres e de 2 a 8 opções diferentes de até 160 caracteres cada, somente depois que houver pelo menos uma entrada registrada. A votação deve ser independente da aprovação da ata. |
+| RF03.02 | O sistema deve permitir que o participante com entrada registrada escolha uma única opção em uma votação aberta e altere sua escolha enquanto a votação estiver aberta, mantendo um voto por pessoa. O participante deve ver a contagem de cada opção e somente o próprio voto. |
+| RF03.03 | O sistema deve permitir que o presidente da comissão encerre uma votação aberta, após confirmação, registrando a data de encerramento. Depois de encerrada, nenhum voto pode ser registrado ou alterado e o resultado permanece disponível para consulta. |
+| RF03.04 | O sistema deve exibir ao usuário autenticado a lista das reuniões em que ele teve entrada registrada, com título, organização, comissão, início e término previstos, horário de entrada, horário de saída e situação da ata, da mais recente para a mais antiga, usando somente a identidade da sessão. |
+| RF03.05 | O sistema deve disponibilizar, na aba Manual do aplicativo, um manual de utilização com instruções sobre acesso e perfil, organizações, comissões, reuniões e presença, arquivos, votações, atas, relatório de participação e ajuda, consultável sem conexão com a API. |
+| RF03.06 | O sistema deve permitir que o presidente da comissão edite título, pauta, horários, opção de dia todo, local e detalhes de uma reunião que ainda não começou e não tem presença registrada, solicitando nova confirmação aos convidados. |
+| RF03.07 | O sistema deve permitir agendar reunião de dia todo, abrangendo pelo menos um dia de calendário, e informar local (até 300 caracteres) e detalhes (até 4.000 caracteres) opcionais, recusando início no passado e término anterior ao início, com a mensagem de erro exibida junto ao campo. |
+| RF03.08 | O sistema deve permitir que o presidente da comissão anexe à reunião até 10 arquivos PDF, PNG, JPEG ou TXT de até 5 MB cada, conferindo o tipo pelo conteúdo do arquivo, e que convidados e gestores da reunião baixem esses arquivos. |
+| RF03.09 | O sistema deve permitir que o presidente da comissão gere, durante a reunião, um código de presença de 6 dígitos válido por até 10 minutos ou até o término da reunião, e que o convidado com convite aceito registre sua entrada informando esse código. |
+| RF03.10 | O sistema deve permitir que o presidente da comissão registre a entrada e a saída de convidados que aceitaram o convite, somente durante o horário da reunião, gravando quem fez o registro e o método utilizado. |
+| RF03.11 | O sistema deve gerar a lista de presença da reunião em PDF, com cada convidado, a situação do convite e os horários de entrada e saída, para convidados e gestores da reunião. |
 
 <a id="rf01"></a>
 
@@ -1355,6 +1361,8 @@ Os classificadores de domínio representam responsabilidades/dados, não classes
 ![Classes de reuniões](Diagramas/ENTREGA_DEFINITIVA/renderizados/classes-reunioes.svg)
 
 ![Módulos e operações](Diagramas/ENTREGA_DEFINITIVA/renderizados/classes-servicos.svg)
+
+![Classes de projeto do Incremento 3, feitas a partir do código](Diagramas/ENTREGA_DEFINITIVA/renderizados/classes-incremento-3.svg)
 
 [Dicionário de classes, atributos e métodos](dicionario-classes.md). Atributos técnicos e nomes SQL completos estão no dicionário físico; os recortes visuais não substituem esses inventários.
 

@@ -5,33 +5,45 @@ skinparam shadowing false
 skinparam defaultFontName SansSerif
 skinparam defaultFontSize 13
 skinparam ArrowColor #334155
-skinparam packageStyle rectangle
-skinparam classAttributeIconSize 0
 skinparam roundcorner 5
 skinparam dpi 130
-title SQ04 — recuperação por código
+skinparam sequenceMessageAlign left
+hide footbox
 autonumber
-actor Pessoa
-participant "App Synple" as App
-participant "API Express" as API
-database PostgreSQL as DB
-participant SMTP
-Pessoa -> App : Esqueci minha senha; E-mail cadastrado
-App -> API : POST /auth/forgot-password
-API -> DB : Limita tentativas; consulta conta
-alt conta existente e SMTP configurado
- API -> DB : Salva SHA-256 e prazo de 15 minutos
- API -> SMTP : Envia código
-else conta inexistente
- note right of API : Mesma mensagem genérica de solicitação.
+title SQ04 — recuperar senha por código (RF11)
+actor Visitante as V
+participant "LoginScreen.js" as UI
+participant "App.js" as App
+participant "services/api.js" as Api
+participant "routes/auth.js" as Auth
+participant "services/security.js" as Sec
+participant "services/mailer.js" as Mail
+database "PostgreSQL" as DB
+V -> UI : onPress("Enviar código por e-mail")
+UI -> App : recoverAccountFromLogin(email)
+App -> Api : requestPasswordResetWithApi(email)
+Api -> Auth : POST /api/auth/forgot-password
+Auth -> Sec : rateLimit(3, 300)(req, res, next)
+Sec -> DB : query("INSERT INTO auth_rate_limits ... ON CONFLICT DO UPDATE")
+Auth -> DB : query("SELECT id, name, email FROM users WHERE LOWER(email) = $1")
+alt conta existe
+ Auth -> Auth : crypto.randomInt(100000, 1000000)
+ Auth -> DB : query("UPDATE users SET reset_token = sha256(code), reset_token_expires = NOW() + 15 min")
+ Auth -> Mail : sendPasswordResetEmail(email, code)
+else conta não existe
+ note right of Auth : mesma resposta genérica
 end
-API --> App : Sucesso genérico ou erro SMTP
-Pessoa -> App : Código, nova senha e confirmação
-App -> API : POST /auth/reset-password
-API -> DB : Confere hash e expiração
-API -> API : Valida senha com pelo menos oito caracteres
-API -> DB : UPDATE condicionado consome código
-API -> DB : DELETE sessões da conta
-API --> App : Sucesso ou código inválido/expirado
-App --> Pessoa : Retorna ao login
+Auth --> Api : 200 {success, message}
+Api --> App : {success}
+V -> UI : onPress("Salvar nova senha")
+UI -> App : resetPasswordFromLogin(email, code, newPassword, confirmPassword)
+App -> App : next.length >= 8 && next === confirm
+App -> Api : resetPasswordWithApi({email, code, newPassword})
+Api -> Auth : POST /api/auth/reset-password
+Auth -> DB : query("SELECT id, reset_token, reset_token_expires FROM users ...")
+Auth -> Auth : bcrypt.hashSync(newPassword, 10)
+Auth -> DB : query("UPDATE users SET password_hash=$1, reset_token=NULL WHERE reset_token=$3 AND reset_token_expires > NOW()")
+Auth -> DB : query("DELETE FROM auth_sessions WHERE user_id = $1")
+Auth --> Api : 200 {success} | 400 {error}
+Api --> App : {success}
 @enduml

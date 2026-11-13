@@ -165,6 +165,12 @@ Atores estão fora da fronteira Synple. As associações ator/caso de uso são l
 
 [Fonte editável](ENTREGA_DEFINITIVA/fontes/uc-incremento-3.puml) · [SVG](ENTREGA_DEFINITIVA/renderizados/uc-incremento-3.svg)
 
+## uc-incremento-3-ajustes
+
+![uc-incremento-3-ajustes](ENTREGA_DEFINITIVA/renderizados/uc-incremento-3-ajustes.svg)
+
+[Fonte editável](ENTREGA_DEFINITIVA/fontes/uc-incremento-3-ajustes.puml) · [SVG](ENTREGA_DEFINITIVA/renderizados/uc-incremento-3-ajustes.svg)
+
 ## classes-incremento-3
 
 ![classes-incremento-3](ENTREGA_DEFINITIVA/renderizados/classes-incremento-3.svg)

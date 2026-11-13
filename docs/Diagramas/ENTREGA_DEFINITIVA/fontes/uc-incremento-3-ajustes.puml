@@ -1,0 +1,31 @@
+@startuml
+!pragma layout smetana
+skinparam backgroundColor white
+skinparam shadowing false
+skinparam defaultFontName SansSerif
+skinparam defaultFontSize 13
+skinparam ArrowColor #334155
+skinparam roundcorner 5
+skinparam dpi 130
+left to right direction
+title Casos de uso — Incremento 3: ajustes pedidos nas avaliações
+actor "Presidente da comissão\n(coordenador ou proprietário)" as G
+actor "Convidado da reunião\n(convite aceito)" as C
+rectangle "Synple" {
+  usecase "RF03.06\nEditar reunião futura" as E6
+  usecase "RF03.07\nAgendar dia todo,\nlocal e detalhes" as E7
+  usecase "RF03.10\nRegistrar entrada/saída\nde participante" as E10
+  usecase "RF03.09\nRegistrar presença\npor código temporário" as E9
+  usecase "RF03.11\nExportar lista de\npresença em PDF" as E11
+  usecase "RF03.08\nCompartilhar anexos" as E8
+}
+G -- E6
+G -- E7
+G -- E10
+G -- E9
+G -- E11
+G -- E8
+C -- E9
+C -- E11
+C -- E8
+@enduml

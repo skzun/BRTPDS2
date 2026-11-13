@@ -1,0 +1,20 @@
+digraph UC {
+  rankdir=LR; nodesep=0.35; ranksep=1.3;
+  graph [fontname="DejaVu Sans", fontsize=15, label="Casos de uso — Incremento 3: ajustes pedidos nas avaliações", labelloc=t];
+  node [fontname="DejaVu Sans", fontsize=11];
+  edge [fontname="DejaVu Sans", fontsize=10, color="#334155", arrowhead=none];
+  G [shape=none, width=1.9, height=1.25, label="\n\n\nPresidente da comissão\n(coordenador ou proprietário)"];
+  C [shape=none, width=1.9, height=1.25, label="\n\n\nConvidado da reunião\n(convite aceito)"];
+
+  {rank=same; G; C}
+  subgraph cluster_sys {
+    label="Synple"; fontsize=14; style=rounded; color="#334155"; penwidth=1.4; margin=16;
+    node [shape=ellipse, style=filled, fillcolor="#F8FAFC", color="#334155"];
+    E6 [label="RF03.06\nEditar reunião futura"]; E7 [label="RF03.07\nAgendar dia todo,\nlocal e detalhes"];
+    E10 [label="RF03.10\nRegistrar entrada/saída\nde participante"];
+    E8 [label="RF03.08\nCompartilhar anexos"]; E9 [label="RF03.09\nRegistrar presença\npor código temporário"];
+    E11 [label="RF03.11\nExportar lista de\npresença em PDF"];
+  }
+  G -> E6; G -> E7; G -> E10; G -> E8; G -> E9;
+  C -> E8; C -> E9; C -> E11; G -> E11;
+}

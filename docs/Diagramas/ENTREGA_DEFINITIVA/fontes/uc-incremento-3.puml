@@ -1,47 +1,43 @@
 @startuml
 !pragma layout smetana
+skinparam backgroundColor white
 skinparam shadowing false
+skinparam defaultFontName SansSerif
 skinparam defaultFontSize 13
+skinparam ArrowColor #334155
+skinparam roundcorner 5
+skinparam dpi 130
 left to right direction
-title Incremento 3 — funções e atores
+title Casos de uso — Incremento 3: ata, votação, relatório e manual
+actor "Presidente da comissão\n(coordenador ou proprietário)" as G
 actor "Usuário autenticado" as U
-actor "Gestor: coordenador ou proprietário" as G
-actor "Convidado histórico" as C
-actor "Participante com entrada" as P
+actor "Participante da reunião\n(entrada registrada)" as P
 U <|-- G
-U <|-- C
-C <|-- P
-rectangle Synple {
-usecase "RF03.01\nAbrir votação independente da ata" as RF03_01
-usecase "RF03.02\nVotar ou alterar a opção" as RF03_02
-usecase "RF03.03\nEncerrar votação" as RF03_03
-usecase "RF03.04\nConsultar relatório individual" as RF03_04
-usecase "RF03.05\nConsultar manual digital" as RF03_05
-usecase "RF03.06\nEditar reunião futura" as RF03_06
-usecase "RF03.07\nAgendar por dias de calendário e informar local/detalhes" as RF03_07
-usecase "RF03.08\nCompartilhar anexos com convidados" as RF03_08
-usecase "RF03.09\nRegistrar presença por código temporário" as RF03_09
-usecase "RF03.10\nRegistrar entrada/saída de convidado pelo presidente" as RF03_10
-usecase "RF03.11\nExportar lista de presença em PDF" as RF03_11
-usecase "RF02.07\nCriar/corrigir ata" as ATA
-usecase "RF02.08\nSubmeter ata" as SUB
-usecase "RF02.09\nAprovar/rejeitar ata" as DEC
+U <|-- P
+rectangle "Synple" {
+  usecase "RF02.07\nCriar ou corrigir ata" as ATA
+  usecase "RF02.08\nSubmeter ata\npara aprovação" as SUB
+  usecase "RF03.01\nAbrir votação" as V1
+  usecase "RF03.03\nEncerrar votação" as V3
+  usecase "RF02.10\nGerar PDF da ata" as PDF
+  usecase "RF03.04\nConsultar relatório\nindividual de participação" as REL
+  usecase "RF03.05\nConsultar manual\nde utilização" as MAN
+  usecase "RF02.09\nAprovar ou\nreprovar ata" as DEC
+  usecase "RF03.02\nVotar ou\nalterar voto" as V2
+  usecase "Verificar entrada\nregistrada na reunião" as CHK
 }
-G -- RF03_01
-P -- RF03_02
-G -- RF03_03
-U -- RF03_04
-U -- RF03_05
-G -- RF03_06
-G -- RF03_07
-G -- RF03_08
-C -- RF03_08
-G -- RF03_09
-C -- RF03_09
-G -- RF03_10
-C -- RF03_11
-G -- RF03_11
 G -- ATA
 G -- SUB
+G -- V1
+G -- V3
+U -- PDF
+U -- REL
+U -- MAN
 P -- DEC
+P -- V2
+SUB ..> CHK : <<include>>
+V1 ..> CHK : <<include>>
+DEC ..> CHK : <<include>>
+V2 ..> CHK : <<include>>
+PDF ..> ATA : <<extend>>
 @enduml

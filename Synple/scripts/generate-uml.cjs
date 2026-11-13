@@ -536,7 +536,12 @@ end note
 `;
 
 Object.assign(diagrams, require('./delivery-uml.cjs'));
+// Diagramas revisados à mão a partir do código (13/11/2026): a fonte .puml é a referência e não é sobrescrita.
+const MANUAL = new Set(['uc-incremento-3', 'uc-incremento-3-ajustes', 'classes-incremento-3', 'seq-ata', 'seq-pdf', 'seq-cadastro', 'seq-login',
+  'seq-recuperacao', 'seq-convite-org', 'seq-transferencia', 'seq-sincronizacao', 'seq-comando', 'seq-votacoes', 'seq-relatorio-participacao', 'seq-manual-consulta']);
+for (const name of MANUAL) if (!diagrams[name]) diagrams[name] = '';
 for(const [name,raw] of Object.entries(diagrams)) {
+ if (MANUAL.has(name)) continue;
  const text = raw.replace(/"[^"]*"/g, m => m.replace(/\n/g, '\\n'))
    .replace(/class (\w+) \{ ([^{}\n]+) \}/g, 'class $1 {\n $2\n}')
    .replace(/enum (\w+) \{ ([^{}\n]+) \}/g, (_,name,values) => `enum ${name} {\n ${values.split(';').map(s=>s.trim()).join('\n ')}\n}`)

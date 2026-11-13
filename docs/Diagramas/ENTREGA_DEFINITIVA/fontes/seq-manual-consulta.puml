@@ -1,14 +1,23 @@
 @startuml
 !pragma layout smetana
+skinparam backgroundColor white
 skinparam shadowing false
+skinparam defaultFontName SansSerif
 skinparam defaultFontSize 13
-title Consultar manual local
-actor Usuário as U
-participant NavigationTabs as NAV
-participant App
-participant ManualScreen as Manual
-U -> NAV: onOpenManual()
-NAV -> App: setScreen(manual)
-App -> Manual: ManualScreen()
-Manual --> U: Tópicos de utilização
+skinparam ArrowColor #334155
+skinparam roundcorner 5
+skinparam dpi 130
+skinparam sequenceMessageAlign left
+hide footbox
+autonumber
+title Consultar manual digital (RF03.05)
+actor "Usuário autenticado" as U
+participant "NavigationTabs.js" as Nav
+participant "App.js" as App
+participant "ManualScreen.js" as M
+U -> Nav : onOpenManual()
+Nav -> App : setScreen("manual")
+App -> M : ManualScreen()
+M -> M : TOPICS.map(([title, content]) => card)
+M --> U : tópicos do manual (sem chamada à API)
 @enduml

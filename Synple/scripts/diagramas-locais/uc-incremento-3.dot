@@ -1,0 +1,29 @@
+digraph UC {
+  rankdir=LR; nodesep=0.35; ranksep=1.1;
+  graph [fontname="DejaVu Sans", fontsize=15, label="Casos de uso — Incremento 3: ata, votação, relatório e manual", labelloc=t];
+  node [fontname="DejaVu Sans", fontsize=11];
+  edge [fontname="DejaVu Sans", fontsize=10, color="#334155", arrowhead=none];
+  G [shape=none, width=1.9, height=1.25, label="\n\n\nPresidente da comissão\n(coordenador ou proprietário)"];
+  U [shape=none, width=1.6, height=1.1, label="\n\n\nUsuário autenticado"];
+  P [shape=none, width=1.9, height=1.25, label="\n\n\nParticipante da reunião\n(entrada registrada)"];
+  {rank=same; G; U; P}
+  G -> U [arrowhead=empty, arrowsize=1.3, constraint=false];
+  P -> U [arrowhead=empty, arrowsize=1.3, constraint=false];
+  subgraph cluster_sys {
+    label="Synple"; fontsize=14; style=rounded; color="#334155"; penwidth=1.4; margin=16;
+    node [shape=ellipse, style=filled, fillcolor="#F8FAFC", color="#334155"];
+    ATA [label="RF02.07\nCriar ou corrigir ata"]; SUB [label="RF02.08\nSubmeter ata\npara aprovação"];
+    V1 [label="RF03.01\nAbrir votação"]; V3 [label="RF03.03\nEncerrar votação"];
+    PDF [label="RF02.10\nGerar PDF da ata"]; REL [label="RF03.04\nConsultar relatório\nindividual de participação"]; MAN [label="RF03.05\nConsultar manual\nde utilização"];
+    DEC [label="RF02.09\nAprovar ou\nreprovar ata"]; V2 [label="RF03.02\nVotar ou\nalterar voto"];
+    CHK [label="Verificar entrada\nregistrada na reunião"];
+  }
+  G -> ATA; G -> SUB; G -> V1; G -> V3;
+  U -> PDF; U -> REL; U -> MAN;
+  P -> DEC; P -> V2;
+  SUB -> CHK [style=dashed, arrowhead=vee, label="«include»"];
+  V1 -> CHK [style=dashed, arrowhead=vee, label="«include»"];
+  DEC -> CHK [style=dashed, arrowhead=vee, label="«include»"];
+  V2 -> CHK [style=dashed, arrowhead=vee, label="«include»"];
+  PDF -> ATA [style=dashed, arrowhead=vee, label="«extend»", constraint=false];
+}

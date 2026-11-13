@@ -5,33 +5,46 @@ skinparam shadowing false
 skinparam defaultFontName SansSerif
 skinparam defaultFontSize 13
 skinparam ArrowColor #334155
-skinparam packageStyle rectangle
-skinparam classAttributeIconSize 0
 skinparam roundcorner 5
 skinparam dpi 130
-title SQ01 — cadastro e ativação
+skinparam sequenceMessageAlign left
+hide footbox
 autonumber
-actor Pessoa
-participant "App Synple" as App
-participant "API Express" as API
-database PostgreSQL as DB
-participant SMTP
-Pessoa -> App : Preenche cadastro e toca Criar conta
-App -> App : Valida nome, e-mail, telefone e confirmação
-App -> API : POST /auth/register
-API -> DB : Verifica duplicidade de e-mail
-API -> API : Valida dados e gera código de seis dígitos
-API -> SMTP : Envia código de ativação
-alt envio aceito
- API -> DB : INSERT conta pendente com bcrypt e hash do código
- API --> App : 201 requiresActivation=true
- App --> Pessoa : Abre etapa Ativar conta
-else SMTP indisponível
- API --> App : 503; conta não criada
+title SQ01 — cadastrar conta e ativar por código (RF07, RF21)
+actor Visitante as V
+participant "LoginScreen.js" as UI
+participant "App.js" as App
+participant "services/api.js" as Api
+participant "routes/auth.js" as Auth
+participant "services/mailer.js" as Mail
+database "PostgreSQL" as DB
+V -> UI : onPress("Criar conta")
+UI -> UI : validar campos → registrationErrors
+UI -> App : registerUser(form)
+App -> App : validateRegistration(form)
+App -> Api : registerWithApi({name, email, phone, password})
+Api -> Auth : POST /api/auth/register
+Auth -> Auth : normalizeEmail(email)
+Auth -> DB : query("SELECT id FROM users WHERE LOWER(email) = $1")
+alt e-mail já cadastrado
+ Auth --> Api : 409 {error}
+else dados válidos
+ Auth -> Auth : crypto.randomInt(100000, 1000000)
+ Auth -> Mail : sendActivationEmail(email, code)
+ alt envio falhou
+  Auth --> Api : 503 {error}
+ else envio aceito
+  Auth -> Auth : bcrypt.hash(password, 10)
+  Auth -> DB : query("INSERT INTO users (..., email_verified=FALSE, activation_hash, activation_expires)")
+  Auth --> Api : 201 {requiresActivation: true}
+ end
 end
-Pessoa -> App : Informa código e toca Confirmar código
-App -> API : POST /auth/verify-email
-API -> DB : UPDATE condicionado a hash e prazo válidos
-API --> App : 200 ou 400
-App --> Pessoa : Solicita login após ativação
+Api --> App : {success, requiresActivation}
+App --> UI : {success}
+V -> UI : onPress("Confirmar código")
+UI -> Api : authRequest("verify-email", {email, code})
+Api -> Auth : POST /api/auth/verify-email
+Auth -> DB : query("UPDATE users SET email_verified=TRUE WHERE activation_hash=$2 AND activation_expires > NOW()")
+Auth --> Api : 200 {success} | 400 {error}
+Api --> UI : {success}
 @enduml
