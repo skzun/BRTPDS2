@@ -50,6 +50,20 @@ test('dia todo converte intervalo local para término exclusivo e preserva detal
   assert.equal(new Date(meeting.startsAt).getHours(),0); assert.equal(new Date(meeting.endsAt).getDate(),13);
 });
 
+test('bloqueia 14/11 a 13/11 e aceita término válido, inclusive no modo dia todo', () => {
+  const now = new Date(2026, 10, 12, 12);
+  const form = { title: 'Reunião', agenda: 'Planejamento', startsAt: '14/11/2026 10:00', endsAt: '13/11/2026 11:00' };
+  for (const allDay of [false, true]) {
+    const invalid = buildMeetingPayload({ ...form, allDay }, 'c', [], now);
+    assert.ok(invalid.fields.endsAt);
+    assert.equal(invalid.meeting, undefined);
+    assert.ok(buildMeetingPayload({ ...form, allDay, endsAt: '14/11/2026 11:00' }, 'c', [], now).meeting);
+    assert.ok(buildMeetingPayload({ ...form, allDay, endsAt: '15/11/2026 11:00' }, 'c', [], now).meeting);
+  }
+  assert.ok(buildMeetingPayload({ ...form, endsAt: '14/11/2026 09:00' }, 'c', [], now).fields.endsAt);
+  assert.ok(buildMeetingPayload({ ...form, endsAt: form.startsAt }, 'c', [], now).fields.endsAt);
+});
+
 test('unanimidade inclui presidente e quem saiu, ignora votos de versões anteriores e de ausentes', () => {
   const minutes = { id: 'min', version: 2 };
   const summary = getMinutesVotingSummary(minutes, [

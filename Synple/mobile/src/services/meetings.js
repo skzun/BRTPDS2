@@ -22,7 +22,11 @@ function buildMeetingPayload(form, commissionId, inviteeIds = [], now = new Date
   if (!start || startDay < today || (!form.allDay && start <= new Date(now))) {
     fields.startsAt = form.allDay ? 'Escolha hoje ou uma data futura.' : 'Escolha hoje ou um horário futuro.';
   }
-  if (!end || (start && end <= start)) fields.endsAt = 'O término deve ser posterior ao início.';
+  if (!end || (start && end <= start)) {
+    fields.endsAt = form.allDay
+      ? 'A data de término não pode ser anterior à data de início.'
+      : 'A data e o horário de término devem ser posteriores ao início.';
+  }
   if ((form.location || '').length > 300) fields.location = 'Use até 300 caracteres.';
   if ((form.details || '').length > 4000) fields.details = 'Use até 4.000 caracteres.';
   if (Object.keys(fields).length) return { fields, error: Object.values(fields).join('\n') };
