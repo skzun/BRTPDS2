@@ -1,6 +1,6 @@
 digraph UC {
   rankdir=LR; nodesep=0.35; ranksep=1.3;
-  graph [fontname="DejaVu Sans", fontsize=15, label="Casos de uso — Incremento 3: ajustes pedidos nas avaliações", labelloc=t];
+  graph [fontname="DejaVu Sans", fontsize=15, label="Casos de uso — Incremento 3: melhorias de agendamento, presença e arquivos", labelloc=t];
   node [fontname="DejaVu Sans", fontsize=11];
   edge [fontname="DejaVu Sans", fontsize=10, color="#334155", arrowhead=none];
   G [shape=none, width=1.9, height=1.25, label="\n\n\nPresidente da comissão\n(coordenador ou proprietário)"];

@@ -148,7 +148,7 @@ API privada com prefixo `/api` e Bearer de sessão. Rotas: POST `/meetings/:meet
 ## Diagramas e dicionários
 
 - Casos de uso — ata, votação, relatório e manual: [imagem](Diagramas/ENTREGA_DEFINITIVA/renderizados/uc-incremento-3.svg) · [fonte](Diagramas/ENTREGA_DEFINITIVA/fontes/uc-incremento-3.puml)
-- Casos de uso — ajustes pedidos nas avaliações: [imagem](Diagramas/ENTREGA_DEFINITIVA/renderizados/uc-incremento-3-ajustes.svg) · [fonte](Diagramas/ENTREGA_DEFINITIVA/fontes/uc-incremento-3-ajustes.puml)
+- Casos de uso — melhorias de agendamento, presença e arquivos: [imagem](Diagramas/ENTREGA_DEFINITIVA/renderizados/uc-incremento-3-ajustes.svg) · [fonte](Diagramas/ENTREGA_DEFINITIVA/fontes/uc-incremento-3-ajustes.puml)
 - Classes de projeto (código): [imagem](Diagramas/ENTREGA_DEFINITIVA/renderizados/classes-incremento-3.svg) · [fonte](Diagramas/ENTREGA_DEFINITIVA/fontes/classes-incremento-3.puml)
 - Modelo relacional: [imagem](Diagramas/ENTREGA_DEFINITIVA/renderizados/relacional-incremento-3.svg) · [fonte](Diagramas/ENTREGA_DEFINITIVA/fontes/relacional-incremento-3.puml)
 - Sequência — ata: [imagem](Diagramas/ENTREGA_DEFINITIVA/renderizados/seq-ata.svg) · [fonte](Diagramas/ENTREGA_DEFINITIVA/fontes/seq-ata.puml)

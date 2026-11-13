@@ -16,7 +16,7 @@
     },
     {
       "file": "renderizados/classes-incremento-3.svg",
-      "sha256": "82ef435b828d24a70dc191964df7c073176243670a302bdd44418dfc3c4b2d6d"
+      "sha256": "fb786941d268dfe850788730dfc9d8fc3f3f6aa156e3634666a134ef67e78ad0"
     },
     {
       "file": "fontes/classes-reunioes.puml",
@@ -96,7 +96,7 @@
     },
     {
       "file": "renderizados/seq-ata.svg",
-      "sha256": "7f2293a87a2a649d47d6823f45d255f9084e1453eb7a93b38291ee903a11cc0e"
+      "sha256": "e7b6020b17d1383852862a7e0472ce7cbf1b11ef8842ff7d5f81d9a4ce83e865"
     },
     {
       "file": "fontes/seq-biometria.puml",
@@ -112,7 +112,7 @@
     },
     {
       "file": "renderizados/seq-cadastro.svg",
-      "sha256": "a03a29223c0ea9aa244d2a83b5ce2ea047f07511fc104c56158f503b4153591e"
+      "sha256": "21aa5b22b625029bf08be6571f764dfa20c6bec75e03818d29940f015feb1e7b"
     },
     {
       "file": "fontes/seq-comando.puml",
@@ -120,7 +120,7 @@
     },
     {
       "file": "renderizados/seq-comando.svg",
-      "sha256": "bdd6de993cfe0d984b5f0cc009c1ca177103642391ccc604e3be66e1409ec24c"
+      "sha256": "21fb812783f1df5382057d4fb8218b1c302ab7e04723e90e10707f55010b0d2d"
     },
     {
       "file": "fontes/seq-convite-org.puml",
@@ -128,7 +128,7 @@
     },
     {
       "file": "renderizados/seq-convite-org.svg",
-      "sha256": "8eec91c0bed65cf6392d6e251eca914c87686c1177bbb042e6c8cb69999cd134"
+      "sha256": "67d42b27b3d69d46dcf38324e2402f4d492aeebf086e77764c63d88211f27489"
     },
     {
       "file": "fontes/seq-editar-reuniao.puml",
@@ -144,7 +144,7 @@
     },
     {
       "file": "renderizados/seq-login.svg",
-      "sha256": "ee481e6f36bb1953663d0781e569581b79b5f3b18db890c4c6836f02a302a71a"
+      "sha256": "168913755fe6d5507431cdc584c44bc747ab489e3631e0a40d4c92997fd00915"
     },
     {
       "file": "fontes/seq-manual-consulta.puml",
@@ -152,7 +152,7 @@
     },
     {
       "file": "renderizados/seq-manual-consulta.svg",
-      "sha256": "21b9a71f876592ee81c50015f53765afde1ba1d94b3388b07348163abc533989"
+      "sha256": "f8e532ff276237e53c58a40eb979bced118a48c6383df6d37e45c1937fd46e4e"
     },
     {
       "file": "fontes/seq-pdf.puml",
@@ -160,7 +160,7 @@
     },
     {
       "file": "renderizados/seq-pdf.svg",
-      "sha256": "ceffa906567b5c40604e0952d3abf9c47aeff5390789bd63835e438402eb8134"
+      "sha256": "8c97a108475aac109b9d9aa427b3da2ed950b5dad92c92b583097726226e4dc1"
     },
     {
       "file": "fontes/seq-presenca-pdf.puml",
@@ -184,7 +184,7 @@
     },
     {
       "file": "renderizados/seq-recuperacao.svg",
-      "sha256": "8ae0f2e41083d78475bc10834974096bbaaac9ff8c4d741decad149239160781"
+      "sha256": "2567c00c0616fd4b098fb8c5536aef58afd6f929fb0c491d0b74da940f874105"
     },
     {
       "file": "fontes/seq-relatorio-participacao.puml",
@@ -192,7 +192,7 @@
     },
     {
       "file": "renderizados/seq-relatorio-participacao.svg",
-      "sha256": "891204301ffd2df130dc5fdf7f1056ae3e2fb7c8781023e3f657663fa7073e1e"
+      "sha256": "171cfe3280d9c523345f6826bf6b4a7acd3011a1c810757d4f44183ec3aa08f0"
     },
     {
       "file": "fontes/seq-sincronizacao.puml",
@@ -200,7 +200,7 @@
     },
     {
       "file": "renderizados/seq-sincronizacao.svg",
-      "sha256": "2e9a202a3d61351e14ca6829e7bd99e85ae3e90ee500afdfddc7068ecfdb726a"
+      "sha256": "d4ae2d19e06106a53a6d3668a0df750fb0d19a538db03317add8ce55ea20473c"
     },
     {
       "file": "fontes/seq-sistema.puml",
@@ -216,7 +216,7 @@
     },
     {
       "file": "renderizados/seq-transferencia.svg",
-      "sha256": "ab0d0cfd06d7b879518d2e79f4d0fd52eb3b1f4b7cf151d323a4c946395a9fe1"
+      "sha256": "0e672385484723fe7949403764407fb564b06de3a90d41664d4744a62ffd5805"
     },
     {
       "file": "fontes/seq-votacoes.puml",
@@ -224,7 +224,7 @@
     },
     {
       "file": "renderizados/seq-votacoes.svg",
-      "sha256": "47399528021110a7f02696515e93bb3e6b8d8f059129f1c4581e7de9b22e1618"
+      "sha256": "ae9a5368273287e0fa967cde74cb3d17ff4e995411d2693939f02f5f1d536cbb"
     },
     {
       "file": "fontes/uc-autenticacao.puml",
@@ -240,15 +240,15 @@
     },
     {
       "file": "renderizados/uc-incremento-3.svg",
-      "sha256": "4c8224bd52119e1ac058a17799ba4dbe403eba8c0403d8999025be38a711e561"
+      "sha256": "8d9eaa1d66e0c6d3be44b19c542c3ca4c744ae94010ffc5c79217eaab43c04d4"
     },
     {
       "file": "fontes/uc-incremento-3-ajustes.puml",
-      "sha256": "c6b5b2fc06231032730186d7aaac5f54f5c1ad73fb66dc60cc96655587d117bb"
+      "sha256": "821c42dc5f9ee71307bfa0264899f453880fe3cc8d2d30af71bed40f80c65bbd"
     },
     {
       "file": "renderizados/uc-incremento-3-ajustes.svg",
-      "sha256": "3ce008b13e553eb3ae829a0b1c3f6153145c9d7eef2b7e2550e92fd90a8fdc26"
+      "sha256": "d10e6f83a4750392936d74da821cea90b0a519bb37509cad648424189552afff"
     },
     {
       "file": "fontes/uc-operacao.puml",

@@ -50,7 +50,7 @@ Exemplo fictício de preferência em snapshot/cache: { "users": [{ "id": "uuid-d
 | Administrador do sistema | system_role=SYSTEM_ADMIN, para gestão sistêmica e dados operacionais |
 | Proprietário da organização | organizations.owner_id; papel contextual, transferível, não equivale a SYSTEM_ADMIN |
 | Coordenador de comissão | commission_members.role=COORDINATOR; gestor contextual da reunião junto ao proprietário |
-| Presidente da comissão | Nome usado nos slides do Incremento 3 para quem gerencia a reunião: o coordenador da comissão ou o proprietário da organização. Cria, corrige e envia a ata; abre e encerra votações; edita reunião futura; anexa arquivos; gera código de presença e registra entrada/saída de participantes |
+| Presidente da comissão | Nome usado no aplicativo para quem gerencia a reunião: o coordenador da comissão ou o proprietário da organização. Cria, corrige e envia a ata; abre e encerra votações; edita reunião futura; anexa arquivos; gera código de presença e registra entrada/saída de participantes |
 | Participante da reunião | Convidado com entrada registrada (`meeting_attendance.entered_at`). Vota nas votações abertas e, se estava presente no envio da ata, aprova ou reprova a versão |
 | Convidado de reunião | Pessoa em meeting_invitations; acesso histórico pode permanecer após remoção da comissão |
 | Aprovador da ata | Pessoa com entrada até submissão, fixada em required_approver_ids; cargo não substitui presença/decisão |
@@ -72,7 +72,7 @@ Os atores ficam fora da fronteira Synple. Linhas representam associações; tri�
 
 ![Incremento 3 — ata, votação, relatório e manual](Diagramas/ENTREGA_DEFINITIVA/renderizados/uc-incremento-3.svg)
 
-![Incremento 3 — ajustes pedidos nas avaliações](Diagramas/ENTREGA_DEFINITIVA/renderizados/uc-incremento-3-ajustes.svg)
+![Incremento 3 — melhorias de agendamento, presença e arquivos](Diagramas/ENTREGA_DEFINITIVA/renderizados/uc-incremento-3-ajustes.svg)
 
 Fontes editáveis e todas as imagens: [catálogo dos diagramas](Diagramas/Diagramas_Casos_de_Uso.md). Referência normativa: [UML 2.5.1 — OMG](https://www.omg.org/spec/UML/2.5.1/About-UML).
 

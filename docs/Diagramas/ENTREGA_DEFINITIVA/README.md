@@ -1,10 +1,10 @@
 # Diagramas — Entrega definitiva
 
-Pacote vigente selecionado e organizado em 12/11/2026: **34 diagramas**, com fontes PlantUML editáveis e imagens SVG. Use esta pasta na entrega ao professor.
+Pacote vigente selecionado e organizado em 12/11/2026: **34 diagramas**, com fontes PlantUML editáveis e imagens SVG.
 
 ## Revisão de 13/11/2026
 
-Revisados a partir do código, conforme a avaliação de 29/10 (classes e mensagens de sequência devem ser as reais): `uc-incremento-3` (dividido em requisitos do slide e `uc-incremento-3-ajustes`), `classes-incremento-3` e as sequências `seq-ata`, `seq-pdf`, `seq-votacoes`, `seq-relatorio-participacao`, `seq-manual-consulta`, `seq-cadastro`, `seq-login`, `seq-recuperacao`, `seq-convite-org`, `seq-transferencia`, `seq-sincronizacao` e `seq-comando`. Nesses diagramas os participantes são os arquivos/módulos do código e cada mensagem é uma chamada existente (função, rota HTTP ou consulta SQL). As imagens SVG desses diagramas foram geradas localmente a partir das fontes `.puml` (Graphviz para casos de uso e classes; gerador de sequência do projeto para as sequências), por isso o visual difere levemente dos demais. `Synple/scripts/generate-uml.cjs` não sobrescreve essas fontes.
+Revisados a partir do código (participantes e mensagens de sequência são os módulos e chamadas reais): `uc-incremento-3` (dividido em requisitos do slide e `uc-incremento-3-ajustes`), `classes-incremento-3` e as sequências `seq-ata`, `seq-pdf`, `seq-votacoes`, `seq-relatorio-participacao`, `seq-manual-consulta`, `seq-cadastro`, `seq-login`, `seq-recuperacao`, `seq-convite-org`, `seq-transferencia`, `seq-sincronizacao` e `seq-comando`. Nesses diagramas os participantes são os arquivos/módulos do código e cada mensagem é uma chamada existente (função, rota HTTP ou consulta SQL). As imagens SVG desses diagramas foram geradas localmente a partir das fontes `.puml` (Graphviz para casos de uso e classes; gerador de sequência do projeto para as sequências), por isso o visual difere levemente dos demais. `Synple/scripts/generate-uml.cjs` não sobrescreve essas fontes.
 
 ## Critério de seleção
 

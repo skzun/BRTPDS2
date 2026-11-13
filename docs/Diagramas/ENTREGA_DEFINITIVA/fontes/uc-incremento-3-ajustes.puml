@@ -8,7 +8,7 @@ skinparam ArrowColor #334155
 skinparam roundcorner 5
 skinparam dpi 130
 left to right direction
-title Casos de uso — Incremento 3: ajustes pedidos nas avaliações
+title Casos de uso — Incremento 3: melhorias de agendamento, presença e arquivos
 actor "Presidente da comissão\n(coordenador ou proprietário)" as G
 actor "Convidado da reunião\n(convite aceito)" as C
 rectangle "Synple" {

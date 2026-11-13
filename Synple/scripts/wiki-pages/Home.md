@@ -12,20 +12,23 @@ O aplicativo utiliza uma API Node.js e PostgreSQL. Login, consultas e alteraçõ
 - [E-mail e recuperação](Email-e-Recuperacao)
 - [Contas e demonstração](Usuarios-de-Teste)
 
-## Entrega acadêmica
+## Documentação técnica
 
-- [Solicitações do professor e situação de atendimento](Solicitacoes-do-professor)
+- [Especificação: requisitos, casos de uso e RNFs](Especificacao)
+- [Reuniões, presença e atas](Reunioes-e-Atas)
+- [Votações, relatório e manual](Votacoes-Relatorio-e-Manual)
 - [Matriz dos 49 requisitos](Rastreabilidade)
-- [Incremento 1: requisitos, casos de uso e RNFs](Incremento-1)
-- [Incremento 2: reuniões, presença e atas](Incremento-2)
-- [Incremento 3: votações, relatório e manual](Incremento-3)
-- [Diagramas da entrega definitiva](Diagramas), [classes](Dicionario-de-Classes) e [banco de dados](Dicionario-do-Banco)
+- [Diagramas](Diagramas), [classes](Dicionario-de-Classes) e [banco de dados](Dicionario-do-Banco)
 - [Interfaces](Interface-e-UX), [arquitetura](Arquitetura-e-Tecnologias), [padrões de código](Padroes-de-Codigo) e [análise de mercado](Analise-de-Mercado)
-- [Testes e evidências atuais](Testes) e [validação em aparelhos](Validacao-em-Aparelhos)
+- [Testes](Testes) e [validação em aparelhos](Validacao-em-Aparelhos)
 - [Estado atual e pendências](Estado-atual-e-pendencias)
+
+## Como contribuir
+
+Abra uma issue descrevendo o problema ou a proposta, crie um branch a partir de `main` e envie um pull request com testes (`npm test` em `Synple/mobile` e `Synple/backend`). Siga os [padrões de código](Padroes-de-Codigo) e mantenha a documentação em `docs/` junto com a mudança.
 
 ## Manutenção
 
 Os documentos técnicos ficam em `BRTPDS2/docs`; o código em `BRTPDS2/Synple`. A Wiki é uma publicação dessas fontes, com orientações operacionais e uma revisão do estado atual. Consulte o [mapa de pastas](Organizacao-do-Projeto).
 
-Referência do código revisado: [{{REVISION}}]({{SOURCE}}). Resultados de verificações anteriores têm suas próprias datas e não substituem validação da versão instalada. A documentação não declara aceite institucional, testes físicos ou entrevistas ainda não registrados.
+Referência do código revisado: [{{REVISION}}]({{SOURCE}}). Resultados de verificações anteriores têm suas próprias datas e não substituem validação da versão instalada. Testes físicos em aparelhos e entrevistas com usuários ainda não foram registrados.

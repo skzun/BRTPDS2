@@ -7,13 +7,12 @@
 - [E-mail](Email-e-Recuperacao)
 - [Contas de demonstração](Usuarios-de-Teste)
 
-### Entrega
+### Documentação
 
-- [Pedidos do professor](Solicitacoes-do-professor)
+- [Especificação](Especificacao)
+- [Reuniões e atas](Reunioes-e-Atas)
+- [Votações e relatório](Votacoes-Relatorio-e-Manual)
 - [Rastreabilidade](Rastreabilidade)
-- [Incremento 1](Incremento-1)
-- [Incremento 2](Incremento-2)
-- [Incremento 3](Incremento-3)
 - [Diagramas](Diagramas)
 - [Classes](Dicionario-de-Classes)
 - [Banco](Dicionario-do-Banco)

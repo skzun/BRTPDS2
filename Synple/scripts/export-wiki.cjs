@@ -7,10 +7,30 @@ const target = process.argv[2];
 const revision = process.argv[3];
 if (!target || !/^[a-f0-9]{40}$/.test(revision || '')) throw new Error('Uso: node scripts/export-wiki.cjs <clone-wiki> <SHA-codigo>');
 if (!fs.existsSync(path.join(target, '.git'))) throw new Error('O destino deve ser um clone da Wiki.');
+
+// A Wiki é publicada como documentação de projeto open source: sem referências a disciplina,
+// professor, slides ou entrega acadêmica. As páginas acadêmicas continuam no repositório (docs/).
+const OMITIDAS = new Set(['Solicitacoes-do-professor', 'Verificacao-Incremento-3']);
+const ACADEMICO = /limites de entrega|professor|\bslides?\d*\b|\.pptx|disciplina|institucional|formulário padrão|entrega acadêmica|apresentação em 13\/11|envio até 18h/i;
+function visivel(line) { return line.replace(/\]\([^)]*\)/g, ']').replace(/`[^`]*`/g, ''); }
+function publico(text) {
+  text = text.replace(/\[([^\]]*)\]\((?:Solicitacoes-do-professor|Verificacao-Incremento-3)(?:#[^)]*)?\)/g, '$1');
+  const linhas = text.split('\n').filter(line => !ACADEMICO.test(visivel(line)));
+  return linhas.map(line => line.split(/(\]\([^)]*\)|`[^`]*`)/).map((part, i) => i % 2 ? part : part
+    .replace(/(?<![-\w])Incrementos(?![-\w])/g, 'Módulos').replace(/(?<![-\w])incrementos(?![-\w])/g, 'módulos')
+    .replace(/(?<![-\w])Incremento(?=\s+\d)/g, 'Módulo').replace(/(?<![-\w])incremento(?=\s+\d)/g, 'módulo')
+    .replace(/\b(do|no|o|O|este|Este|deste|neste|desse|cada|um|novo|próprio|último|próximo)\s+incremento(?![-\w])/g, '$1 módulo')
+    .replace(/Entrega definitiva/g, 'Versão atual').replace(/entrega definitiva/g, 'versão atual')
+    .replace('identifica a versão escolhida para entregar', 'identifica o conjunto vigente')
+    .replace('para rastrear a entrega anterior', 'para rastrear a versão anterior')
+    .replace('Pacote dos diagramas para entrega', 'Pacote dos diagramas')
+    .replace(/^# Synple — Módulo 3$/, '# Synple — Votações, relatório e manual')
+  ).join('')).join('\n').replace(/\n{3,}/g, '\n\n');
+}
 const pages = {
-  'Incremento-1': 'docs/incremento-1-especificacao-completa.md',
-  'Incremento-2': 'docs/INCREMENTO_2.md',
-  'Incremento-3': 'docs/INCREMENTO_3.md',
+  'Especificacao': 'docs/incremento-1-especificacao-completa.md',
+  'Reunioes-e-Atas': 'docs/INCREMENTO_2.md',
+  'Votacoes-Relatorio-e-Manual': 'docs/INCREMENTO_3.md',
   'Interface-e-UX': 'docs/INTERFACES.md',
   'Padroes-de-Codigo': 'docs/PADROES_DESENVOLVIMENTO.md',
   'Analise-de-Mercado': 'docs/Analise_de_Mercado.md',
@@ -20,7 +40,6 @@ const pages = {
   'Dicionario-do-Banco': 'docs/dicionario-banco-dados.md',
   'Organizacao-do-Projeto': 'docs/ORGANIZACAO_DO_PROJETO.md',
   'Validacao-em-Aparelhos': 'docs/VALIDACAO_EM_APARELHOS.md',
-  'Verificacao-Incremento-3': 'docs/VERIFICACAO_INCREMENTO_3.md',
   'Email-e-Recuperacao': 'docs/guias/EMAIL_RECOVERY_SETUP.md',
 };
 const base = `https://github.com/skzun/BRTPDS2/blob/${revision}/`;
@@ -49,13 +68,14 @@ for (const [page, file] of Object.entries(pages)) {
     .replaceAll('Open-Source / Custo Zero', 'Proposta de código aberto')
     .replaceAll('UX mobile limpa, integração local, 100% gratuito', 'Interface mobile e integração local; custos de infraestrutura variáveis')
     .replace(/\r\n/g, '\n').replace(/[\t ]+$/gm, '').trimEnd() + '\n';
-  fs.writeFileSync(path.join(target, page + '.md'), `> Referência documental do código ${revision.slice(0, 7)}, com erratas editoriais desta revisão. Para alterações recentes e limites de validação, consulte [Estado atual e pendências](Estado-atual-e-pendencias).\n\n${content}`);
+  fs.writeFileSync(path.join(target, page + '.md'), `> Referência documental do código ${revision.slice(0, 7)}, com erratas editoriais desta revisão. Para alterações recentes e limites de validação, consulte [Estado atual e pendências](Estado-atual-e-pendencias).\n\n${publico(content)}`);
   manifest.push({page, source:file, sha256:crypto.createHash('sha256').update(source).digest('hex')});
 }
 for (const entry of fs.readdirSync(path.join(__dirname, 'wiki-pages'))) {
   if (!entry.endsWith('.md')) continue;
+  if (OMITIDAS.has(entry.slice(0, -3))) continue;
   const source = fs.readFileSync(path.join(__dirname, 'wiki-pages', entry), 'utf8');
-  fs.writeFileSync(path.join(target, entry), source.replaceAll('{{SOURCE}}', base).replaceAll('{{REVISION}}', revision));
+  fs.writeFileSync(path.join(target, entry), publico(source.replaceAll('{{SOURCE}}', base).replaceAll('{{REVISION}}', revision)));
   manifest.push({page:entry.slice(0,-3), source:'Synple/scripts/wiki-pages/'+entry, sha256:crypto.createHash('sha256').update(source).digest('hex')});
 }
 const requirements = JSON.parse(fs.readFileSync(path.join(root, 'docs/requisitos.snapshot.json'), 'utf8'));
@@ -70,7 +90,7 @@ for(const component of ['mobile','backend']) {
 const config=JSON.parse(fs.readFileSync(path.join(root,'Synple/mobile/app.json'),'utf8')).expo;
 versions+=`## Aplicativo e infraestrutura\n\nVersão Expo configurada: ${config.version}. Pacote Android: ${config.android.package}. Bundle iOS: ${config.ios.bundleIdentifier}. O Compose declara PostgreSQL 16; tags de imagem não fixam patch. O inicializador exige Node 22.13+. Os mínimos Android API 24/iOS 16.4 declarados em BuildProperties precisam ser conferidos na build gerada e não são garantia de compatibilidade de todos os módulos.\n`;
 fs.writeFileSync(path.join(target,'Versoes.md'),versions);
-fs.writeFileSync(path.join(target, 'Rastreabilidade.md'), '# Rastreabilidade dos requisitos\n\nOs requisitos e casos de uso são apresentados separadamente. Esta matriz relaciona os 49 requisitos às entradas, contratos e sequências do código de referência. As fichas completas estão na [especificação](Incremento-1). Situações divergentes estão em [Estado atual](Estado-atual-e-pendencias).\n\n| ID | Requisito | Ator | Contrato | Sequência |\n| --- | --- | --- | --- | --- |\n'+requirements.map(r=>`| ${r.id} | ${r.name} | ${r.actor} | ${r.api.replaceAll('|','/')} | [${r.sequence}](${base}docs/Diagramas/ENTREGA_DEFINITIVA/fontes/${r.sequence}.puml) |`).join('\n')+'\n');
+fs.writeFileSync(path.join(target, 'Rastreabilidade.md'), '# Rastreabilidade dos requisitos\n\nOs requisitos e casos de uso são apresentados separadamente. Esta matriz relaciona os 49 requisitos às entradas, contratos e sequências do código de referência. As fichas completas estão na [especificação](Especificacao). Situações divergentes estão em [Estado atual](Estado-atual-e-pendencias).\n\n| ID | Requisito | Ator | Contrato | Sequência |\n| --- | --- | --- | --- | --- |\n'+requirements.map(r=>`| ${r.id} | ${r.name} | ${r.actor} | ${r.api.replaceAll('|','/')} | [${r.sequence}](${base}docs/Diagramas/ENTREGA_DEFINITIVA/fontes/${r.sequence}.puml) |`).join('\n')+'\n');
 fs.writeFileSync(path.join(target, 'fontes-documentais.json'), JSON.stringify({revision, pages:manifest},null,2)+'\n');
 let links=0;
 for(const file of fs.readdirSync(target).filter(f=>f.endsWith('.md'))) {
