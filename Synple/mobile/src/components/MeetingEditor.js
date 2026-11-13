@@ -25,7 +25,7 @@ export function MeetingEditor({ meeting, commissionId, inviteeIds = [], invitees
   const change = key => value => setForm(current => ({...current, [key]:value}));
   async function save() {
     const payload = buildMeetingPayload(form, commissionId, selectedIds);
-    setErrors(payload.fields || {}); setError('');
+    setErrors(payload.fields || {}); setError(payload.error || '');
     if (payload.error) return;
     setSaving(true);
     try {
@@ -36,17 +36,21 @@ export function MeetingEditor({ meeting, commissionId, inviteeIds = [], invitees
   }
   return <View style={styles.card}>
     <Text style={styles.cardTitle}>{meeting ? 'Editar reunião' : 'Agendar reunião'}</Text>
-    <Field label="Título" value={form.title} onChangeText={change('title')} maxLength={160} error={errors.title} editable={!saving} />
+    <Text style={styles.hint}>* Campos obrigatórios. Local, detalhes e convidados adicionais são opcionais.</Text>
+    <Field label="Título *" accessibilityLabel="Título, obrigatório" value={form.title} onChangeText={change('title')} maxLength={160} error={errors.title} editable={!saving} />
     <Text style={styles.label}>Dia todo</Text><Switch accessibilityLabel="Reunião de dia todo" value={form.allDay} onValueChange={change('allDay')} disabled={saving} />
-    <DateTimeField label="Início" value={form.startsAt} onChangeText={change('startsAt')} dateOnly={form.allDay} error={errors.startsAt} editable={!saving} />
-    <DateTimeField label="Término" value={form.endsAt} onChangeText={change('endsAt')} dateOnly={form.allDay} error={errors.endsAt} editable={!saving} />
+    <DateTimeField label="Início" required value={form.startsAt} onChangeText={change('startsAt')} dateOnly={form.allDay} error={errors.startsAt} editable={!saving} />
+    <DateTimeField label="Término" required value={form.endsAt} onChangeText={change('endsAt')} dateOnly={form.allDay} error={errors.endsAt} editable={!saving} />
     <Text style={styles.hint}>{form.allDay ? 'Selecione o primeiro e o último dia. A reunião termina à meia-noite do dia seguinte, no fuso do aparelho.' : 'Horários no fuso local do aparelho. Escolha um início futuro.'}</Text>
-    <Field label="Pauta" value={form.agenda} onChangeText={change('agenda')} multiline maxLength={10000} error={errors.agenda} editable={!saving} />
+    <Field label="Pauta *" accessibilityLabel="Pauta, obrigatória" value={form.agenda} onChangeText={change('agenda')} multiline maxLength={10000} error={errors.agenda} editable={!saving} />
     <Field label="Local (opcional)" value={form.location} onChangeText={change('location')} maxLength={300} error={errors.location} editable={!saving} />
     <Field label="Detalhes (opcional)" value={form.details} onChangeText={change('details')} multiline maxLength={4000} error={errors.details} editable={!saving} />
     {!meeting && <><Text style={styles.label}>Convidados da comissão</Text><View style={styles.actionRow}>{invitees.map(person=><Choice key={person.id} label={person.name} active={selectedIds.includes(person.id)} onPress={()=>{if(!saving)setSelectedIds(ids=>ids.includes(person.id)?ids.filter(id=>id!==person.id):[...ids,person.id]);}} />)}</View><Text style={styles.hint}>Toque para incluir ou retirar. O organizador participa automaticamente.</Text></>}
     {meeting && <Text style={styles.hint}>Ao editar, os convidados precisarão confirmar novamente o convite.</Text>}
-    {!!error && <Text accessibilityRole="alert" style={styles.hint}>{error}</Text>}
+    {!!error && <View accessibilityRole="alert" style={{ marginVertical: 12 }}>
+      <Text style={styles.rejectText}>Não foi possível salvar a reunião.</Text>
+      <Text style={styles.rejectText}>{error}</Text>
+    </View>}
     <Pressable disabled={saving} style={styles.primaryButton} onPress={save}><Text style={styles.primaryButtonText}>{saving ? 'Salvando…' : 'Salvar reunião'}</Text></Pressable>
     <Pressable disabled={saving} style={styles.secondaryButton} onPress={onCancel}><Text style={styles.secondaryButtonText}>Cancelar</Text></Pressable>
   </View>;

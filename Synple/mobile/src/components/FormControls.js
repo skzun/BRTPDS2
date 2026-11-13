@@ -44,7 +44,7 @@ export function Field({ label, value, onChangeText, placeholder, keyboardType = 
   );
 }
 
-export function DateTimeField({ label, value, onChangeText, editable = true, error, dateOnly = false }) {
+export function DateTimeField({ label, value, onChangeText, editable = true, error, dateOnly = false, required = false }) {
   const { styles: themeStyles } = useContext(ThemeContext);
   const [pickerMode, setPickerMode] = useState(null);
   const hasPicker = Platform.OS === 'android' ? !!TurboModuleRegistry.get('RNCDatePicker') : Platform.OS === 'ios' && !!UIManager.getViewManagerConfig('RNDateTimePicker');
@@ -60,7 +60,7 @@ export function DateTimeField({ label, value, onChangeText, editable = true, err
   };
   return (
     <View style={themeStyles.field}>
-      <Text style={themeStyles.label}>{label}</Text>
+      <Text style={themeStyles.label}>{label}{required ? ' *' : ''}</Text>
       {NativePicker && editable && <View style={themeStyles.actionRow}>
         <Pressable style={themeStyles.smallButton} onPress={() => setPickerMode('date')}><Text style={themeStyles.smallButtonText}>Escolher data</Text></Pressable>
         {!dateOnly && <Pressable style={themeStyles.smallButton} onPress={() => setPickerMode('time')}><Text style={themeStyles.smallButtonText}>Escolher horário</Text></Pressable>}
@@ -72,12 +72,12 @@ export function DateTimeField({ label, value, onChangeText, editable = true, err
       }} />}
       <View style={themeStyles.dateTimeRow}>
         <View style={themeStyles.dateTimeColumn}>
-          <Field label="Data" accessibilityLabel={`${label}: data`} value={date}
+          <Field label={required ? 'Data *' : 'Data'} accessibilityLabel={`${label}: data${required ? ', obrigatória' : ''}`} value={date}
             onChangeText={(text) => onChangeText(`${formatDateInput(text)} ${dateOnly ? '00:00' : time}`)}
             placeholder="DD/MM/AAAA" keyboardType="number-pad" autoCapitalize="none" maxLength={10} editable={editable} />
         </View>
         {!dateOnly && <View style={themeStyles.dateTimeColumn}>
-          <Field label="Horário" accessibilityLabel={`${label}: horário`} value={time}
+          <Field label={required ? 'Horário *' : 'Horário'} accessibilityLabel={`${label}: horário${required ? ', obrigatório' : ''}`} value={time}
             onChangeText={(text) => onChangeText(`${date} ${formatTimeInput(text)}`)}
             placeholder="HH:mm" keyboardType="number-pad" autoCapitalize="none" maxLength={5} editable={editable} />
         </View>}
